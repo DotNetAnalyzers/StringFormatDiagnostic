@@ -51,7 +51,7 @@ Public Class DiagnosticAnalyzer
             Catch ex As UnexpectedChar
               Dim cex = DirectCast(ex, UnexpectedChar )
               Dim p0 = fs.SpanStart + cex.Pos
-            addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(p0, p0 + 1)), ex.Message))
+            addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(p0, p0 + 1)), "Unexpected Character"))
           Catch ex As UnexpectedlyReachedEndOfText_Exception 
             Dim cex = DirectCast(ex, UnexpectedlyReachedEndOfText_Exception)
             addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree,fs.Span ), cex.Message ))
@@ -221,6 +221,7 @@ Public Class DiagnosticAnalyzer
           Curr = format(pos)
 
           Select Case Curr
+
             Case Opening_Brace
               If (pos < len) AndAlso format(pos) = Opening_Brace Then
                 ' This brace has escaped! {{
@@ -228,9 +229,8 @@ Public Class DiagnosticAnalyzer
               Else
                 If (pos >= len) Then Throw New UnexpectedlyReachedEndOfText_Exception()
                 Throw New UnexpectedChar(Curr, pos)
-
-
               End If
+
             Case Closing_Brace
               If (pos < len) AndAlso format(pos) = Closing_Brace Then
                 ' This brace has escaped! }}
@@ -242,10 +242,13 @@ Public Class DiagnosticAnalyzer
                 ' Throw New UnexpectedChar(Curr, pos) 
               End If
           End Select
+
           If fmt Is Nothing Then fmt = New Text.StringBuilder()
           fmt.Append(Curr)
+
         End While
       End If
+
       If Curr <> Closing_Brace Then Throw New UnexpectedChar(Curr, pos)
       pos += 1
       Dim sFmt As String = Nothing
