@@ -42,8 +42,9 @@ Public Class DiagnosticAnalyzer
           Case 0 ' Error
           Case Else
             Dim fs = args.First
-            ' Let's make sure the first argument is a String Literal
-            If (fs.VisualBasicKind = SyntaxKind.StringLiteralExpression) Then Exit Sub
+            Dim f = CType(fs, SimpleArgumentSyntax)
+            If f Is Nothing Then Exit Sub
+            If f.Expression.VisualBasicKind <> SyntaxKind.StringLiteralExpression Then Exit Sub
             Dim ReportedIssues = AnalyseFormatString(cancellationToken, Nothing, fs.ToString, Enumerable.Repeat(Of Object)(Nothing, args.Count - 1).ToArray).ToArray
             For Each ReportedIssue In ReportedIssues
               Select Case True
