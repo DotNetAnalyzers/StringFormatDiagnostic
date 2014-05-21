@@ -30,11 +30,12 @@ Public Class DiagnosticAnalyzer
     End Get
   End Property
 
+
+
   Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-    Dim x = CType(node, VisualBasic.Syntax.MemberAccessExpressionSyntax)
+    Dim x = CType(node, MemberAccessExpressionSyntax)
     If x Is Nothing Then Exit Sub
-    Dim s = x.ToString
-    Select Case s.ToLower
+    Select Case x.ToString.ToLower
       Case "string.format", "console.write", "console.writeline"
         Dim p = CType(x.Parent, InvocationExpressionSyntax)
         Dim args = p.ArgumentList.Arguments
@@ -43,40 +44,23 @@ Public Class DiagnosticAnalyzer
           Case Else
             Dim fs = args.First
             Dim f = CType(fs, SimpleArgumentSyntax)
-            If f Is Nothing Then Exit Sub
-            If f.Expression.VisualBasicKind <> SyntaxKind.StringLiteralExpression Then Exit Sub
+            If f Is Nothing OrElse f.Expression.VisualBasicKind <> SyntaxKind.StringLiteralExpression Then Exit Sub
             Dim ReportedIssues = AnalyseFormatString(cancellationToken, Nothing, fs.ToString, Enumerable.Repeat(Of Object)(Nothing, args.Count - 1).ToArray).ToArray
             For Each ReportedIssue In ReportedIssues
-              Select Case True
-
-                Case TypeOf ReportedIssue Is ArgIndexOutOfRange
-                  Dim cex = DirectCast(ReportedIssue, ArgIndexOutOfRange)
-                  Dim p0 = fs.SpanStart + cex.Start
-                  Dim p1 = fs.SpanStart + 1 + cex.Finish
-                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(p0, p1)), ReportedIssue.Message))
-
-                Case TypeOf ReportedIssue Is UnexpectedChar
-                  Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
-                  Dim p0 = fs.SpanStart + cex.Start
-                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(p0, p0 + 1)), ReportedIssue.Message))
-
-                Case TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText
+              Select Case ReportedIssue
+                Case cex As ArgIndexOutOfRange
+                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(fs.SpanStart + cex.Start, fs.SpanStart + 1 + cex.Finish)), ReportedIssue.Message))
+                Case cex As UnexpectedChar
+                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(fs.SpanStart + cex.Start, fs.SpanStart + cex.Start + 1)), ReportedIssue.Message))
+                Case cex As UnexpectedlyReachedEndOfText
                   addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, fs.Span), ReportedIssue.Message))
-
-                Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit
-                  Dim cex = DirectCast(ReportedIssue, ArgIndexHasExceedLimit)
-                  Dim p0 = fs.SpanStart + cex.Start
-                  Dim p1 = fs.SpanStart + 1 + cex.Finish
-                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(p0, p1)), ReportedIssue.Message))
-
-                Case TypeOf ReportedIssue Is Internal_IssueReport
+                Case cex As ArgIndexHasExceedLimit
+                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(fs.SpanStart + cex.Start, fs.SpanStart + 1 + cex.Finish)), ReportedIssue.Message))
+                Case ThisReportedIssue As Internal_IssueReport
                   addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, fs.Span), ReportedIssue.Message))
-
               End Select
             Next
         End Select
-        'Debugger.Break()
-
     End Select
   End Sub
 
@@ -109,8 +93,7 @@ Public Class DiagnosticAnalyzer
     Dim internalError As Internal_IssueReport = Nothing
     Dim CurrentPosition = 0
     Dim LengthOfTheText = format.Length
-    Dim CurrentCharacter As Char = ControlChars.NullChar
-
+    Dim CurrentCharacter = ControlChars.NullChar
     Dim cf As ICustomFormatter = Nothing
     If provider IsNot Nothing Then cf = CType(provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
     Try
@@ -177,14 +160,10 @@ Public Class DiagnosticAnalyzer
             ArgIndex = (10 * ArgIndex) + DigitValue(CurrentCharacter)
           End If
           CurrentPosition += 1
-          '
           If (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
-
           CurrentCharacter = format(CurrentPosition)
           If Not ParsingIsInAnErrorState AndAlso (ArgIndex >= _LIMIT_) Then ParsingIsInAnErrorState = True
-
         Loop While IsDigit(CurrentCharacter)
-
         ' Why did we exit?
         EndPositionForThisPart = CurrentPosition - 1
         If ArgIndex >= _LIMIT_ Then
@@ -192,7 +171,6 @@ Public Class DiagnosticAnalyzer
           Yield New ArgIndexHasExceedLimit("Arg Index", ArgIndex, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart)
           If ExitOnFirst Then Exit Function
         End If
-
         If Not ParsingIsInAnErrorState AndAlso (ArgIndex >= Args.Length) Then
           ' Index is out of the bounds of the supplied args.
           Yield New ArgIndexOutOfRange(ArgIndex, Args.Length, StartPositionForThisPart, EndPositionForThisPart)
@@ -201,9 +179,7 @@ Public Class DiagnosticAnalyzer
         End If
         ' Reset the ParsingIsInAnErrorState Flag 
         ParsingIsInAnErrorState = False
-
         ConsumeSpaces(format, CurrentPosition, LengthOfTheText, CurrentCharacter, cancellationToken)
-
         If (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
         '
         ' +-----------------------------------------
@@ -211,14 +187,11 @@ Public Class DiagnosticAnalyzer
         ' +-----------------------------------------
         '
         Dim LeftJustifiy = False
-
         If CurrentCharacter = _COMMA_ Then
           CurrentPosition += 1
-
           ConsumeSpaces(format, CurrentPosition, LengthOfTheText, CurrentCharacter, cancellationToken)
           If (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
           CurrentCharacter = format(CurrentPosition)
-
           If CurrentCharacter = _MINUS_ Then
             LeftJustifiy = True
             CurrentPosition += 1
@@ -230,7 +203,6 @@ Public Class DiagnosticAnalyzer
             Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
             If ExitOnFirst Then Exit Function
           End If
-
           ' Reset the markers for highlighter
           StartPositionForThisPart = CurrentPosition
           EndPositionForThisPart = CurrentPosition
@@ -241,7 +213,6 @@ Public Class DiagnosticAnalyzer
               ' Calculate the new value of width
               Width = (10 * Width) + DigitValue(CurrentCharacter)
             End If
-
             CurrentPosition += 1
             If (CurrentPosition >= LengthOfTheText) Then
               Yield New UnexpectedlyReachedEndOfText
@@ -257,9 +228,7 @@ Public Class DiagnosticAnalyzer
             Yield New ArgIndexHasExceedLimit("Width Value", ArgIndex, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart)
             If ExitOnFirst Then Exit Function
           End If
-
         End If
-
         ConsumeSpaces(format, CurrentPosition, LengthOfTheText, CurrentCharacter, cancellationToken)
         If Not ParsingIsInAnErrorState AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
         '
@@ -267,29 +236,22 @@ Public Class DiagnosticAnalyzer
         ' |  Start of Parsing for formatting strings 
         ' +--------------------------------------------
         '
-        'Dim arg As Object = Nothing ' If(IsInBrokenState, Nothing, Args(Index))
-        'Dim fmt As Text.StringBuilder = Nothing
         If CurrentCharacter = _COLON_ Then
           CurrentPosition += 1
           While True
             If cancellationToken.IsCancellationRequested Then Exit Function
             If (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
-
             CurrentCharacter = format(CurrentPosition)
-
             Select Case CurrentCharacter
-
               Case Opening_Brace
                 If (CurrentPosition < LengthOfTheText) AndAlso format(CurrentPosition) = Opening_Brace Then
                   ' This brace has escaped! {{
                   CurrentPosition += 1
                 Else
                   If (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
-
                   Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
                   If ExitOnFirst Then Exit Function
                 End If
-
               Case Closing_Brace
                 If (CurrentPosition < LengthOfTheText) AndAlso format(CurrentPosition) = Closing_Brace Then
                   ' This brace has escaped! }}
@@ -299,59 +261,21 @@ Public Class DiagnosticAnalyzer
 
                   CurrentPosition -= 1
                   Exit While
-                  ' Throw New UnexpectedChar(Curr, pos) 
                 End If
             End Select
-
-            'If fmt Is Nothing Then fmt = New Text.StringBuilder()
-            'fmt.Append(CurrentCharacter)
-
           End While
         End If
-
         If CurrentCharacter <> Closing_Brace Then
           Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
           If ExitOnFirst Then Exit Function
         End If
         CurrentPosition += 1
-        '
-        ' NOTE: Probably don't need to following for just checking the validation
-        '
-        'Dim sFmt As String = Nothing
-        'Dim s As String = Nothing
-        'If cf IsNot Nothing Then
-        '  If fmt IsNot Nothing Then sFmt = fmt.ToString
-        '  s = cf.Format(sFmt, arg, provider)
-        'End If
-
-        'If s Is Nothing Then
-        '  Dim formattableArg As IFormattable = CType(arg, IFormattable)
-        '  '
-        '  '         #If FEATURE_LEGACYNETCF
-        '  ' If CompatibilitySwitch.IsAppEarlierThanWindows8 Then
-        '  ' // TimeSpan does not implement IFormattable in Mango
-        '  ' If TypeOf arg Is TimeSpan Then formattableArg = null
-        '  ' End If
-        '  ' #End If
-
-        '  If formattableArg IsNot Nothing Then
-        '    If (sFmt Is Nothing) AndAlso (fmt IsNot Nothing) Then sFmt = fmt.ToString()
-        '    s = formattableArg.ToString(sFmt, provider)
-        '  ElseIf arg IsNot Nothing Then
-        '    s = arg.ToString
-        '  End If
-
-        'End If
-
       End While
     Catch ex As Exception
       ' Let's use the IDE error window to also report internal errors, :-)
       internalError = New Internal_IssueReport(ex.ToString)
     End Try
     If internalError IsNot Nothing Then Yield internalError
-    'Return me
-
-
   End Function
 
   Private Sub ConsumeSpaces(format As String, ByRef pos As Integer, len As Integer, ByRef Curr As Char, cancellationToken As CancellationToken)
