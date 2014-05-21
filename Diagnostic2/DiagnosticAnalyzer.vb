@@ -33,11 +33,11 @@ Public Class DiagnosticAnalyzer
     Dim x = CType(node, VisualBasic.Syntax.MemberAccessExpressionSyntax)
     If x Is Nothing Then Exit Sub
     Dim s = x.ToString
-    If s.ToLower = "string.format" Then
-       
-       Dim p = CType(x.Parent, InvocationExpressionSyntax )
-       Dim args = p.ArgumentList.Arguments 
-       Select Case args.Count
+    Select Case s.ToLower 
+      Case "string.format","console.write","console.writeline"       
+        Dim p = CType(x.Parent, InvocationExpressionSyntax )
+        Dim args = p.ArgumentList.Arguments 
+        Select Case args.Count
            Case 0 ' Error
           Case Else
             Dim fs = args.First
@@ -60,7 +60,7 @@ Public Class DiagnosticAnalyzer
        End Select
       'Debugger.Break()
 
-    End If
+    End Select 
   End Sub
 
 
