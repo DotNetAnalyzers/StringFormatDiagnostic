@@ -1,6 +1,7 @@
 ﻿Imports System.Collections.Immutable
 Imports System.Runtime.Serialization
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasicExtensions
 
 <DiagnosticAnalyzer>
 <ExportDiagnosticAnalyzer(DiagnosticAnalyzer.DiagnosticId, LanguageNames.VisualBasic)>
@@ -8,9 +9,9 @@ Public Class DiagnosticAnalyzer
   ' TODO: Consider implementing other interfaces that implement IDiagnosticAnalyzer instead of or in addition to ISymbolAnalyzer
   Implements ISyntaxNodeAnalyzer(Of Microsoft.CodeAnalysis.VisualBasic.SyntaxKind)
 
-  Friend Const DiagnosticId = "String.Format Checker"
-  Friend Const Description = "Is the string of the String.Fornat valid?"
-  Friend Const MessageFormat = "Invalid String for String.Format. (Reason: {0})"
+  Friend Const DiagnosticId = "FormatString Diagnostic"
+  Friend Const Description = "Is the formatstring valid?"
+  Friend Const MessageFormat = "Invalid FormatString (Reason: {0})"
   Friend Const Category = "Validation"
 
   Friend Shared Rule As New DiagnosticDescriptor(DiagnosticId, Description, MessageFormat, Category, DiagnosticSeverity.Error)
@@ -41,7 +42,9 @@ Public Class DiagnosticAnalyzer
            Case 0 ' Error
           Case Else
             Dim fs = args.First
-            Dim ReportedIssues = AnalyseFormatString(cancellationToken, Nothing, fs.ToString, Enumerable.Repeat(Of Object)(Nothing, args.Count - 1).ToArray).ToArray
+            ' Let's make sure the first argument is a String Literal
+            If  (fs.VisualBasicKind = SyntaxKind.StringLiteralExpression) Then Exit sub
+              Dim ReportedIssues = AnalyseFormatString(cancellationToken, Nothing, fs.ToString, Enumerable.Repeat(Of Object)(Nothing, args.Count - 1).ToArray).ToArray
             For Each ReportedIssue In ReportedIssues
               Select Case True
 
