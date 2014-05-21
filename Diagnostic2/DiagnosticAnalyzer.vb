@@ -71,14 +71,14 @@ Public Class DiagnosticAnalyzer
               End Select
             Next
         End Select
-      'Debugger.Break()
+        'Debugger.Break()
 
-    End Select 
+    End Select
   End Sub
 
 
 
-  Iterator Function AnalyseFormatString( cancellationToken As CancellationToken,provider As IFormatProvider, format As String, ParamArray Args() As Object) As IEnumerable(Of IssueReport)
+  Iterator Function AnalyseFormatString(cancellationToken As CancellationToken, provider As IFormatProvider, format As String, ParamArray Args() As Object) As IEnumerable(Of IssueReport)
     If format Is Nothing Then Throw New ArgumentNullException("fs")
     If Args Is Nothing Then Throw New ArgumentNullException("Args")
     '
@@ -297,7 +297,7 @@ Public Class DiagnosticAnalyzer
                   pos += 1
                 Else
                   If (pos >= EoT) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
-             
+
                   pos -= 1
                   Exit While
                   ' Throw New UnexpectedChar(Curr, pos) 
@@ -414,7 +414,7 @@ Public Class DiagnosticAnalyzer
 
     Public Sub New(Index As Integer, Limit As Integer, start As Integer, Finish As Integer)
       MyBase.New(String.Format("Index of ({0}) is invalid. (0 <= Index < {1})", Index, Limit), start)
-      _Finish =Finish
+      _Finish = Finish
     End Sub
   End Class
 
@@ -428,9 +428,9 @@ Public Class DiagnosticAnalyzer
 
   Private MustInherit Class IssueReportWithStartPosition
     Inherits IssueReport
-    Public ReadOnly Property Start As integer
+    Public ReadOnly Property Start As Integer
     Friend Sub New(Msg As String, Start As Integer)
-      MyBase.New(msg)
+      MyBase.New(Msg)
       _Start = Start
     End Sub
   End Class
@@ -438,7 +438,7 @@ Public Class DiagnosticAnalyzer
   Public Class Internal_IssueReport
     Inherits IssueReport
 
-    Friend Sub New (Msg As string)
+    Friend Sub New(Msg As String)
       MyBase.New(Msg)
     End Sub
   End Class

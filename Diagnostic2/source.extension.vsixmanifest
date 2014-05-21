@@ -1,10 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Vsix Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
-  <Identifier Id="Diagnostic2..cf562d05-bc6d-4de4-a594-a518c1d0a5f7">
-    <Name>Diagnostic2</Name>
-    <Author>Roslyn ()</Author>
+  <Identifier Id="Diagnostic FormatString Validation..cf562d05-bc6d-4de4-a594-a518c1d0a5f7">
+    <Name>Diagnostic FormatString Validation</Name>
+    <Author>AdamSpeight2008</Author>
     <Version>1.0</Version>
-    <Description xml:space="preserve">This is a sample diagnostic extension for the .NET Compiler Platform ("Roslyn").</Description>
+    <Description xml:space="preserve">This diagnostic extension for the .NET Compiler Platform ("Roslyn").
+    Validate the text of a FormatString. Are the Index Args supplied within range?
+    </Description>
     <Locale>1033</Locale>
     <SupportedProducts>
       <VisualStudio Version="12.0">

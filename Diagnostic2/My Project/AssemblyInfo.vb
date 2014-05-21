@@ -7,10 +7,10 @@ Imports System.Runtime.InteropServices
 
 ' Review the values of the assembly attributes
 
-<Assembly: AssemblyTitle("Diagnostic2")>
-<Assembly: AssemblyDescription("")>
-<Assembly: AssemblyCompany("")>
-<Assembly: AssemblyProduct("Diagnostic2")>
+<Assembly: AssemblyTitle("Diagnostic: String.Format Validation")>
+<Assembly: AssemblyDescription("Validate the text of a format string pre compilation.")>
+<Assembly: AssemblyCompany("AdamSpeight2008")>
+<Assembly: AssemblyProduct("Diagnostic: String.Format Validation")>
 <Assembly: AssemblyCopyright("Copyright ©  2014")>
 <Assembly: AssemblyTrademark("")>
 
