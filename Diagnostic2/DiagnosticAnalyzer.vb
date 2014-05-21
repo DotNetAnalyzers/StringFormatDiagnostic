@@ -41,23 +41,36 @@ Public Class DiagnosticAnalyzer
            Case 0 ' Error
           Case Else
             Dim fs = args.First
-            Try
-              AnalyseFormatString(Nothing,fs.ToString, Enumerable.Repeat(Of Object)(Nothing, args.Count-1).ToArray   )
-            Catch ex As ArgIndexOutOfRange
-              Dim cex = DirectCast(ex,ArgIndexOutOfRange)
-              Dim p0= fs.SpanStart + cex.From
-              Dim p1 = fs.SpanStart + 1 + cex.To
-              addDiagnostic(Diagnostic.Create(Rule,Location.Create(node.SyntaxTree,TextSpan.FromBounds(p0,p1)),ex.Message ) )
-            Catch ex As UnexpectedChar
-              Dim cex = DirectCast(ex, UnexpectedChar )
-              Dim p0 = fs.SpanStart + cex.Pos
-            addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(p0, p0 + 1)), "Unexpected Character"))
-          Catch ex As UnexpectedlyReachedEndOfText_Exception 
-            Dim cex = DirectCast(ex, UnexpectedlyReachedEndOfText_Exception)
-            addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree,fs.Span ), cex.Message ))
-            'Debugger.Break 
-          End Try
-       End Select
+            Dim ReportedIssues = AnalyseFormatString(cancellationToken, Nothing, fs.ToString, Enumerable.Repeat(Of Object)(Nothing, args.Count - 1).ToArray).ToArray
+            For Each ReportedIssue In ReportedIssues
+              Select Case True
+
+                Case TypeOf ReportedIssue Is ArgIndexOutOfRange
+                  Dim cex = DirectCast(ReportedIssue, ArgIndexOutOfRange)
+                  Dim p0 = fs.SpanStart + cex.Start
+                  Dim p1 = fs.SpanStart + 1 + cex.Finish
+                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(p0, p1)), ReportedIssue.Message))
+
+                Case TypeOf ReportedIssue Is UnexpectedChar
+                  Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
+                  Dim p0 = fs.SpanStart + cex.Start
+                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(p0, p0 + 1)), "Unexpected Character"))
+
+                Case TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText
+                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, fs.Span), ReportedIssue.Message))
+
+                Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit
+                  Dim cex = DirectCast(ReportedIssue, ArgIndexHasExceedLimit)
+                  Dim p0 = fs.SpanStart + cex.Start
+                  Dim p1 = fs.SpanStart + 1 + cex.Finish
+                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(p0, p1)), ReportedIssue.Message))
+
+                Case TypeOf ReportedIssue Is Internal_IssueReport
+                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, fs.Span), ReportedIssue.Message))
+
+              End Select
+            Next
+        End Select
       'Debugger.Break()
 
     End Select 
@@ -65,7 +78,7 @@ Public Class DiagnosticAnalyzer
 
 
 
-  Sub AnalyseFormatString(provider As IFormatProvider, format As String, ParamArray Args() As Object)
+  Iterator Function AnalyseFormatString( cancellationToken As CancellationToken,provider As IFormatProvider, format As String, ParamArray Args() As Object) As IEnumerable(Of IssueReport)
     If format Is Nothing Then Throw New ArgumentNullException("fs")
     If Args Is Nothing Then Throw New ArgumentNullException("Args")
     '
@@ -88,209 +101,268 @@ Public Class DiagnosticAnalyzer
     '
     '
     '
-    Const Limit As Integer = 1_000_000
+    Const _LIMIT_ As Integer = 1_000_000  ' This limit is found inside the .net implementation of String.Format.
+    Const ExitOnFirst = False
 
-
+    Dim internalError As Internal_IssueReport = Nothing
     Dim pos = 0
-    Dim len = format.Length
+    Dim EoT = format.Length
     Dim Curr As Char = ControlChars.NullChar
 
     Dim cf As ICustomFormatter = Nothing
     If provider IsNot Nothing Then cf = CType(provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
-
-    While True
-      Dim p = pos
-      Dim i = pos
-
-      Dim ob = 0
-      Dim cb = 0
-
-      While p < len
-        Curr = format(pos)
-        pos += 1
-        Select Case Curr
-          Case Closing_Brace
-            If (pos < len) AndAlso format(pos) = Closing_Brace Then
-              ' This brace has escaped! }}
-              pos += 1
-            Else
-              If (pos >= len) Then Throw New UnexpectedlyReachedEndOfText_Exception()
-              Throw New UnexpectedChar(Curr, pos)
-            End If
-          Case Opening_Brace
-            If (pos < len) AndAlso format(pos) = Opening_Brace Then
-              ' This brace has escaped! {{
-              pos += 1
-            Else
-              If (pos >= len) Then Throw New UnexpectedlyReachedEndOfText_Exception()
-              ob = pos ' This is the char index of the first character in the IndexPart
-              pos -= 1
-
-              Exit While
-              ' Throw New UnexpectedChar(Curr, pos)
-            End If
-        End Select
-        ' Normally here we would Append( Curr ) but this is just checking the validity of the formatstring.
-
-      End While
-      ' Have we reached the end of the format string?
-      If (pos = len) Then Exit While
-      pos += 1
-      If (pos = len) Then Throw New UnexpectedlyReachedEndOfText_Exception()
-      Curr = format(pos)
-      If Not IsDigit(Curr) Then Throw New UnexpectedChar(Curr, pos)
-      ' -- Parse and Calculate IndexPart Value
-      Dim Index = 0
-      Do
-        Index = (10 * Index) + DigitValue(Curr)
-        pos += 1
-        If pos = len Then Throw New UnexpectedlyReachedEndOfText_Exception
-        Curr = format(pos)
-      Loop While IsDigit(Curr) AndAlso (Index < Limit)
-      ' Why did we exit?
-      If Index >= Limit Then
-        ' Index Value is greater or equal to limit.
-        ' ToDo: Contine the parse characters to the closing brace (or AlignmentPart or FormatPart). So we can underline it in the IDE.
-        Throw New FormatException("Index Value has exceeded the limit")
-      End If
-      cb = pos - 1
-      If Index >= Args.Length Then
-        ' Index is out of the bounds of the supplied args. 
-        Throw New ArgIndexOutOfRange(ob,cb,String.Format("Index of ({0}) is invalid. (0 <= Index < {1})", Index, Args.Length))
-        ' ToDo: Get the Start and End positions of opening and closing braces.
-      End If
-      ' Consume Spaces
-      While (pos < len)
-        Curr = format(pos)
-        If Curr <> _SPACE_ Then Exit While
-        pos += 1
-      End While
-
-      Dim LeftJustifiy = False
-      Dim Width = 0
-      ' -- Check for AlignmentPart --
-      If Curr = _COMMA_ Then
-        pos += 1
-        ' Consume spaces
-        While (pos < len)
+    Try
+      While True
+        Dim StartPositionForThisPart = 0
+        Dim EndPositionForThisPart = 0
+        While pos < EoT
           Curr = format(pos)
-          If Curr <> _SPACE_ Then Exit While
           pos += 1
-        End While
-        If pos = len Then Throw New UnexpectedlyReachedEndOfText_Exception
-        Curr = format(pos)
-        If Curr = _MINUS_ Then
-          LeftJustifiy = True
-          pos += 1
-          If pos = len Then Throw New UnexpectedlyReachedEndOfText_Exception
-          Curr = format(pos)
-        End If
-        If Not IsDigit(Curr) Then Throw New UnexpectedChar(Curr, pos)
-
-        Do
-          Width = (10 * Width) + DigitValue(Curr)
-          If pos = len Then Throw New UnexpectedlyReachedEndOfText_Exception
-          Curr = format(pos)
-        Loop While IsDigit(Curr) AndAlso (Width < Limit)
-        ' Why did we exit?
-        If Width >= Limit Then
-          ' Index Value is greater or equal to limit.
-          ' ToDo: Contine the parse characters to the closing brace (or AlignmentPart or FormatPart). So we can underline it in the IDE.
-          Throw New FormatException("Alignment Value has exceeded the limit")
-        End If
-
-      End If
-
-      ' Consume spaces
-      While (pos < len)
-        Curr = format(pos)
-        If Curr <> _SPACE_ Then Exit While
-        pos += 1
-      End While
-
-      Dim arg As Object = Args(Index)
-      Dim fmt As Text.StringBuilder = Nothing
-
-      ' -- Check for formatting strings --
-      If Curr = _COLON_ Then
-        pos += 1
-        i = pos
-
-        While True
-          If pos = len Then Throw New UnexpectedlyReachedEndOfText_Exception
-          Curr = format(pos)
-
           Select Case Curr
-
-            Case Opening_Brace
-              If (pos < len) AndAlso format(pos) = Opening_Brace Then
-                ' This brace has escaped! {{
-                pos += 1
-              Else
-                If (pos >= len) Then Throw New UnexpectedlyReachedEndOfText_Exception()
-                Throw New UnexpectedChar(Curr, pos)
-              End If
-
             Case Closing_Brace
-              If (pos < len) AndAlso format(pos) = Closing_Brace Then
+              If (pos < EoT) AndAlso format(pos) = Closing_Brace Then
                 ' This brace has escaped! }}
                 pos += 1
               Else
-                If (pos >= len) Then Throw New UnexpectedlyReachedEndOfText_Exception()
+                If (pos >= EoT) Then
+                  Yield New UnexpectedlyReachedEndOfText
+                  Exit Function
+                End If
+                Yield New UnexpectedChar(Curr, pos)
+                If ExitOnFirst Then Exit Function
+              End If
+            Case Opening_Brace
+              If (pos < EoT) AndAlso format(pos) = Opening_Brace Then
+                ' This brace has escaped! {{
+                pos += 1
+              Else
+                If (pos >= EoT) Then
+                  Yield New UnexpectedlyReachedEndOfText
+                  Exit Function
+                End If
+                StartPositionForThisPart = pos ' This is the char index of the first character in the IndexPart
                 pos -= 1
+
                 Exit While
-                ' Throw New UnexpectedChar(Curr, pos) 
+                ' Throw New UnexpectedChar(Curr, pos)
               End If
           End Select
-
-          If fmt Is Nothing Then fmt = New Text.StringBuilder()
-          fmt.Append(Curr)
+          ' Normally here we would Append( Curr ) but this is just checking the validity of the formatstring.
 
         End While
-      End If
+        ' Have we reached the end of the format string?
+        If (pos >= EoT) Then Exit While
+        pos += 1
+        If (pos >= EoT) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
 
-      If Curr <> Closing_Brace Then Throw New UnexpectedChar(Curr, pos)
-      pos += 1
-      Dim sFmt As String = Nothing
-      Dim s As String = Nothing
-      If cf IsNot Nothing Then
-        If fmt IsNot Nothing Then sFmt = fmt.ToString
-        s = cf.Format(sFmt, arg, provider)
-      End If
-
-      If s Is Nothing Then
-        Dim formattableArg As IFormattable = CType(arg, IFormattable)
-        '
-        '         #If FEATURE_LEGACYNETCF
-        ' If CompatibilitySwitch.IsAppEarlierThanWindows8 Then
-        ' // TimeSpan does not implement IFormattable in Mango
-        ' If TypeOf arg Is TimeSpan Then formattableArg = null
-        ' End If
-        ' #End If
-
-        If formattableArg IsNot Nothing Then
-          If (sFmt Is Nothing) AndAlso (fmt IsNot Nothing) Then sFmt = fmt.ToString()
-          s = formattableArg.ToString(sFmt, provider)
-        ElseIf arg IsNot Nothing Then
-          s = arg.ToString
+        Curr = format(pos)
+        If Not IsDigit(Curr) Then
+          Yield New UnexpectedChar(Curr, pos)
+          If ExitOnFirst Then Exit Function
         End If
 
-      End If
-      '' apply the alignment
-      'If s Is Nothing Then s= String.Empty
-      'Dim pad = Width - s.Length
-      'If (Not LeftJustifiy) AndAlso (pad > 0) Then Append(_SPACE_, pad)
-      'Append(s)
-      'If LeftJustifiy AndAlso (pad > 0) Then Append(_SPACE_,pad) 
-      ''
 
 
-    End While
+        ' 
+        ' Start Parsing for the Index value
+        '
+        Dim ParsingIsInAnErrorState = False ' This flag enables the parser to continue parsing but there is an error. Allowing us to report additional issue.
+
+        ' -- Parse and Calculate IndexPart Value
+        Dim Index = 0
+        Do
+          If Not ParsingIsInAnErrorState Then
+            ' Work out the new value of the Index
+            Index = (10 * Index) + DigitValue(Curr)
+          End If
+          pos += 1
+          If (pos >= EoT) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+
+          Curr = format(pos)
+          If Not ParsingIsInAnErrorState AndAlso (Index >= _LIMIT_) Then ParsingIsInAnErrorState = True
+
+        Loop While IsDigit(Curr)
+
+        ' Why did we exit?
+        EndPositionForThisPart = pos - 1
+        If Index >= _LIMIT_ Then
+          ' Index Value is greater or equal to limit.
+          Yield New ArgIndexHasExceedLimit("Arg Index", Index, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart)
+          If ExitOnFirst Then Exit Function
+        End If
+
+        If Not ParsingIsInAnErrorState AndAlso (Index >= Args.Length) Then
+          ' Index is out of the bounds of the supplied args.
+          Yield New ArgIndexOutOfRange(Index, Args.Length, StartPositionForThisPart, EndPositionForThisPart)
+          ' ToDo: Get the Start and End positions of opening and closing braces.
+          If ExitOnFirst Then Exit Function
+        End If
+        ParsingIsInAnErrorState = False
+
+        ConsumeSpaces(format, _SPACE_, pos, EoT, Curr)
+
+        If (pos >= EoT) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+
+        '
+        ' -- Check for AlignmentPart -- 
+        '
+        Dim LeftJustifiy = False
+        If Curr = _COMMA_ Then
+          pos += 1
+          ConsumeSpaces(format, _SPACE_, pos, EoT, Curr)
+          If (pos >= EoT) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+
+          Curr = format(pos)
+          If Curr = _MINUS_ Then
+            LeftJustifiy = True
+            pos += 1
+            If (pos >= EoT) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+            Curr = format(pos)
+          End If
+
+          If Not IsDigit(Curr) Then
+            Yield New UnexpectedChar(Curr, pos)
+            If ExitOnFirst Then Exit Function
+          End If
+
+          ' Reset the markers for highlighter
+          StartPositionForThisPart = pos
+          EndPositionForThisPart = pos
+          Dim Width = 0
+
+          Do
+
+            If Not ParsingIsInAnErrorState Then
+              ' Calculate the new value of width
+              Width = (10 * Width) + DigitValue(Curr)
+            End If
+
+            pos += 1
+
+            If (pos >= EoT) Then
+              Yield New UnexpectedlyReachedEndOfText
+              Exit Function
+            End If
+
+            If Not ParsingIsInAnErrorState AndAlso (Width >= _LIMIT_) Then ParsingIsInAnErrorState = True
+
+            Curr = format(pos)
+          Loop While IsDigit(Curr) 'AndAlso (Width < _LIMIT_)
+          ' Why did we exit?
+          EndPositionForThisPart = pos - 1
+          If Width >= _LIMIT_ Then
+            ' Index Value is greater or equal to limit.
+            Yield New ArgIndexHasExceedLimit("Width Value", Index, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart)
+            If ExitOnFirst Then Exit Function
+
+          End If
+
+        End If
+
+        ConsumeSpaces(format, _SPACE_, pos, EoT, Curr)
+        If Not ParsingIsInAnErrorState AndAlso (pos >= EoT) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+
+
+        '
+        ' -- Check for formatting strings --
+        '
+        Dim arg As Object = Nothing ' If(IsInBrokenState, Nothing, Args(Index))
+        Dim fmt As Text.StringBuilder = Nothing
+
+        If Curr = _COLON_ Then
+          pos += 1
+          'i = pos
+
+          While True
+            If (pos >= EoT) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+
+            Curr = format(pos)
+
+            Select Case Curr
+
+              Case Opening_Brace
+                If (pos < EoT) AndAlso format(pos) = Opening_Brace Then
+                  ' This brace has escaped! {{
+                  pos += 1
+                Else
+                  If (pos >= EoT) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+
+                  Yield New UnexpectedChar(Curr, pos)
+                  If ExitOnFirst Then Exit Function
+                End If
+
+              Case Closing_Brace
+                If (pos < EoT) AndAlso format(pos) = Closing_Brace Then
+                  ' This brace has escaped! }}
+                  pos += 1
+                Else
+                  If (pos >= EoT) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+             
+                  pos -= 1
+                  Exit While
+                  ' Throw New UnexpectedChar(Curr, pos) 
+                End If
+            End Select
+
+            If fmt Is Nothing Then fmt = New Text.StringBuilder()
+            fmt.Append(Curr)
+
+          End While
+        End If
+
+        If Curr <> Closing_Brace Then
+          Yield New UnexpectedChar(Curr, pos)
+          If ExitOnFirst Then Exit Function
+        End If
+        pos += 1
+        '
+        ' NOTE: Probably don't need to following for just checking the validation
+        '
+        'Dim sFmt As String = Nothing
+        'Dim s As String = Nothing
+        'If cf IsNot Nothing Then
+        '  If fmt IsNot Nothing Then sFmt = fmt.ToString
+        '  s = cf.Format(sFmt, arg, provider)
+        'End If
+
+        'If s Is Nothing Then
+        '  Dim formattableArg As IFormattable = CType(arg, IFormattable)
+        '  '
+        '  '         #If FEATURE_LEGACYNETCF
+        '  ' If CompatibilitySwitch.IsAppEarlierThanWindows8 Then
+        '  ' // TimeSpan does not implement IFormattable in Mango
+        '  ' If TypeOf arg Is TimeSpan Then formattableArg = null
+        '  ' End If
+        '  ' #End If
+
+        '  If formattableArg IsNot Nothing Then
+        '    If (sFmt Is Nothing) AndAlso (fmt IsNot Nothing) Then sFmt = fmt.ToString()
+        '    s = formattableArg.ToString(sFmt, provider)
+        '  ElseIf arg IsNot Nothing Then
+        '    s = arg.ToString
+        '  End If
+
+        'End If
+
+      End While
+    Catch ex As Exception
+      ' Let's use the IDE error window to also report internal errors, :-)
+      internalError = New Internal_IssueReport(ex.ToString)
+    End Try
+    If internalError IsNot Nothing Then Yield internalError
     'Return me
 
 
-  End Sub
+  End Function
 
+  Private Shared Sub ConsumeSpaces(format As String, _SPACE_ As Char, ByRef pos As Integer, len As Integer, ByRef Curr As Char)
+    ' Consume spaces
+    While (pos < len)
+      Curr = format(pos)
+      If Curr <> _SPACE_ Then Exit While
+      pos += 1
+    End While
+  End Sub
 
   Private Function IsDigit(c As Char) As Boolean
     Return c >= "0"c AndAlso c <= "9"c
@@ -313,103 +385,69 @@ Public Class DiagnosticAnalyzer
     End Select
   End Function
 
-  <Serializable>
-  Private Class UnexpectedlyReachedEndOfText_Exception
-    Inherits Exception
+
+  Private Class UnexpectedlyReachedEndOfText
+    Inherits IssueReport
 
     Public Sub New()
+      MyBase.New("Unexpectedly Reached End Of Text")
     End Sub
 
-    Public Sub New(message As String)
-      MyBase.New(message)
-    End Sub
 
-    Public Sub New(message As String, innerException As Exception)
-      MyBase.New(message, innerException)
-    End Sub
+  End Class
 
-    Protected Sub New(info As SerializationInfo, context As StreamingContext)
-      MyBase.New(info, context)
+  Private Class ArgIndexHasExceedLimit
+    Inherits IssueReportWithStartPosition
+
+    Public ReadOnly Property Finish As Integer
+
+    Public Sub New(ParamName As String, Index As Integer, Limit As Integer, start As Integer, Finish As Integer)
+      MyBase.New(String.Format("{2} of ({0}) has exceed .net String.Format limit of {1}.", Index, Limit, ParamName), start)
+      _Finish = Finish
     End Sub
   End Class
 
-  <Serializable>
-  Private Class UnexpectedChar
-    Inherits Exception
-
-    Private _pos As Integer = -1
-    Public ReadOnly Property Pos As Integer
-      Get
-        Return _pos
-      End Get
-    End Property
-
-    Private _C As Char
-    Public ReadOnly Property C As Char
-      Get
-        Return _C
-      End Get
-    End Property
-
-    Public Sub New()
-    End Sub
-
-    Public Sub New(message As String)
-      MyBase.New(message)
-    End Sub
-
-    Public Sub New(c As Char, pos As Integer)
-      MyBase.New()
-      _C = c
-      _pos = pos
-    End Sub
-
-    Public Sub New(message As String, innerException As Exception)
-      MyBase.New(message, innerException)
-    End Sub
-
-    Protected Sub New(info As SerializationInfo, context As StreamingContext)
-      MyBase.New(info, context)
-    End Sub
-  End Class
-
-  <Serializable>
   Private Class ArgIndexOutOfRange
-    Inherits Exception
+    Inherits IssueReportWithStartPosition
 
-    Private _OB As Integer = -1
-    Public ReadOnly Property [From] As Integer
-      Get
-        Return _OB
-      End Get
-    End Property
+    Public ReadOnly Property Finish As Integer
 
-    Private _CB As Integer =-1.0R
-    Public ReadOnly Property [To] As Integer
-      Get
-        Return _CB
-      End Get
-    End Property
-
-    Public Sub New()
+    Public Sub New(Index As Integer, Limit As Integer, start As Integer, Finish As Integer)
+      MyBase.New(String.Format("Index of ({0}) is invalid. (0 <= Index < {1})", Index, Limit), start)
+      _Finish =Finish
     End Sub
+  End Class
 
-    Public Sub New(message As String)
-      MyBase.New(message)
+  Private Class UnexpectedChar
+    Inherits IssueReportWithStartPosition
+    Public Sub New(C As Char, Start As Integer)
+      MyBase.New("Unexpected Character (" & C & ")", Start)
+
     End Sub
+  End Class
 
-    Public Sub New(OB As Integer, CB As Integer,msg As string)
+  Private MustInherit Class IssueReportWithStartPosition
+    Inherits IssueReport
+    Public ReadOnly Property Start As integer
+    Friend Sub New(Msg As String, Start As Integer)
       MyBase.New(msg)
-      _CB = CB
-      _OB = OB
+      _Start = Start
     End Sub
+  End Class
 
-    Public Sub New(message As String, innerException As Exception)
-      MyBase.New(message, innerException)
+  Public Class Internal_IssueReport
+    Inherits IssueReport
+
+    Friend Sub New (Msg As string)
+      MyBase.New(Msg)
     End Sub
+  End Class
+  Public MustInherit Class IssueReport
+    Public ReadOnly Property Message As String
 
-    Protected Sub New(info As SerializationInfo, context As StreamingContext)
-      MyBase.New(info, context)
+
+    Friend Sub New(Msg As String)
+      _Message = Msg
     End Sub
   End Class
 End Class
