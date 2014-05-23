@@ -16,11 +16,16 @@ Public Class DiagnosticAnalyzer
   Friend Const MessageFormat = "Invalid FormatString (Reason: {0})"
   Friend Const Category = "Validation"
 
-  Friend Shared Rule As New DiagnosticDescriptor(DiagnosticId, Description, MessageFormat, Category, DiagnosticSeverity.Error)
+  Friend Shared Rule1 As New DiagnosticDescriptor(DiagnosticId, Description, MessageFormat, Category, DiagnosticSeverity.Error)
+  Friend Shared Rule2 As New DiagnosticDescriptor(DiagnosticId, Description, "This Constant is used in either:-
+  String.Format
+  Console.Write
+  Console.WriteLine
+ "+   MessageFormat, Category, DiagnosticSeverity.Error)
 
   Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
     Get
-      Return ImmutableArray.Create(Rule)
+      Return ImmutableArray.Create(Rule1,Rule2 )
     End Get
   End Property
 
@@ -32,11 +37,15 @@ Public Class DiagnosticAnalyzer
   End Property
 
   Public Function AddWarning(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IssueReport) As Diagnostic
-    Return Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
+    Return Diagnostic.Create(Rule1, Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
+  End Function
+  Public Function AddWarningAtSource(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IssueReport) As Diagnostic
+    Return Diagnostic.Create(Rule2, Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
   End Function
   Public Function AddInformation(node As SyntaxNode, msg As String) As Diagnostic
-    Return Diagnostic.Create(DiagnosticId, Category,msg, DiagnosticSeverity.Info, 0, False, Location.Create(node.SyntaxTree, node.Span))
+    Return Diagnostic.Create(DiagnosticId, Category, msg, DiagnosticSeverity.Info, 0, False, Location.Create(node.SyntaxTree, node.Span))
   End Function
+
   Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
     Dim x = CType(node, MemberAccessExpressionSyntax)
     If x Is Nothing Then Exit Sub
@@ -49,37 +58,52 @@ Public Class DiagnosticAnalyzer
           Case Else
             Dim fs = args.First
             If TypeOf fs Is OmittedArgumentSyntax Then Exit Sub
-            Dim f = CType(fs, SimpleArgumentSyntax)
-            If f IsNot Nothing Then
-              Select Case f.Expression.VisualBasicKind
+            Dim TheFormatString = CType(fs, SimpleArgumentSyntax)
+            If TheFormatString IsNot Nothing Then
+              Select Case TheFormatString.Expression.VisualBasicKind
                 Case SyntaxKind.StringLiteralExpression
-                  Dim ReportedIssues = AnalyseFormatString(cancellationToken, fs.ToString, args.Count)
+                  Dim ReportedIssues = AnalyseFormatString(cancellationToken, fs.ToString, args.Count - 1)
                   For Each ReportedIssue In ReportedIssues
                     Select Case ReportedIssue
-                      Case cex As ArgIndexOutOfRange : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
-                      Case cex As UnexpectedChar : addDiagnostic(AddWarning(fs, cex.Start, cex.Start + 1, ReportedIssue))
+                      Case cex As ArgIndexOutOfRange           : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
+                      Case cex As UnexpectedChar               : addDiagnostic(AddWarning(fs, cex.Start, cex.Start + 1, ReportedIssue))
                       Case cex As UnexpectedlyReachedEndOfText : addDiagnostic(AddWarning(fs, 0, fs.Span.Length, ReportedIssue))
-                      Case cex As ArgIndexHasExceedLimit : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
-                      Case ___ As Internal_IssueReport : addDiagnostic(AddWarning(node, 0, fs.Span.Length, ReportedIssue))
-                      Case ___ As ContainsNoArgs : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this is correct?"))
+                      Case cex As ArgIndexHasExceedLimit       : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
+                      Case ___ As Internal_IssueReport         : addDiagnostic(AddWarning(node, 0, fs.Span.Length, ReportedIssue))
+                      Case ___ As ContainsNoArgs               : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this Is correct?"))
                     End Select
                   Next
+
                 Case SyntaxKind.IdentifierName
-                  Dim vx = CType(f.Expression, IdentifierNameSyntax)
-                  If vx Is Nothing Then Exit Sub
-                  Dim xx = semanticModel.GetConstantValue(vx, cancellationToken)
-                  If xx.HasValue = False Then Exit Sub
-                  Dim xy = semanticModel.GetSymbolInfo(vx, cancellationToken)
-                  Dim s = semanticModel.LookupSymbols(f.Expression.Span.Start, name:=vx.Identifier.Text)(0) ', cancellationToken)i
-                  Dim sl = CType(s, ILocalSymbol)
 
+                  Dim ThisIdentifier = CType(TheFormatString.Expression, IdentifierNameSyntax)
+                  If ThisIdentifier Is Nothing Then Exit Sub
+                  Dim ConstValue = semanticModel.GetConstantValue(ThisIdentifier, cancellationToken)
+                  If ConstValue.HasValue = False Then Exit Sub
+                  Dim FoundSymbol = semanticModel.LookupSymbols( TheFormatString.Expression.Span.Start, name:=ThisIdentifier.Identifier.Text)(0)
+                  Dim VariableDeclarationSite = TryCast(FoundSymbol.DeclaringSyntaxReferences(0).GetSyntax.Parent, VariableDeclaratorSyntax)
+                  If VariableDeclarationSite Is Nothing Then Exit Sub
+                  Dim TheValueOfTheVariable = VariableDeclarationSite.Initializer.Value
+                  'Debugger.Break()
+                  If FoundSymbol.IsExtern Then
+                    ' Use usage site for location of Warings, ignore the yield ranges and use the span of ThisIdentifier.
+                  Else
+                    ' Use the declaration site location ( SpanOfConstantValue ) for the location of the warnings. Also use the yield ranges for the highlighting.
 
-                  Debugger.Break()
-
-                  '
-
-
-              End Select
+                
+                  Dim ReportedIssues = AnalyseFormatString(cancellationToken, ConstValue.Value .ToString, args.Count-1)
+                    For Each ReportedIssue In ReportedIssues
+                      Select Case ReportedIssue
+                        Case cex As ArgIndexOutOfRange           : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
+                        Case cex As UnexpectedChar               : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start+1, cex.Start + 2, ReportedIssue))
+                        Case cex As UnexpectedlyReachedEndOfText : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
+                        Case cex As ArgIndexHasExceedLimit       : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
+                        Case ___ As Internal_IssueReport         : addDiagnostic(AddWarningAtSource(node, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
+                        Case ___ As ContainsNoArgs               : addDiagnostic(AddInformation(TheValueOfTheVariable, "Contains no args! Are you sure this Is correct?"))
+                      End Select
+                    Next
+                  End If
+              End Select      
 
             End If
 
@@ -316,7 +340,7 @@ Public Class DiagnosticAnalyzer
   End Sub
 
   Private Function IsDigit(c As Char) As Boolean
-    Return "0"c <= c  AndAlso c <= "9"c
+    Return "0"c <= c AndAlso c <= "9"c
   End Function
 
   Private Function DigitValue(c As Char) As Integer
