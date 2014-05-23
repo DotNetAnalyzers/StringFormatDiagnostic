@@ -1,41 +1,30 @@
 ﻿Option Strict On
 Imports System.Collections.Immutable
-Imports System.Runtime.Serialization
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasicExtensions
-Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions
-Imports Microsoft.CodeAnalysis.VisualBasic.GeneratedExtensionSyntaxFacts
-Imports Microsoft.CodeAnalysis.VisualBasic.TypedConstantExtensions
 <DiagnosticAnalyzer>
 <ExportDiagnosticAnalyzer(DiagnosticAnalyzer.DiagnosticId, LanguageNames.VisualBasic)>
 Public Class DiagnosticAnalyzer
   Implements ISyntaxNodeAnalyzer(Of Microsoft.CodeAnalysis.VisualBasic.SyntaxKind)
-
   Friend Const DiagnosticId = "FormatString Diagnostic"
   Friend Const Description = "Is the formatstring valid?"
   Friend Const MessageFormat = "Invalid FormatString (Reason: {0})"
   Friend Const Category = "Validation"
-
   Friend Shared Rule1 As New DiagnosticDescriptor(DiagnosticId, Description, MessageFormat, Category, DiagnosticSeverity.Error)
   Friend Shared Rule2 As New DiagnosticDescriptor(DiagnosticId, Description, "This Constant is used in either:-
   String.Format
   Console.Write
   Console.WriteLine
- "+   MessageFormat, Category, DiagnosticSeverity.Error)
-
+ " + MessageFormat, Category, DiagnosticSeverity.Error)
   Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
     Get
-      Return ImmutableArray.Create(Rule1,Rule2 )
+      Return ImmutableArray.Create(Rule1, Rule2)
     End Get
   End Property
-
-
   Private ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
     Get
       Return ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression)
     End Get
   End Property
-
   Public Function AddWarning(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IssueReport) As Diagnostic
     Return Diagnostic.Create(Rule1, Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
   End Function
@@ -45,7 +34,6 @@ Public Class DiagnosticAnalyzer
   Public Function AddInformation(node As SyntaxNode, msg As String) As Diagnostic
     Return Diagnostic.Create(DiagnosticId, Category, msg, DiagnosticSeverity.Info, 0, False, Location.Create(node.SyntaxTree, node.Span))
   End Function
-
   Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
     Dim x = CType(node, MemberAccessExpressionSyntax)
     If x Is Nothing Then Exit Sub
@@ -65,22 +53,20 @@ Public Class DiagnosticAnalyzer
                   Dim ReportedIssues = AnalyseFormatString(cancellationToken, fs.ToString, args.Count - 1)
                   For Each ReportedIssue In ReportedIssues
                     Select Case ReportedIssue
-                      Case cex As ArgIndexOutOfRange           : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
-                      Case cex As UnexpectedChar               : addDiagnostic(AddWarning(fs, cex.Start, cex.Start + 1, ReportedIssue))
+                      Case cex As ArgIndexOutOfRange : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
+                      Case cex As UnexpectedChar : addDiagnostic(AddWarning(fs, cex.Start, cex.Start + 1, ReportedIssue))
                       Case cex As UnexpectedlyReachedEndOfText : addDiagnostic(AddWarning(fs, 0, fs.Span.Length, ReportedIssue))
-                      Case cex As ArgIndexHasExceedLimit       : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
-                      Case ___ As Internal_IssueReport         : addDiagnostic(AddWarning(node, 0, fs.Span.Length, ReportedIssue))
-                      Case ___ As ContainsNoArgs               : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this Is correct?"))
+                      Case cex As ArgIndexHasExceedLimit : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
+                      Case ___ As Internal_IssueReport : addDiagnostic(AddWarning(node, 0, fs.Span.Length, ReportedIssue))
+                      Case ___ As ContainsNoArgs : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this Is correct?"))
                     End Select
                   Next
-
                 Case SyntaxKind.IdentifierName
-
                   Dim ThisIdentifier = CType(TheFormatString.Expression, IdentifierNameSyntax)
                   If ThisIdentifier Is Nothing Then Exit Sub
                   Dim ConstValue = semanticModel.GetConstantValue(ThisIdentifier, cancellationToken)
                   If ConstValue.HasValue = False Then Exit Sub
-                  Dim FoundSymbol = semanticModel.LookupSymbols( TheFormatString.Expression.Span.Start, name:=ThisIdentifier.Identifier.Text)(0)
+                  Dim FoundSymbol = semanticModel.LookupSymbols(TheFormatString.Expression.Span.Start, name:=ThisIdentifier.Identifier.Text)(0)
                   Dim VariableDeclarationSite = TryCast(FoundSymbol.DeclaringSyntaxReferences(0).GetSyntax.Parent, VariableDeclaratorSyntax)
                   If VariableDeclarationSite Is Nothing Then Exit Sub
                   Dim TheValueOfTheVariable = VariableDeclarationSite.Initializer.Value
@@ -90,38 +76,33 @@ Public Class DiagnosticAnalyzer
                     Dim ReportedIssues = AnalyseFormatString(cancellationToken, ConstValue.Value.ToString, args.Count - 1)
                     For Each ReportedIssue In ReportedIssues
                       Select Case ReportedIssue
-                        Case cex As ArgIndexOutOfRange : addDiagnostic(AddWarningAtSource(fs,  0, fs.Span.Length, ReportedIssue))
-                        Case cex As UnexpectedChar               : addDiagnostic(AddWarningAtSource(fs,  0, fs.Span.Length, ReportedIssue))
+                        Case cex As ArgIndexOutOfRange : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
+                        Case cex As UnexpectedChar : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                         Case cex As UnexpectedlyReachedEndOfText : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
-                        Case cex As ArgIndexHasExceedLimit       : addDiagnostic(AddWarningAtSource(fs,  0, fs.Span.Length, ReportedIssue))
-                        Case ___ As Internal_IssueReport         : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
-                        Case ___ As ContainsNoArgs               : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this Is correct?"))
+                        Case cex As ArgIndexHasExceedLimit : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
+                        Case ___ As Internal_IssueReport : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
+                        Case ___ As ContainsNoArgs : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this Is correct?"))
                       End Select
                     Next
                   Else
-                    ' Use the declaration site location ( SpanOfConstantValue ) for the location of the warnings. Also use the yield ranges for the highlighting.
-
-                
-                  Dim ReportedIssues = AnalyseFormatString(cancellationToken, ConstValue.Value .ToString, args.Count-1)
+                    ' Use the declaration site location ( SpanOfConstantValue ) for the location of the warnings. Also use the yield ranges for the highlighting.              
+                    Dim ReportedIssues = AnalyseFormatString(cancellationToken, ConstValue.Value.ToString, args.Count - 1)
                     For Each ReportedIssue In ReportedIssues
                       Select Case ReportedIssue
-                        Case cex As ArgIndexOutOfRange           : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
-                        Case cex As UnexpectedChar               : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start+1, cex.Start + 2, ReportedIssue))
+                        Case cex As ArgIndexOutOfRange : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
+                        Case cex As UnexpectedChar : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, cex.Start + 2, ReportedIssue))
                         Case cex As UnexpectedlyReachedEndOfText : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
-                        Case cex As ArgIndexHasExceedLimit       : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
-                        Case ___ As Internal_IssueReport         : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
-                        Case ___ As ContainsNoArgs               : addDiagnostic(AddInformation(TheValueOfTheVariable, "Contains no args! Are you sure this Is correct?"))
+                        Case cex As ArgIndexHasExceedLimit : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
+                        Case ___ As Internal_IssueReport : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
+                        Case ___ As ContainsNoArgs : addDiagnostic(AddInformation(TheValueOfTheVariable, "Contains no args! Are you sure this Is correct?"))
                       End Select
                     Next
                   End If
-              End Select      
-
+              End Select
             End If
-
         End Select
     End Select
   End Sub
-
   Const Opening_Brace As Char = "{"c
   Const Closing_Brace As Char = "}"c
   Const _SPACE_ As Char = " "c
@@ -130,7 +111,6 @@ Public Class DiagnosticAnalyzer
   Const _MINUS_ As Char = "-"c
   Const _LIMIT_ As Integer = 1_000_000  ' This limit is found inside the .net implementation of String.Format.
   Const ExitOnFirst = False
-
   Iterator Function AnalyseFormatString(cancellationToken As CancellationToken, format As String, NumOfArgs As Integer) As IEnumerable(Of IssueReport)
     ' ParamArray Args() As Object) As IEnumerable(Of IssueReport)
     If format Is Nothing Then Throw New ArgumentNullException("fs")
@@ -229,7 +209,7 @@ Public Class DiagnosticAnalyzer
         EndPositionForThisPart = CurrentPosition - 1
         If ArgIndex >= _LIMIT_ Then
           ' Index Value is greater or equal to limit.
-          Yield New ArgIndexHasExceedLimit("Arg Index", ArgIndex, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart)
+          Yield New ArgIndexHasExceedLimit("Arg Index", ArgIndex.ToString, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart)
           If ExitOnFirst Then Exit Function
         End If
         If Not ParsingIsInAnErrorState AndAlso (ArgIndex >= NumOfArgs) Then
@@ -286,7 +266,8 @@ Public Class DiagnosticAnalyzer
           EndPositionForThisPart = CurrentPosition - 1
           If Width >= _LIMIT_ Then
             ' Index Value is greater or equal to limit.
-            Yield New ArgIndexHasExceedLimit("Width Value", ArgIndex, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart)
+            Dim WidthText = format.Substring(StartPositionForThisPart,(EndPositionForThisPart-StartPositionForThisPart)+1)
+            Yield New ArgIndexHasExceedLimit("Value when limit was exceeded. ", WidthText, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart)
             If ExitOnFirst Then Exit Function
           End If
         End If
@@ -349,8 +330,8 @@ Public Class DiagnosticAnalyzer
       pos += 1
     End While
   End Sub
-
-  Private Function IsDigit(c As Char) As Boolean
+  
+Private Function IsDigit(c As Char) As Boolean
     Return "0"c <= c AndAlso c <= "9"c
   End Function
 
@@ -371,33 +352,26 @@ Public Class DiagnosticAnalyzer
     End Select
   End Function
 
-
   Private Class UnexpectedlyReachedEndOfText
     Inherits IssueReport
-
     Public Sub New()
       MyBase.New("Unexpectedly Reached End Of Text")
     End Sub
-
-
   End Class
 
   Private Class ArgIndexHasExceedLimit
     Inherits IssueReportWithStartPosition
-
     Public ReadOnly Property Finish As Integer
 
-    Public Sub New(ParamName As String, Index As Integer, Limit As Integer, start As Integer, Finish As Integer)
-      MyBase.New(String.Format("{2} of ({0}) has exceed .net String.Format limit of {1}.", Index, Limit, ParamName), start)
+    Public Sub New(ParamName As String, Value As String, Limit As Integer, start As Integer, Finish As Integer)
+      MyBase.New(String.Format("{2} of ({0}) has exceed .net String.Format limit of {1}.", Value, Limit, ParamName), start)
       _Finish = Finish
     End Sub
   End Class
 
   Private Class ArgIndexOutOfRange
     Inherits IssueReportWithStartPosition
-
     Public ReadOnly Property Finish As Integer
-
     Public Sub New(Index As Integer, Limit As Integer, start As Integer, Finish As Integer)
       MyBase.New(String.Format("Index of ({0}) is invalid. (0 <= Index < {1})", Index, Limit), start)
       _Finish = Finish
@@ -408,7 +382,6 @@ Public Class DiagnosticAnalyzer
     Inherits IssueReportWithStartPosition
     Public Sub New(C As Char, Start As Integer)
       MyBase.New("Unexpected Character (" & C & ")", Start)
-
     End Sub
   End Class
 
@@ -418,6 +391,7 @@ Public Class DiagnosticAnalyzer
       MyBase.New("")
     End Sub
   End Class
+
   Private MustInherit Class IssueReportWithStartPosition
     Inherits IssueReport
     Public ReadOnly Property Start As Integer
@@ -429,7 +403,6 @@ Public Class DiagnosticAnalyzer
 
   Public Class Internal_IssueReport
     Inherits IssueReport
-
     Friend Sub New(Msg As String)
       MyBase.New(Msg)
     End Sub
@@ -437,10 +410,9 @@ Public Class DiagnosticAnalyzer
 
   Public MustInherit Class IssueReport
     Public ReadOnly Property Message As String
-
-
     Friend Sub New(Msg As String)
       _Message = Msg
     End Sub
   End Class
+
 End Class
