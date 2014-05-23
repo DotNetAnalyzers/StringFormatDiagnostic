@@ -87,6 +87,17 @@ Public Class DiagnosticAnalyzer
                   'Debugger.Break()
                   If FoundSymbol.IsExtern Then
                     ' Use usage site for location of Warings, ignore the yield ranges and use the span of ThisIdentifier.
+                    Dim ReportedIssues = AnalyseFormatString(cancellationToken, ConstValue.Value.ToString, args.Count - 1)
+                    For Each ReportedIssue In ReportedIssues
+                      Select Case ReportedIssue
+                        Case cex As ArgIndexOutOfRange : addDiagnostic(AddWarningAtSource(fs,  0, fs.Span.Length, ReportedIssue))
+                        Case cex As UnexpectedChar               : addDiagnostic(AddWarningAtSource(fs,  0, fs.Span.Length, ReportedIssue))
+                        Case cex As UnexpectedlyReachedEndOfText : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
+                        Case cex As ArgIndexHasExceedLimit       : addDiagnostic(AddWarningAtSource(fs,  0, fs.Span.Length, ReportedIssue))
+                        Case ___ As Internal_IssueReport         : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
+                        Case ___ As ContainsNoArgs               : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this Is correct?"))
+                      End Select
+                    Next
                   Else
                     ' Use the declaration site location ( SpanOfConstantValue ) for the location of the warnings. Also use the yield ranges for the highlighting.
 
@@ -98,7 +109,7 @@ Public Class DiagnosticAnalyzer
                         Case cex As UnexpectedChar               : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start+1, cex.Start + 2, ReportedIssue))
                         Case cex As UnexpectedlyReachedEndOfText : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
                         Case cex As ArgIndexHasExceedLimit       : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
-                        Case ___ As Internal_IssueReport         : addDiagnostic(AddWarningAtSource(node, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
+                        Case ___ As Internal_IssueReport         : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
                         Case ___ As ContainsNoArgs               : addDiagnostic(AddInformation(TheValueOfTheVariable, "Contains no args! Are you sure this Is correct?"))
                       End Select
                     Next

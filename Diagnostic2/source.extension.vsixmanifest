@@ -3,7 +3,7 @@
   <Identifier Id="Diagnostic FormatString Validation..cf562d05-bc6d-4de4-a594-a518c1d0a5f7">
     <Name>Diagnostic FormatString Validation</Name>
     <Author>AdamSpeight2008</Author>
-    <Version>1.2</Version>
+    <Version>1.3</Version>
     <Description xml:space="preserve">This diagnostic extension for the .NET Compiler Platform ("Roslyn").
     Validate the text of a FormatString. Are the Index Args supplied within range?
     </Description>
