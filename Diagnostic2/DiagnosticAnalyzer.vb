@@ -3,8 +3,9 @@ Imports System.Collections.Immutable
 Imports System.Runtime.Serialization
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasicExtensions
-
-
+Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions
+Imports Microsoft.CodeAnalysis.VisualBasic.GeneratedExtensionSyntaxFacts
+Imports Microsoft.CodeAnalysis.VisualBasic.TypedConstantExtensions
 <DiagnosticAnalyzer>
 <ExportDiagnosticAnalyzer(DiagnosticAnalyzer.DiagnosticId, LanguageNames.VisualBasic)>
 Public Class DiagnosticAnalyzer
@@ -30,8 +31,12 @@ Public Class DiagnosticAnalyzer
     End Get
   End Property
 
-
-
+  Public Function AddWarning(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IssueReport) As Diagnostic
+    Return Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
+  End Function
+  Public Function AddInformation(node As SyntaxNode, msg As String) As Diagnostic
+    Return Diagnostic.Create(DiagnosticId, Category,msg, DiagnosticSeverity.Info, 0, False, Location.Create(node.SyntaxTree, node.Span))
+  End Function
   Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
     Dim x = CType(node, MemberAccessExpressionSyntax)
     If x Is Nothing Then Exit Sub
@@ -43,23 +48,42 @@ Public Class DiagnosticAnalyzer
           Case 0 ' Error
           Case Else
             Dim fs = args.First
+            If TypeOf fs Is OmittedArgumentSyntax Then Exit Sub
             Dim f = CType(fs, SimpleArgumentSyntax)
-            If f Is Nothing OrElse f.Expression.VisualBasicKind <> SyntaxKind.StringLiteralExpression Then Exit Sub
-            Dim ReportedIssues = AnalyseFormatString(cancellationToken, Nothing, fs.ToString, Enumerable.Repeat(Of Object)(Nothing, args.Count - 1).ToArray).ToArray
-            For Each ReportedIssue In ReportedIssues
-              Select Case ReportedIssue
-                Case cex As ArgIndexOutOfRange
-                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(fs.SpanStart + cex.Start, fs.SpanStart + 1 + cex.Finish)), ReportedIssue.Message))
-                Case cex As UnexpectedChar
-                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(fs.SpanStart + cex.Start, fs.SpanStart + cex.Start + 1)), ReportedIssue.Message))
-                Case cex As UnexpectedlyReachedEndOfText
-                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, fs.Span), ReportedIssue.Message))
-                Case cex As ArgIndexHasExceedLimit
-                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, TextSpan.FromBounds(fs.SpanStart + cex.Start, fs.SpanStart + 1 + cex.Finish)), ReportedIssue.Message))
-                Case ThisReportedIssue As Internal_IssueReport
-                  addDiagnostic(Diagnostic.Create(Rule, Location.Create(node.SyntaxTree, fs.Span), ReportedIssue.Message))
-              End Select
-            Next
+            If f IsNot Nothing Then
+              If f.Expression.VisualBasicKind = SyntaxKind.StringLiteralExpression Then
+
+                Dim ReportedIssues = AnalyseFormatString(cancellationToken, Nothing, fs.ToString, Enumerable.Repeat(Of Object)(Nothing, args.Count - 1).ToArray).ToArray
+                For Each ReportedIssue In ReportedIssues
+                  Select Case ReportedIssue
+                    Case cex As ArgIndexOutOfRange            : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
+                    Case cex As UnexpectedChar                : addDiagnostic(AddWarning(fs, cex.Start, cex.Start + 1, ReportedIssue))
+                    Case cex As UnexpectedlyReachedEndOfText  : addDiagnostic(AddWarning(fs,0,fs.span.Length,  ReportedIssue))
+                    Case cex As ArgIndexHasExceedLimit        : addDiagnostic(AddWarning(fs, cex.Start,  1 + cex.Finish, ReportedIssue))
+                    Case ___ As Internal_IssueReport          : addDiagnostic(AddWarning(node,0, fs.Span.Length , ReportedIssue))
+                    Case ___ As ContainsNoArgs                : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this is correct?"))
+                  End Select
+                Next
+              Else
+                If f.Expression.VisualBasicKind = SyntaxKind.IdentifierName Then
+                  Dim vx = CType(f.Expression, IdentifierNameSyntax)
+                  If vx Is Nothing Then Exit Sub
+                  Dim xx = semanticModel.GetConstantValue(vx, cancellationToken)
+                  If xx.HasValue = False Then Exit Sub
+                  Dim xy = semanticModel.GetSymbolInfo(vx, cancellationToken)
+                  Dim s = semanticModel.LookupSymbols(f.Expression.Span.Start, name:=vx.Identifier.Text)(0) ', cancellationToken)i
+                  Dim sl = CType(s, ILocalSymbol)
+
+
+                  Debugger.Break()
+
+                  '
+                End If
+
+              End If
+
+            End If
+
         End Select
     End Select
   End Sub
@@ -90,6 +114,7 @@ Public Class DiagnosticAnalyzer
     '
     '
     '
+    Dim ArgsCounted = 0
     Dim internalError As Internal_IssueReport = Nothing
     Dim CurrentPosition = 0
     Dim LengthOfTheText = format.Length
@@ -165,6 +190,7 @@ Public Class DiagnosticAnalyzer
           If Not ParsingIsInAnErrorState AndAlso (ArgIndex >= _LIMIT_) Then ParsingIsInAnErrorState = True
         Loop While IsDigit(CurrentCharacter)
         ' Why did we exit?
+        ArgsCounted += 1
         EndPositionForThisPart = CurrentPosition - 1
         If ArgIndex >= _LIMIT_ Then
           ' Index Value is greater or equal to limit.
@@ -271,6 +297,9 @@ Public Class DiagnosticAnalyzer
         End If
         CurrentPosition += 1
       End While
+      If ArgsCounted = 0 Then
+        Yield New ContainsNoArgs
+      End If
     Catch ex As Exception
       ' Let's use the IDE error window to also report internal errors, :-)
       internalError = New Internal_IssueReport(ex.ToString)
@@ -350,6 +379,12 @@ Public Class DiagnosticAnalyzer
     End Sub
   End Class
 
+  Private Class ContainsNoArgs
+    Inherits IssueReport
+    Public Sub New()
+      MyBase.New("")
+    End Sub
+  End Class
   Private MustInherit Class IssueReportWithStartPosition
     Inherits IssueReport
     Public ReadOnly Property Start As Integer
@@ -366,6 +401,7 @@ Public Class DiagnosticAnalyzer
       MyBase.New(Msg)
     End Sub
   End Class
+
   Public MustInherit Class IssueReport
     Public ReadOnly Property Message As String
 
