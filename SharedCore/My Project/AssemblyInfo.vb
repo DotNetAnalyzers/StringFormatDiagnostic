@@ -8,9 +8,9 @@ Imports System.Runtime.InteropServices
 
 ' Review the values of the assembly attributes
 
-<Assembly: AssemblyTitle("SharedCore")> 
-<Assembly: AssemblyDescription("")> 
-<Assembly: AssemblyCompany("")> 
+<Assembly: AssemblyTitle("StringFormat Diagnostic SharedCore")> 
+<Assembly: AssemblyDescription("The shared core components of StringFormat Diagnostic")> 
+<Assembly: AssemblyCompany("AdamSpeight2008")> 
 <Assembly: AssemblyProduct("SharedCore")> 
 <Assembly: AssemblyCopyright("Copyright ©  2014")> 
 <Assembly: AssemblyTrademark("")> 
