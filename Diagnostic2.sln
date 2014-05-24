@@ -9,6 +9,12 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SharedCore", "SharedCore\Sh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StringFormatDiagnostic_CSharp", "StringFormatDiagnostic_CSharp\StringFormatDiagnostic_CSharp.csproj", "{E49613FE-1191-47A5-9FAB-1D70828CA73D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Released VSIX", "Released VSIX", "{ED3256EE-3E4B-4FD0-AF9B-A75B59C396C3}"
+	ProjectSection(SolutionItems) = preProject
+		Released\StringFormat Diagnotic\StringFormatDiagnostic_CSharp.vsix = Released\StringFormat Diagnotic\StringFormatDiagnostic_CSharp.vsix
+		Released\StringFormat Diagnotic\StringFormatDiagnostic_VB.vsix = Released\StringFormat Diagnotic\StringFormatDiagnostic_VB.vsix
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
