@@ -136,6 +136,14 @@ namespace StringFormatDiagnostic_CSharp
                   else if (ReportedIssue is Internal_IssueReport)
                   {
                     addDiagnostic( Common.AddWarningAtSource( fs , 0 , fs.Span.Length , ReportedIssue ) );
+                  }
+                 else if (ReportedIssue is ContainsNoArgs)
+                  {
+                    addDiagnostic( Common.AddInformation( fs , "Contains no args! Are you sure this Is correct?" ) );
+                  }
+                  else if (ReportedIssue is Internal_IssueReport)
+                  {
+                    addDiagnostic( Common.AddWarning( node , 0 , fs.Span.Length , ReportedIssue ) );
                   };
                 }
               }
@@ -148,30 +156,30 @@ namespace StringFormatDiagnostic_CSharp
                   if (ReportedIssue is ArgIndexHasExceedLimit)
                   {
                     var cex = (ArgIndexHasExceedLimit)ReportedIssue;
-                    addDiagnostic( Common.AddWarning( TheValueOfTheVariable , cex.Start + 1 , 2 + cex.Finish , ReportedIssue ) );
+                    addDiagnostic( Common.AddWarningAtSource( TheValueOfTheVariable , cex.Start + 1 , 2 + cex.Finish , ReportedIssue ) );
                   }
                   else if (ReportedIssue is UnexpectedChar)
                   {
                     var cex = (UnexpectedChar)ReportedIssue;
-                    addDiagnostic( Common.AddWarning( fs , cex.Start , cex.Start + 1 , ReportedIssue ) );
+                    addDiagnostic( Common.AddWarningAtSource( fs , cex.Start , cex.Start + 1 , ReportedIssue ) );
                   }
                   else if (ReportedIssue is UnexpectedlyReachedEndOfText)
                   {
                     var cex = (UnexpectedlyReachedEndOfText)ReportedIssue;
-                    addDiagnostic( Common.AddWarning( fs , 0 , fs.Span.Length , ReportedIssue ) );
+                    addDiagnostic( Common.AddWarningAtSource( fs , 0 , fs.Span.Length , ReportedIssue ) );
                   }
                   else if (ReportedIssue is ArgIndexHasExceedLimit)
                   {
                     var cex = (ArgIndexHasExceedLimit)ReportedIssue;
-                    addDiagnostic( Common.AddWarning( fs , cex.Start , 1 + cex.Finish , ReportedIssue ) );
+                    addDiagnostic( Common.AddWarningAtSource( fs , cex.Start , 1 + cex.Finish , ReportedIssue ) );
                   }
                   else if (ReportedIssue is ContainsNoArgs)
                   {
-                    addDiagnostic( Common.AddWarningAtSource( TheValueOfTheVariable , 0 , TheValueOfTheVariable.Span.Length , ReportedIssue ) );
+                     addDiagnostic( Common.AddInformation( fs , "Contains no args! Are you sure this Is correct?" ) );
                   }
                   else if (ReportedIssue is Internal_IssueReport)
                   {
-                    addDiagnostic( Common.AddWarningAtSource( TheValueOfTheVariable , 0 , TheValueOfTheVariable.Span.Length , ReportedIssue ) );
+                    addDiagnostic( Common.AddWarning( TheValueOfTheVariable , 0 , TheValueOfTheVariable.Span.Length , ReportedIssue ) );
                   }
                 }
               }
