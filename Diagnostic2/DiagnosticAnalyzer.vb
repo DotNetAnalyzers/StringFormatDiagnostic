@@ -58,13 +58,20 @@ Public Class DiagnosticAnalyzer
                 Case 1
                   Select Case ArgTypeNames(0)
                     Case "String"
-                      Dim ff = Microsoft.CodeAnalysi
                     Case "IFormatProvider"
+                      Dim FullyNamed = ArgTypes(0).ToFullyQualifiedName
+                      Dim GottenType = Type.GetType(FullyNamed, False, True)
+                      Dim Obj = GottenType.BuildMeOne'.GetConstructors()(0).Invoke({Nothing})
+
+                      Debugger.breAK
                   End Select
                 Case 2
-                  If ArgTypeNames(0) = "String" AndAlso ArgTypes(1).Interfaces.Any(Function(i) i.Name = "IFormatProvider") Then
-
-                  End If
+                  Dim ii =  ArgTypes(1).Interfaces.Where(Function(i)  i.Name = "IFormatProvider").FirstOrDefault
+                  If ii IsNot Nothing Then Exit Sub
+     '             Dim ir = semanticModel.GetSymbolInfo (ArgTypes(1),cancellationToken ).S 
+                  'If ArgTypeNames(0) = "String" AndAlso  Then
+     
+              '    End If
                 Case Else
                   Exit Sub
               End Select
@@ -163,5 +170,23 @@ Public Module Exts
     If s Is Nothing Then Return Nothing
     Dim t = s.ContainingType
     Return t
+  End Function
+
+  <Runtime.CompilerServices.Extension >
+  public Function ToFullyQualifiedName(s As ISymbol ) As String
+    Return   s.ToDisplayString(New SymbolDisplayFormat(typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces))
+  End Function
+  <Runtime.CompilerServices.Extension>
+  Public Function BuildMeOne( tt As Type) As Object
+    Dim constructors = tt.GetConstructors()
+    For Each xon In constructors
+      Try
+        dim obj=xon.Invoke( Enumerable.Repeat(Of Object)(Nothing, xon.GetParameters().count).ToArray)
+        Return  obj
+      Catch ex As Exception
+
+      End Try
+    Next
+    Throw New Exception 
   End Function
 End Module
