@@ -11,12 +11,8 @@ Namespace Global.Roslyn.StringFormatDiagnostics
     Public Const Description = "Is the formatstring valid?"
     Public Const MessageFormat = "Invalid FormatString (Reason: {0})"
     Public Const Category = "Validation"
-    Public Rule1 As New DiagnosticDescriptor(DiagnosticId, Description, MessageFormat, Category, DiagnosticSeverity.Error)
-    Public Rule2 As New DiagnosticDescriptor(DiagnosticId, Description, "This Constant is used in either:-
-  String.Format
-  Console.Write
-  Console.WriteLine
- " + MessageFormat, Category, DiagnosticSeverity.Error)
+    Public Rule1 As New DiagnosticDescriptor(DiagnosticId, Description, MessageFormat, Category, DiagnosticSeverity.Error )
+    Public Rule2 As New DiagnosticDescriptor(DiagnosticId, Description, "This Constant is used as a FormatString" + Environment.NewLine  + MessageFormat, Category, DiagnosticSeverity.Error)
     Public Function AddWarning(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IssueReport) As Diagnostic
       Return Diagnostic.Create(Rule1, Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
     End Function
@@ -34,6 +30,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
     Const _MINUS_ As Char = "-"c
     Const _LIMIT_ As Integer = 1_000_000  ' This limit is found inside the .net implementation of String.Format.
     Const ExitOnFirst = False
+
     Iterator Function AnalyseFormatString(cancellationToken As CancellationToken, format As String, NumOfArgs As Integer) As IEnumerable(Of IssueReport)
       ' ParamArray Args() As Object) As IEnumerable(Of IssueReport)
       If format Is Nothing Then Throw New ArgumentNullException("fs")
