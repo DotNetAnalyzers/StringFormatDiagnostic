@@ -31,8 +31,9 @@ Namespace Global.Roslyn.StringFormatDiagnostics
     Const _LIMIT_ As Integer = 1_000_000  ' This limit is found inside the .net implementation of String.Format.
     Const ExitOnFirst = False
 
-    Iterator Function AnalyseFormatString(cancellationToken As CancellationToken, format As String, NumOfArgs As Integer) As IEnumerable(Of IssueReport)
-      ' ParamArray Args() As Object) As IEnumerable(Of IssueReport)
+    Iterator Function AnalyseFormatString(cancellationToken As CancellationToken, format As String, NumOfArgs As Integer,
+                                          Optional  Args() As Object = Nothing,
+                                          Optional Provider As IFormatProvider = Nothing  ) As IEnumerable(Of IssueReport)
       If format Is Nothing Then Throw New ArgumentNullException("fs")
       'If Args Is Nothing Then Throw New ArgumentNullException("Args")
       '
@@ -56,9 +57,10 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       Dim LengthOfTheText = format.Length
       Dim CurrentCharacter = ControlChars.NullChar
       Dim cf As ICustomFormatter = Nothing
-      'If provider IsNot Nothing Then cf = CType(provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
+      If provider IsNot Nothing Then cf = CType(provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
       Try
         While True
+          Dim ParsingIsInAnErrorState = False ' This flag enables the parser to continue parsing whilst there is an issue found. Allowing us to report additional issue.
           Dim StartPositionForThisPart = 0
           Dim EndPositionForThisPart = 0
           While CurrentPosition < LengthOfTheText
@@ -102,6 +104,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
           ' Get current character of the text.
           CurrentCharacter = format(CurrentPosition)
           If ArgsSupplied AndAlso Not IsDigit(CurrentCharacter) Then
+            ParsingIsInAnErrorState = True 
             Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
             If ExitOnFirst Then Exit Function
           End If
@@ -110,7 +113,6 @@ Namespace Global.Roslyn.StringFormatDiagnostics
           ' | Start Parsing for the Index value
           ' +---------------------------------------------------
           '
-          Dim ParsingIsInAnErrorState = False ' This flag enables the parser to continue parsing whilst there is an issue found. Allowing us to report additional issue.
           ' -- Parse and Calculate IndexPart Value
           Dim ArgIndex = 0
           Do
@@ -162,6 +164,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
             End If
             ' If next Character after a minus, or currenct character isnot a Digit then it is an error
             If ArgsSupplied AndAlso Not IsDigit(CurrentCharacter) Then
+              ParsingIsInAnErrorState = True 
               Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
               If ExitOnFirst Then Exit Function
             End If
@@ -225,14 +228,56 @@ Namespace Global.Roslyn.StringFormatDiagnostics
                     CurrentPosition -= 1
                     Exit While
                   End If
+                  'pos += 1
+        
+
               End Select
             End While
           End If
           If CurrentCharacter <> Closing_Brace Then
-            If ArgsSupplied Then Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
+            If ArgsSupplied Then
+              ParsingIsInAnErrorState=True 
+                Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
+            End If
             If ExitOnFirst Then Exit Function
           End If
           CurrentPosition += 1
+          '
+          ' NOTE: Probably don't need to following for just checking the validation
+          '
+          'Dim sFmt As String = Nothing
+          'Dim s As String = Nothing
+          'If cf IsNot Nothing Then
+          '  If fmt IsNot Nothing Then sFmt = fmt.ToString
+          '  s = cf.Format(sFmt, arg, provider)
+          'End If
+
+          'If s Is Nothing Then
+          '  Dim formattableArg As IFormattable = CType(arg, IFormattable)
+          '  '
+          '  '         #If FEATURE_LEGACYNETCF
+          '  ' If CompatibilitySwitch.IsAppEarlierThanWindows8 Then
+          '  ' // TimeSpan does not implement IFormattable in Mango
+          '  ' If TypeOf arg Is TimeSpan Then formattableArg = null
+          '  ' End If
+          '  ' #End If
+
+          '  If formattableArg IsNot Nothing Then
+          '    If (sFmt Is Nothing) AndAlso (fmt IsNot Nothing) Then sFmt = fmt.ToString()
+          '    s = formattableArg.ToString(sFmt, provider)
+          '  ElseIf arg IsNot Nothing Then
+          '    s = arg.ToString
+          '  End If
+
+          'End If 
+
+          '' apply the alignment
+          'If s Is Nothing Then s= String.Empty
+          'Dim pad = Width - s.Length
+          'If (Not LeftJustifiy) AndAlso (pad > 0) Then Append(_SPACE_, pad)
+          'Append(s)
+          'If LeftJustifiy AndAlso (pad > 0) Then Append(_SPACE_,pad) 
+          ''
         End While
         If ArgsSupplied Then
           If ArgsCounted = 0 Then Yield New ContainsNoArgs
