@@ -49,6 +49,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       '
       '
       '
+      Dim ArgsSupplied = NumOfArgs > 0
       Dim ArgsCounted = 0
       Dim internalError As Internal_IssueReport = Nothing
       Dim CurrentPosition = 0
@@ -69,7 +70,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
                   ' This brace has escaped! }}
                   CurrentPosition += 1
                 Else
-                  If (CurrentPosition >= LengthOfTheText) Then
+                  If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then
                     Yield New UnexpectedlyReachedEndOfText
                     Exit Function
                   End If
@@ -81,7 +82,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
                   ' This brace has escaped! {{
                   CurrentPosition += 1
                 Else
-                  If (CurrentPosition >= LengthOfTheText) Then
+                  If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then
                     Yield New UnexpectedlyReachedEndOfText
                     Exit Function
                   End If
@@ -97,10 +98,10 @@ Namespace Global.Roslyn.StringFormatDiagnostics
           ' Have we reached the end of the format string?
           If (CurrentPosition >= LengthOfTheText) Then Exit While
           CurrentPosition += 1
-          If (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+          If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
           ' Get current character of the text.
           CurrentCharacter = format(CurrentPosition)
-          If Not IsDigit(CurrentCharacter) Then
+          If ArgsSupplied AndAlso Not IsDigit(CurrentCharacter) Then
             Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
             If ExitOnFirst Then Exit Function
           End If
@@ -120,19 +121,19 @@ Namespace Global.Roslyn.StringFormatDiagnostics
               ArgIndex = (10 * ArgIndex) + DigitValue(CurrentCharacter)
             End If
             CurrentPosition += 1
-            If (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+            If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
             CurrentCharacter = format(CurrentPosition)
             If Not ParsingIsInAnErrorState AndAlso (ArgIndex >= _LIMIT_) Then ParsingIsInAnErrorState = True
           Loop While IsDigit(CurrentCharacter)
           ' Why did we exit?
           ArgsCounted += 1
           EndPositionForThisPart = CurrentPosition - 1
-          If ArgIndex >= _LIMIT_ Then
+          If ArgsSupplied AndAlso ArgIndex >= _LIMIT_ Then
             ' Index Value is greater or equal to limit.
             Yield New ArgIndexHasExceedLimit("Arg Index", ArgIndex.ToString, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart)
             If ExitOnFirst Then Exit Function
           End If
-          If Not ParsingIsInAnErrorState AndAlso (ArgIndex >= NumOfArgs) Then
+          If ArgsSupplied AndAlso Not ParsingIsInAnErrorState AndAlso (ArgIndex >= NumOfArgs) Then
             ' Index is out of the bounds of the supplied args.
             Yield New ArgIndexOutOfRange(ArgIndex, NumOfArgs, StartPositionForThisPart, EndPositionForThisPart)
             ' ToDo: Get the Start and End positions of opening and closing braces.
@@ -151,16 +152,16 @@ Namespace Global.Roslyn.StringFormatDiagnostics
           If CurrentCharacter = _COMMA_ Then
             CurrentPosition += 1
             ConsumeSpaces(format, CurrentPosition, LengthOfTheText, CurrentCharacter, cancellationToken)
-            If (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+            If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
             CurrentCharacter = format(CurrentPosition)
             If CurrentCharacter = _MINUS_ Then
               LeftJustifiy = True
               CurrentPosition += 1
-              If (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+              If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
               CurrentCharacter = format(CurrentPosition)
             End If
             ' If next Character after a minus, or currenct character isnot a Digit then it is an error
-            If Not IsDigit(CurrentCharacter) Then
+            If ArgsSupplied AndAlso Not IsDigit(CurrentCharacter) Then
               Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
               If ExitOnFirst Then Exit Function
             End If
@@ -184,7 +185,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
             Loop While IsDigit(CurrentCharacter) 'AndAlso (Width < _LIMIT_)
             ' Why did we exit?
             EndPositionForThisPart = CurrentPosition - 1
-            If Width >= _LIMIT_ Then
+            If ArgsSupplied AndAlso Width >= _LIMIT_ Then
               ' Index Value is greater or equal to limit.
               Dim WidthText = format.Substring(StartPositionForThisPart, (EndPositionForThisPart - StartPositionForThisPart) + 1)
               Yield New ArgIndexHasExceedLimit("Value when limit was exceeded. ", WidthText, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart)
@@ -192,7 +193,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
             End If
           End If
           ConsumeSpaces(format, CurrentPosition, LengthOfTheText, CurrentCharacter, cancellationToken)
-          If Not ParsingIsInAnErrorState AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+          If ArgsSupplied AndAlso Not ParsingIsInAnErrorState AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
           '
           ' +--------------------------------------------
           ' |  Start of Parsing for formatting strings 
@@ -202,7 +203,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
             CurrentPosition += 1
             While True
               If cancellationToken.IsCancellationRequested Then Exit Function
-              If (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+              If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
               CurrentCharacter = format(CurrentPosition)
               Select Case CurrentCharacter
                 Case Opening_Brace
@@ -210,8 +211,8 @@ Namespace Global.Roslyn.StringFormatDiagnostics
                     ' This brace has escaped! {{
                     CurrentPosition += 1
                   Else
-                    If (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
-                    Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
+                    If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+                    If ArgsSupplied Then Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
                     If ExitOnFirst Then Exit Function
                   End If
                 Case Closing_Brace
@@ -219,7 +220,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
                     ' This brace has escaped! }}
                     CurrentPosition += 1
                   Else
-                    If (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+                    If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
 
                     CurrentPosition -= 1
                     Exit While
@@ -228,12 +229,16 @@ Namespace Global.Roslyn.StringFormatDiagnostics
             End While
           End If
           If CurrentCharacter <> Closing_Brace Then
-            Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
+            If ArgsSupplied Then Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
             If ExitOnFirst Then Exit Function
           End If
           CurrentPosition += 1
         End While
-        If ArgsCounted = 0 Then Yield New ContainsNoArgs
+        If ArgsSupplied Then
+          If ArgsCounted = 0 Then Yield New ContainsNoArgs
+        Else
+          If ArgsCounted > 0 Then Yield New ContainsNoParameters
+        End If
       Catch ex As Exception
         ' Let's use the IDE error window to also report internal errors, :-)
         internalError = New Internal_IssueReport(ex.ToString)
@@ -298,6 +303,12 @@ Namespace Global.Roslyn.StringFormatDiagnostics
     End Sub
   End Class
   Public Class ContainsNoArgs
+    Inherits IssueReport
+    Public Sub New()
+      MyBase.New("")
+    End Sub
+  End Class
+  Public Class ContainsNoParameters
     Inherits IssueReport
     Public Sub New()
       MyBase.New("")

@@ -25,30 +25,33 @@ Public Class DiagnosticAnalyzer
       Dim mn = x.Name.ToString
       If mn = "" Then Exit Sub
       Dim ct = x.CalledOnType(semanticModel, cancellationToken)
-      Dim tn = If(ct Is Nothing, "", ct.Name)
+      Dim tn = If(ct Is Nothing, "", ct.ToFullyQualifiedName)
       Dim invokation = TryCast(x.Parent, InvocationExpressionSyntax)
       If invokation Is Nothing Then Exit Sub 
       Dim Args = invokation.ArgumentList
       Dim ArgTypes = Args.GetArgumentTypes(semanticModel, cancellationToken)
       Dim ArgTypeNames = Args.GetArgumentTypesNames(semanticModel, cancellationToken)
+
+    
+
       Select Case tn
-        Case "Console"
+        Case "System.Console"
           Select Case mn
             Case "Write", "WriteLine" : DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
           End Select
-        Case "String"
+        Case "System.String"
           Select Case mn
             Case "Format" : DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
           End Select
-        Case "StringBuilder"
+        Case "System.Text.StringBuilder"
           Select Case mn
             Case "AppendFormat"
               Select Case Args.Arguments.Count
                 Case 0, 1 : Exit Sub
-                Case 2, 3, 4 When ArgTypeNames(0) = "String" : DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
+                Case 2, 3, 4 When ArgTypeNames(0) = "System.String" : DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
 
                 Case Else
-                  If ArgTypeNames(0) = "String" Then DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
+                  If ArgTypeNames(0) = "System.String" Then DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
               End Select
           End Select
         Case Else
@@ -58,7 +61,7 @@ Public Class DiagnosticAnalyzer
                 Case 1
                   Select Case ArgTypeNames(0)
                     Case "String"
-                    Case "IFormatProvider"
+                      Case "IFormatProvider"
                       Dim FullyNamed = ArgTypes(0).ToFullyQualifiedName
                       Dim GottenType = Type.GetType(FullyNamed, False, True)
                       Dim Obj = GottenType.BuildMeOne'.GetConstructors()(0).Invoke({Nothing})
@@ -83,6 +86,8 @@ Public Class DiagnosticAnalyzer
 
   Public Sub DoValidation(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
     Dim p = CType(node.Parent, InvocationExpressionSyntax)
+   
+   
     Dim args = p.ArgumentList.Arguments
     Select Case args.Count
       Case 0 ' Error
@@ -101,6 +106,7 @@ Public Class DiagnosticAnalyzer
                   Case cex As UnexpectedlyReachedEndOfText : addDiagnostic(AddWarning(fs, 0, fs.Span.Length, ReportedIssue))
                   Case cex As ArgIndexHasExceedLimit : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
                   Case ___ As ContainsNoArgs : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this Is correct?"))
+                  Case ___ As ContainsNoParameters : addDiagnostic(AddInformation(fs,  "No parameters! Are you sure this Is correct?"))
                   Case ___ As Internal_IssueReport : addDiagnostic(AddWarning(node, 0, fs.Span.Length, ReportedIssue))
                 End Select
               Next
@@ -124,6 +130,7 @@ Public Class DiagnosticAnalyzer
                     Case cex As UnexpectedlyReachedEndOfText : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case cex As ArgIndexHasExceedLimit : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case ___ As ContainsNoArgs : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this Is correct?"))
+                    Case ___ As ContainsNoParameters : addDiagnostic(AddInformation(fs, "No parameters! Are you sure this Is correct?"))
                     Case ___ As Internal_IssueReport : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                   End Select
                 Next
@@ -137,6 +144,7 @@ Public Class DiagnosticAnalyzer
                     Case cex As UnexpectedlyReachedEndOfText : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
                     Case cex As ArgIndexHasExceedLimit : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
                     Case ___ As ContainsNoArgs : addDiagnostic(AddInformation(TheValueOfTheVariable, "Contains no args! Are you sure this Is correct?"))
+                    Case ___ As ContainsNoParameters : addDiagnostic(AddInformation(TheValueOfTheVariable, "No parameters! Are you sure this Is correct?"))
                     Case ___ As Internal_IssueReport : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
                   End Select
                 Next
@@ -149,44 +157,3 @@ Public Class DiagnosticAnalyzer
 
 End Class
 
-Public Module Exts
-
-  <Runtime.CompilerServices.Extension>
-  Public Function ArgumentType(arg As ArgumentSyntax, sm As SemanticModel, ct As CancellationToken) As ITypeSymbol
-    Return sm.GetTypeInfo(CType(arg, Syntax.SimpleArgumentSyntax).Expression, ct).Type
-
-  End Function
-  <Runtime.CompilerServices.Extension>
-  Public Function GetArgumentTypes(args As ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of ITypeSymbol)
-    Return args.Arguments.Select(Function(arg) arg.ArgumentType(sm, ct))
-  End Function
-  <Runtime.CompilerServices.Extension>
-  Public Function GetArgumentTypesNames(args As ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of String)
-    Return args.GetArgumentTypes(sm, ct).Select(Function(tsym) tsym.Name)
-  End Function
-  <Runtime.CompilerServices.Extension>
-  Public Function CalledOnType(n As MemberAccessExpressionSyntax, sm As SemanticModel, ct As CancellationToken) As INamedTypeSymbol
-    Dim s = sm.GetSymbolInfo(n, ct).Symbol
-    If s Is Nothing Then Return Nothing
-    Dim t = s.ContainingType
-    Return t
-  End Function
-
-  <Runtime.CompilerServices.Extension >
-  public Function ToFullyQualifiedName(s As ISymbol ) As String
-    Return   s.ToDisplayString(New SymbolDisplayFormat(typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces))
-  End Function
-  <Runtime.CompilerServices.Extension>
-  Public Function BuildMeOne( tt As Type) As Object
-    Dim constructors = tt.GetConstructors()
-    For Each xon In constructors
-      Try
-        dim obj=xon.Invoke( Enumerable.Repeat(Of Object)(Nothing, xon.GetParameters().count).ToArray)
-        Return  obj
-      Catch ex As Exception
-
-      End Try
-    Next
-    Throw New Exception 
-  End Function
-End Module
