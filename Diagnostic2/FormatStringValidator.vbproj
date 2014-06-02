@@ -127,7 +127,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DiagnosticAnalyzer.vb" />
-    <Compile Include="Exts.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
   </ItemGroup>
   <ItemGroup>

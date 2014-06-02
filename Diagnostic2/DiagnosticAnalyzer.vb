@@ -3,6 +3,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Roslyn.StringFormatDiagnostics
 Imports Roslyn.StringFormatDiagnostics.Common
+Imports Roslyn.StringFormatDiagnostics.VisualBasic.Exts
 <DiagnosticAnalyzer>
 <ExportDiagnosticAnalyzer(DiagnosticId, LanguageNames.VisualBasic)>
 Public Class DiagnosticAnalyzer
@@ -19,8 +20,8 @@ Public Class DiagnosticAnalyzer
   End Property
 
   Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-   
-Dim x = CType(node, MemberAccessExpressionSyntax)
+
+    Dim x = CType(node, MemberAccessExpressionSyntax)
     If x Is Nothing Then Exit Sub
     If x.OperatorToken.ValueText = "." Then
       Dim mn = x.Name.ToString
@@ -28,7 +29,7 @@ Dim x = CType(node, MemberAccessExpressionSyntax)
       Dim ct = x.CalledOnType(semanticModel, cancellationToken)
       Dim tn = If(ct Is Nothing, "", ct.ToFullyQualifiedName)
       Dim invokation = TryCast(x.Parent, InvocationExpressionSyntax)
-      If invokation Is Nothing Then Exit Sub 
+      If invokation Is Nothing Then Exit Sub
       Dim Args = invokation.ArgumentList
 
       Dim ArgTypes = Args.GetArgumentTypes(semanticModel, cancellationToken)
@@ -38,7 +39,7 @@ Dim x = CType(node, MemberAccessExpressionSyntax)
       ''Dim Obj = GottenType.BuildMeOne '.GetConstructors()(0).Invoke({Nothing})
       'Dim ov = Convert.ChangeType(Args.Arguments(1).ToString, GottenType)
 
-        'Debugger.Break 
+      'Debugger.Break 
 
       Select Case tn
         Case "System.Console"
@@ -61,30 +62,30 @@ Dim x = CType(node, MemberAccessExpressionSyntax)
               End Select
           End Select
         Case Else
-          Select Case mn
-            Case "ToString"
-              Select Case Args.Arguments.Count
-                Case 1
-                  Select Case ArgTypeNames(0)
-                    Case "String"
-                      Case "IFormatProvider"
-                      'Dim FullyNamed = ArgTypes(0).ToFullyQualifiedName
-                      'Dim GottenType = Type.GetType(FullyNamed, False, True)
-                      'Dim Obj = GottenType.BuildMeOne'.GetConstructors()(0).Invoke({Nothing})
+          'Select Case mn
+          '  Case "ToString"
+          '    Select Case Args.Arguments.Count
+          '      Case 1
+          '        Select Case ArgTypeNames(0)
+          '          Case "String"
+          '          Case "IFormatProvider"
+          '            'Dim FullyNamed = ArgTypes(0).ToFullyQualifiedName
+          '            'Dim GottenType = Type.GetType(FullyNamed, False, True)
+          '            'Dim Obj = GottenType.BuildMeOne'.GetConstructors()(0).Invoke({Nothing})
 
-                      'Debugger.breAK
-                  End Select
-                Case 2
-                  Dim ii =  ArgTypes(1).Interfaces.Where(Function(i)  i.Name = "IFormatProvider").FirstOrDefault
-                  If ii IsNot Nothing Then Exit Sub
-     '             Dim ir = semanticModel.GetSymbolInfo (ArgTypes(1),cancellationToken ).S 
-                  'If ArgTypeNames(0) = "String" AndAlso  Then
-     
-              '    End If
-                Case Else
-                  Exit Sub
-              End Select
-          End Select
+          '            'Debugger.breAK
+          '        End Select
+          '      Case 2
+          '        Dim ii = ArgTypes(1).Interfaces.Where(Function(i) i.Name = "IFormatProvider").FirstOrDefault
+          '        If ii IsNot Nothing Then Exit Sub
+          '        '             Dim ir = semanticModel.GetSymbolInfo (ArgTypes(1),cancellationToken ).S 
+          '        'If ArgTypeNames(0) = "String" AndAlso  Then
+
+          '        '    End If
+          '      Case Else
+          '        Exit Sub
+          '    End Select
+          'End Select
       End Select
     End If
   End Sub
@@ -92,8 +93,8 @@ Dim x = CType(node, MemberAccessExpressionSyntax)
 
   Public Sub DoValidation(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
     Dim p = CType(node.Parent, InvocationExpressionSyntax)
-   
-   
+
+
     Dim args = p.ArgumentList.Arguments
     Select Case args.Count
       Case 0 ' Error
@@ -111,9 +112,9 @@ Dim x = CType(node, MemberAccessExpressionSyntax)
                   Case cex As UnexpectedChar : addDiagnostic(AddWarning(fs, cex.Start, cex.Start + 1, ReportedIssue))
                   Case cex As UnexpectedlyReachedEndOfText : addDiagnostic(AddWarning(fs, 0, fs.Span.Length, ReportedIssue))
                   Case cex As ArgIndexHasExceedLimit : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
-                  Case ___ As FinalOutput : addDiagnostic(AddInformation(fs,ReportedIssue.Message ))
+                  Case ___ As FinalOutput : addDiagnostic(AddInformation(fs, ReportedIssue.Message))
                   Case ___ As ContainsNoArgs : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this Is correct?"))
-                  Case ___ As ContainsNoParameters : addDiagnostic(AddInformation(fs,  "No parameters! Are you sure this Is correct?"))
+                  Case ___ As ContainsNoParameters : addDiagnostic(AddInformation(fs, "No parameters! Are you sure this Is correct?"))
                   Case ___ As Internal_IssueReport : addDiagnostic(AddWarning(node, 0, fs.Span.Length, ReportedIssue))
                 End Select
               Next
@@ -136,7 +137,7 @@ Dim x = CType(node, MemberAccessExpressionSyntax)
                     Case cex As UnexpectedChar : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case cex As UnexpectedlyReachedEndOfText : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case cex As ArgIndexHasExceedLimit : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
-                  Case ___ As FinalOutput : addDiagnostic(AddInformation(fs,ReportedIssue.Message ))
+                    Case ___ As FinalOutput : addDiagnostic(AddInformation(fs, ReportedIssue.Message))
                     Case ___ As ContainsNoArgs : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this Is correct?"))
                     Case ___ As ContainsNoParameters : addDiagnostic(AddInformation(fs, "No parameters! Are you sure this Is correct?"))
                     Case ___ As Internal_IssueReport : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
@@ -151,7 +152,7 @@ Dim x = CType(node, MemberAccessExpressionSyntax)
                     Case cex As UnexpectedChar : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, cex.Start + 2, ReportedIssue))
                     Case cex As UnexpectedlyReachedEndOfText : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
                     Case cex As ArgIndexHasExceedLimit : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
-                  Case ___ As FinalOutput : addDiagnostic(AddInformation(fs,ReportedIssue.Message ))
+                    Case ___ As FinalOutput : addDiagnostic(AddInformation(fs, ReportedIssue.Message))
                     Case ___ As ContainsNoArgs : addDiagnostic(AddInformation(TheValueOfTheVariable, "Contains no args! Are you sure this Is correct?"))
                     Case ___ As ContainsNoParameters : addDiagnostic(AddInformation(TheValueOfTheVariable, "No parameters! Are you sure this Is correct?"))
                     Case ___ As Internal_IssueReport : addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
