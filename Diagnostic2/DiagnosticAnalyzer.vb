@@ -19,7 +19,8 @@ Public Class DiagnosticAnalyzer
   End Property
 
   Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-    Dim x = CType(node, MemberAccessExpressionSyntax)
+   
+Dim x = CType(node, MemberAccessExpressionSyntax)
     If x Is Nothing Then Exit Sub
     If x.OperatorToken.ValueText = "." Then
       Dim mn = x.Name.ToString
@@ -29,10 +30,15 @@ Public Class DiagnosticAnalyzer
       Dim invokation = TryCast(x.Parent, InvocationExpressionSyntax)
       If invokation Is Nothing Then Exit Sub 
       Dim Args = invokation.ArgumentList
+
       Dim ArgTypes = Args.GetArgumentTypes(semanticModel, cancellationToken)
       Dim ArgTypeNames = Args.GetArgumentTypesNames(semanticModel, cancellationToken)
+      'Dim FullyNamed = ArgTypes(1).ToFullyQualifiedName
+      'Dim GottenType = Type.GetType(FullyNamed, False, True)
+      ''Dim Obj = GottenType.BuildMeOne '.GetConstructors()(0).Invoke({Nothing})
+      'Dim ov = Convert.ChangeType(Args.Arguments(1).ToString, GottenType)
 
-    
+        'Debugger.Break 
 
       Select Case tn
         Case "System.Console"
@@ -62,11 +68,11 @@ Public Class DiagnosticAnalyzer
                   Select Case ArgTypeNames(0)
                     Case "String"
                       Case "IFormatProvider"
-                      Dim FullyNamed = ArgTypes(0).ToFullyQualifiedName
-                      Dim GottenType = Type.GetType(FullyNamed, False, True)
-                      Dim Obj = GottenType.BuildMeOne'.GetConstructors()(0).Invoke({Nothing})
+                      'Dim FullyNamed = ArgTypes(0).ToFullyQualifiedName
+                      'Dim GottenType = Type.GetType(FullyNamed, False, True)
+                      'Dim Obj = GottenType.BuildMeOne'.GetConstructors()(0).Invoke({Nothing})
 
-                      Debugger.breAK
+                      'Debugger.breAK
                   End Select
                 Case 2
                   Dim ii =  ArgTypes(1).Interfaces.Where(Function(i)  i.Name = "IFormatProvider").FirstOrDefault
@@ -98,7 +104,7 @@ Public Class DiagnosticAnalyzer
         If TheFormatString IsNot Nothing Then
           Select Case TheFormatString.Expression.VisualBasicKind
             Case SyntaxKind.StringLiteralExpression
-              Dim ReportedIssues = AnalyseFormatString(ct, fs.ToString, args.Count - 1)
+              Dim ReportedIssues = AnalyseFormatString(ct, fs.ToString, args.Count - 1, p.ArgumentList.GetArgumentAsObjects(sm, ct).ToArray)
               For Each ReportedIssue In ReportedIssues
                 Select Case ReportedIssue
                   Case cex As ArgIndexOutOfRange : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))

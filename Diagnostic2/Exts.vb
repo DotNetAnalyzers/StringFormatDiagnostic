@@ -18,6 +18,23 @@ Public Module Exts
   End Function
 
   <Extension>
+  Public Iterator  Function GetArgumentAsObjects(args As ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of Object)
+Dim ArgTypes=args.GetArgumentTypes(sm,ct)
+    For i = 0 To args.Arguments.Count - 1
+      Dim FullyNamed = ArgTypes(i).ToFullyQualifiedName
+      Dim GottenType = Type.GetType(FullyNamed, False, True)
+      Dim ov As Object
+      Try
+        ov = Convert.ChangeType(args.Arguments(i).ToString, GottenType)
+      Catch ex As Exception
+        ov = New Object
+      End Try
+      Yield ov
+    Next
+  End Function
+
+
+  <Extension>
   Public Function CalledOnType(n As MemberAccessExpressionSyntax, sm As SemanticModel, ct As CancellationToken) As INamedTypeSymbol
     Dim s = sm.GetSymbolInfo(n, ct).Symbol
     Return If(s Is Nothing, Nothing, s.ContainingType)
@@ -35,12 +52,12 @@ Public Module Exts
     For Each xon In constructors
       Try
         ReDim a(xon.GetParameters.Count())
-        Dim obj = xon.Invoke(a) 
+        Dim obj = xon.Invoke(a)
         Return obj
       Catch ex As Exception
 
       End Try
     Next
-   Return Nothing ' Throw New Exception
+    Return Nothing ' Throw New Exception
   End Function
 End Module

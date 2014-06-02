@@ -32,7 +32,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
     Const ExitOnFirst = False
 
     Iterator Function AnalyseFormatString(cancellationToken As CancellationToken, format As String, NumOfArgs As Integer,
-                                          Optional  Args() As Object = Nothing,
+                                          Optional  Args As IEnumerable(of Object) = Nothing,
                                           Optional Provider As IFormatProvider = Nothing  ) As IEnumerable(Of IssueReport)
       If format Is Nothing Then Throw New ArgumentNullException("fs")
       'If Args Is Nothing Then Throw New ArgumentNullException("Args")
