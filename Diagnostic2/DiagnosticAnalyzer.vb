@@ -104,7 +104,7 @@ Dim x = CType(node, MemberAccessExpressionSyntax)
         If TheFormatString IsNot Nothing Then
           Select Case TheFormatString.Expression.VisualBasicKind
             Case SyntaxKind.StringLiteralExpression
-              Dim ReportedIssues = AnalyseFormatString(ct, fs.ToString, args.Count - 1, p.ArgumentList.GetArgumentAsObjects(sm, ct).ToArray)
+              Dim ReportedIssues = AnalyseFormatString(ct, fs.ToString, args.Count - 1, p.ArgumentList.GetArgumentAsObjects(sm, ct).Skip(1).ToArray)
               For Each ReportedIssue In ReportedIssues
                 Select Case ReportedIssue
                   Case cex As ArgIndexOutOfRange : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))

@@ -11,8 +11,8 @@ Namespace Global.Roslyn.StringFormatDiagnostics
     Public Const Description = "Is the formatstring valid?"
     Public Const MessageFormat = "Invalid FormatString (Reason: {0})"
     Public Const Category = "Validation"
-    Public Rule1 As New DiagnosticDescriptor(DiagnosticId, Description, MessageFormat, Category, DiagnosticSeverity.Error )
-    Public Rule2 As New DiagnosticDescriptor(DiagnosticId, Description, "This Constant is used as a FormatString" + Environment.NewLine  + MessageFormat, Category, DiagnosticSeverity.Error)
+    Public Rule1 As New DiagnosticDescriptor(DiagnosticId, Description, MessageFormat, Category, DiagnosticSeverity.Error)
+    Public Rule2 As New DiagnosticDescriptor(DiagnosticId, Description, "This Constant is used as a FormatString" + Environment.NewLine + MessageFormat, Category, DiagnosticSeverity.Error)
     Public Function AddWarning(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IssueReport) As Diagnostic
       Return Diagnostic.Create(Rule1, Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
     End Function
@@ -32,8 +32,8 @@ Namespace Global.Roslyn.StringFormatDiagnostics
     Const ExitOnFirst = False
 
     Iterator Function AnalyseFormatString(cancellationToken As CancellationToken, format As String, NumOfArgs As Integer,
-                                          Optional  Args As IEnumerable(of Object) = Nothing,
-                                          Optional Provider As IFormatProvider = Nothing  ) As IEnumerable(Of IssueReport)
+                                          Optional Args As IEnumerable(Of Object) = Nothing,
+                                          Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
       If format Is Nothing Then Throw New ArgumentNullException("fs")
       'If Args Is Nothing Then Throw New ArgumentNullException("Args")
       '
@@ -57,7 +57,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       Dim LengthOfTheText = format.Length
       Dim CurrentCharacter = ControlChars.NullChar
       Dim cf As ICustomFormatter = Nothing
-      If provider IsNot Nothing Then cf = CType(provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
+      If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
       Try
         While True
           Dim ParsingIsInAnErrorState = False ' This flag enables the parser to continue parsing whilst there is an issue found. Allowing us to report additional issue.
@@ -104,7 +104,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
           ' Get current character of the text.
           CurrentCharacter = format(CurrentPosition)
           If ArgsSupplied AndAlso Not IsDigit(CurrentCharacter) Then
-            ParsingIsInAnErrorState = True 
+            ParsingIsInAnErrorState = True
             Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
             If ExitOnFirst Then Exit Function
           End If
@@ -164,7 +164,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
             End If
             ' If next Character after a minus, or currenct character isnot a Digit then it is an error
             If ArgsSupplied AndAlso Not IsDigit(CurrentCharacter) Then
-              ParsingIsInAnErrorState = True 
+              ParsingIsInAnErrorState = True
               Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
               If ExitOnFirst Then Exit Function
             End If
@@ -208,6 +208,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
               If cancellationToken.IsCancellationRequested Then Exit Function
               If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
               CurrentCharacter = format(CurrentPosition)
+              CurrentPosition += 1
               Select Case CurrentCharacter
                 Case Opening_Brace
                   If (CurrentPosition < LengthOfTheText) AndAlso format(CurrentPosition) = Opening_Brace Then
@@ -228,16 +229,16 @@ Namespace Global.Roslyn.StringFormatDiagnostics
                     CurrentPosition -= 1
                     Exit While
                   End If
-                  'pos += 1
-        
+
+
 
               End Select
             End While
           End If
           If CurrentCharacter <> Closing_Brace Then
             If ArgsSupplied Then
-              ParsingIsInAnErrorState=True 
-                Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
+              ParsingIsInAnErrorState = True
+              Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
             End If
             If ExitOnFirst Then Exit Function
           End If
