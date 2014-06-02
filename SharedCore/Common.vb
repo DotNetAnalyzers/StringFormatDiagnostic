@@ -6,23 +6,34 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Global.Roslyn.StringFormatDiagnostics
+
   Public Module Common
+
+
     Public Const DiagnosticId = "FormatString Diagnostic"
     Public Const Description = "Is the formatstring valid?"
     Public Const MessageFormat = "Invalid FormatString (Reason: {0})"
     Public Const Category = "Validation"
     Public Rule1 As New DiagnosticDescriptor(DiagnosticId, Description, MessageFormat, Category, DiagnosticSeverity.Error)
     Public Rule2 As New DiagnosticDescriptor(DiagnosticId, Description, "This Constant is used as a FormatString" + Environment.NewLine + MessageFormat, Category, DiagnosticSeverity.Error)
+
+
     Public Function AddWarning(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IssueReport) As Diagnostic
       Return Diagnostic.Create(Rule1, Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
     End Function
+
+
     Public Function AddWarningAtSource(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IssueReport) As Diagnostic
       Return Diagnostic.Create(Rule2, Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
     End Function
+
+
     Public Function AddInformation(node As SyntaxNode, msg As String) As Diagnostic
       Return Diagnostic.Create(DiagnosticId, Category, msg, DiagnosticSeverity.Info, 0, False, Location.Create(node.SyntaxTree, node.Span))
     End Function
-    Const Opening_Brace As Char = "{"c
+    
+
+Const Opening_Brace As Char = "{"c
     Const Closing_Brace As Char = "}"c
     Const _SPACE_ As Char = " "c
     Const _COMMA_ As Char = ","c
@@ -30,6 +41,8 @@ Namespace Global.Roslyn.StringFormatDiagnostics
     Const _MINUS_ As Char = "-"c
     Const _LIMIT_ As Integer = 1_000_000  ' This limit is found inside the .net implementation of String.Format.
     Const ExitOnFirst = False
+
+
 
     Iterator Function AnalyseFormatString(cancellationToken As CancellationToken, format As String, NumOfArgs As Integer,
                                           Optional Args As IEnumerable(Of Object) = Nothing,
@@ -299,6 +312,7 @@ output.Append(CurrentCharacter )
       If internalError IsNot Nothing Then Yield internalError
       Yield New FinalOutput(output.ToString)
     End Function
+
     Private Sub ConsumeSpaces(format As String, ByRef pos As Integer, len As Integer, ByRef Curr As Char, cancellationToken As CancellationToken)
       ' Consume spaces
       While (pos < len)
@@ -308,9 +322,11 @@ output.Append(CurrentCharacter )
         pos += 1
       End While
     End Sub
+
     Private Function IsDigit(c As Char) As Boolean
       Return "0"c <= c AndAlso c <= "9"c
     End Function
+
     Private Function DigitValue(c As Char) As Integer
       Select Case c
         Case "0"c : Return 0
@@ -327,13 +343,18 @@ output.Append(CurrentCharacter )
           Return 0
       End Select
     End Function
+
   End Module
+
+
   Public Class UnexpectedlyReachedEndOfText
     Inherits IssueReport
     Public Sub New()
       MyBase.New("Unexpectedly Reached End Of Text")
     End Sub
   End Class
+
+
   Public Class ArgIndexHasExceedLimit
     Inherits IssueReportWithStartPosition
     Public ReadOnly Property Finish As Integer
@@ -342,6 +363,7 @@ output.Append(CurrentCharacter )
       _Finish = Finish
     End Sub
   End Class
+
   Public Class ArgIndexOutOfRange
     Inherits IssueReportWithStartPosition
     Public ReadOnly Property Finish As Integer
@@ -350,30 +372,35 @@ output.Append(CurrentCharacter )
       _Finish = Finish
     End Sub
   End Class
+
   Public Class UnexpectedChar
     Inherits IssueReportWithStartPosition
     Public Sub New(C As Char, Start As Integer)
       MyBase.New("Unexpected Character (" & C & ")", Start)
     End Sub
   End Class
+
   Public Class ContainsNoArgs
     Inherits IssueReport
     Public Sub New()
       MyBase.New("")
     End Sub
   End Class
+
   Public Class ContainsNoParameters
     Inherits IssueReport
     Public Sub New()
       MyBase.New("")
     End Sub
   End Class
+
   Public Class FinalOutput
     Inherits IssueReport
     Public Sub New(output As string)
       MyBase.New(String.Format("Output:= {0}",output ))
     End Sub
   End Class
+
   Public MustInherit Class IssueReportWithStartPosition
     Inherits IssueReport
     Public ReadOnly Property Start As Integer
@@ -382,16 +409,21 @@ output.Append(CurrentCharacter )
       _Start = Start
     End Sub
   End Class
+
   Public Class Internal_IssueReport
     Inherits IssueReport
     Sub New(Msg As String)
       MyBase.New(Msg)
     End Sub
   End Class
+
   Public MustInherit Class IssueReport
     Public ReadOnly Property Message As String
     Friend Sub New(Msg As String)
       _Message = Msg
     End Sub
+
   End Class
+
+
 End Namespace

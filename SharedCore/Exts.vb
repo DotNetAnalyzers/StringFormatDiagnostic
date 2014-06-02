@@ -5,7 +5,7 @@ Imports Microsoft
 
 Namespace Global.Roslyn.StringFormatDiagnostics
   Namespace VisualBasic
-  Public Module Exts
+    Public Module Exts
 
       <Extension>
       Public Function ArgumentType(arg As CodeAnalysis.VisualBasic.Syntax.ArgumentSyntax, sm As SemanticModel, ct As CancellationToken) As ITypeSymbol
@@ -13,61 +13,92 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       End Function
 
       <Extension>
-    Public Function GetArgumentTypes(args As CodeAnalysis.VisualBasic.Syntax.ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of ITypeSymbol)
-      Return args.Arguments.Select(Function(arg) arg.ArgumentType(sm, ct))
-    End Function
+      Public Function GetArgumentTypes(args As CodeAnalysis.VisualBasic.Syntax.ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of ITypeSymbol)
+        Return args.Arguments.Select(Function(arg) arg.ArgumentType(sm, ct))
+      End Function
 
-    <Extension>
-    Public Function GetArgumentTypesNames(args As CodeAnalysis.VisualBasic.Syntax.ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of String)
-      Return args.GetArgumentTypes(sm, ct).Select(Function(tsym) tsym.ToFullyQualifiedName)
-    End Function
+      <Extension>
+      Public Function GetArgumentTypesNames(args As CodeAnalysis.VisualBasic.Syntax.ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of String)
+        Return args.GetArgumentTypes(sm, ct).Select(Function(tsym) tsym.ToFullyQualifiedName)
+      End Function
 
-    <Extension>
-    Public Iterator Function GetArgumentAsObjects(args As CodeAnalysis.VisualBasic.Syntax.ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of Object)
-      Dim ArgTypes = args.GetArgumentTypes(sm, ct)
-      For i = 0 To args.Arguments.Count - 1
-        Dim FullyNamed = ArgTypes(i).ToFullyQualifiedName
+      <Extension>
+      Public Iterator Function GetArgumentAsObjects(args As CodeAnalysis.VisualBasic.Syntax.ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of Object)
+        Dim ArgTypes = args.GetArgumentTypes(sm, ct)
+
+        For i = 0 To args.Arguments.Count - 1
+          Dim ov As Object
+          Dim ni = CType(args.Arguments(i), CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax)
+          Dim na = TryCast(ni.Expression, CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax)
+
+          If na IsNot Nothing Then
+            ov = ni.IdentifierValue(sm, ct)
+
+          Else
+
+            Dim FullyNamed = ArgTypes(i).ToFullyQualifiedName
+            Dim GottenType = Type.GetType(FullyNamed, False, True)
+
+            Try
+              '  Dim na= args.Arguments(i)
+              Dim ds = ni.DescendantTokens.First.Value
+
+              ov = Convert.ChangeType(ds, GottenType)
+            Catch ex As Exception
+              ov = Nothing
+            End Try
+          End If
+          Yield ov
+        Next
+      End Function
+
+      <Extension>
+      Function IdentifierValue(ni As CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax, sm As SemanticModel, ct As CancellationToken) As Object
+        Dim ThisIdentifier = TryCast(ni.Expression, CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax)
+
+        If ThisIdentifier Is Nothing Then Return Nothing
+        Dim ConstValue = sm.GetConstantValue(ThisIdentifier, ct)
+        'If ConstValue.HasValue = False Then  return nothing
+        Dim FoundSymbol = sm.LookupSymbols(ThisIdentifier.Span.Start, name:=ThisIdentifier.Identifier.Text)(0)
+        Dim VariableDeclarationSite = TryCast(FoundSymbol.DeclaringSyntaxReferences(0).GetSyntax.Parent, CodeAnalysis.VisualBasic.Syntax.VariableDeclaratorSyntax)
+        If VariableDeclarationSite Is Nothing Then Return Nothing
+        Dim TheValueOfTheVariable = VariableDeclarationSite.Initializer.Value.DescendantTokens().First.Value
+        Dim FullyNamed = sm.GetTypeInfo(ni.Expression, ct).Type.ToFullyQualifiedName
+
         Dim GottenType = Type.GetType(FullyNamed, False, True)
-        Dim ov As Object
-        Try
-            ov = Convert.ChangeType(args.Arguments(i).GetFirstToken.ValueText, GottenType)
-          Catch ex As Exception
-          ov = Nothing 
-        End Try
-        Yield ov
-      Next
-    End Function
+        Return Convert.ChangeType(TheValueOfTheVariable, GottenType)
 
+      End Function
 
-    <Extension>
-    Public Function CalledOnType(n As CodeAnalysis.VisualBasic.Syntax.MemberAccessExpressionSyntax, sm As SemanticModel, ct As CancellationToken) As INamedTypeSymbol
-      Dim s = sm.GetSymbolInfo(n, ct).Symbol
-      Return If(s Is Nothing, Nothing, s.ContainingType)
-    End Function
+      <Extension>
+      Public Function CalledOnType(n As CodeAnalysis.VisualBasic.Syntax.MemberAccessExpressionSyntax, sm As SemanticModel, ct As CancellationToken) As INamedTypeSymbol
+        Dim s = sm.GetSymbolInfo(n, ct).Symbol
+        Return If(s Is Nothing, Nothing, s.ContainingType)
+      End Function
 
-    <Extension>
-    Public Function ToFullyQualifiedName(s As ISymbol) As String
-      Return s.ToDisplayString(New SymbolDisplayFormat(typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces))
-    End Function
+      <Extension>
+      Public Function ToFullyQualifiedName(s As ISymbol) As String
+        Return s.ToDisplayString(New SymbolDisplayFormat(typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces))
+      End Function
 
-    '<Extension>
-    'Public Function BuildMeOne(tt As Type) As Object
-    '  Dim constructors = tt.GetConstructors()
-    '  Dim a() As Object
-    '  For Each xon In constructors
-    '    Try
-    '      ReDim a(xon.GetParameters.Count())
-    '      Dim obj = xon.Invoke(a)
-    '      Return obj
-    '    Catch ex As Exception
+      '<Extension>
+      'Public Function BuildMeOne(tt As Type) As Object
+      '  Dim constructors = tt.GetConstructors()
+      '  Dim a() As Object
+      '  For Each xon In constructors
+      '    Try
+      '      ReDim a(xon.GetParameters.Count())
+      '      Dim obj = xon.Invoke(a)
+      '      Return obj
+      '    Catch ex As Exception
 
-    '    End Try
-    '  Next
-    '  Return Nothing ' Throw New Exception
-    'End Function
-  End Module
+      '    End Try
+      '  Next
+      '  Return Nothing ' Throw New Exception
+      'End Function
+    End Module
 
-    End Namespace
+  End Namespace
   Namespace CSharp
     Public Module Exts
 
@@ -88,19 +119,19 @@ Namespace Global.Roslyn.StringFormatDiagnostics
 
       <Extension>
       Public Iterator Function GetArgumentAsObjects(args As CodeAnalysis.CSharp.Syntax.ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of Object)
-      Dim ArgTypes = args.GetArgumentTypes(sm, ct)
-      For i = 0 To args.Arguments.Count - 1
-        Dim FullyNamed = ArgTypes(i).ToFullyQualifiedName
-        Dim GottenType = Type.GetType(FullyNamed, False, True)
-        Dim ov As Object
-        Try
+        Dim ArgTypes = args.GetArgumentTypes(sm, ct)
+        For i = 0 To args.Arguments.Count - 1
+          Dim FullyNamed = ArgTypes(i).ToFullyQualifiedName
+          Dim GottenType = Type.GetType(FullyNamed, False, True)
+          Dim ov As Object
+          Try
             ov = Convert.ChangeType(args.Arguments(i).GetFirstToken.ValueText, GottenType)
           Catch ex As Exception
-          ov = Nothing 
-        End Try
-        Yield ov
-      Next
-    End Function
+            ov = Nothing
+          End Try
+          Yield ov
+        Next
+      End Function
 
 
       <Extension>
@@ -113,7 +144,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       Public Function ToFullyQualifiedName(s As ISymbol) As String
         Return s.ToDisplayString(New SymbolDisplayFormat(typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces))
       End Function
-      End Module
+    End Module
 
   End Namespace
 End Namespace
