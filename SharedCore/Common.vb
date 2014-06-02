@@ -261,7 +261,7 @@ output.Append(CurrentCharacter )
           End If
 
           If s Is Nothing Then
-            Dim formattableArg As IFormattable = CType(arg, IFormattable)
+            Dim formattableArg As IFormattable = TryCast(arg, IFormattable)
             '
             '         #If FEATURE_LEGACYNETCF
             ' If CompatibilitySwitch.IsAppEarlierThanWindows8 Then

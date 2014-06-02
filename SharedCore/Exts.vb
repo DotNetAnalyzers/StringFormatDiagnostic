@@ -30,9 +30,9 @@ Namespace Global.Roslyn.StringFormatDiagnostics
         Dim GottenType = Type.GetType(FullyNamed, False, True)
         Dim ov As Object
         Try
-          ov = Convert.ChangeType(args.Arguments(i).ToString, GottenType)
-        Catch ex As Exception
-          ov = New Object
+            ov = Convert.ChangeType(args.Arguments(i).GetFirstToken.ValueText, GottenType)
+          Catch ex As Exception
+          ov = Nothing 
         End Try
         Yield ov
       Next
@@ -88,19 +88,19 @@ Namespace Global.Roslyn.StringFormatDiagnostics
 
       <Extension>
       Public Iterator Function GetArgumentAsObjects(args As CodeAnalysis.CSharp.Syntax.ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of Object)
-        Dim ArgTypes = args.GetArgumentTypes(sm, ct)
-        For i = 0 To args.Arguments.Count - 1
-          Dim FullyNamed = ArgTypes(i).ToFullyQualifiedName
-          Dim GottenType = Type.GetType(FullyNamed, False, True)
-          Dim ov As Object
-          Try
-            ov = Convert.ChangeType(args.Arguments(i).ToString, GottenType)
+      Dim ArgTypes = args.GetArgumentTypes(sm, ct)
+      For i = 0 To args.Arguments.Count - 1
+        Dim FullyNamed = ArgTypes(i).ToFullyQualifiedName
+        Dim GottenType = Type.GetType(FullyNamed, False, True)
+        Dim ov As Object
+        Try
+            ov = Convert.ChangeType(args.Arguments(i).GetFirstToken.ValueText, GottenType)
           Catch ex As Exception
-            ov = New Object
-          End Try
-          Yield ov
-        Next
-      End Function
+          ov = Nothing 
+        End Try
+        Yield ov
+      Next
+    End Function
 
 
       <Extension>
