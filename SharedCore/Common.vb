@@ -50,12 +50,14 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       '
       '
       '
+      Dim output As New System.Text.StringBuilder 
       Dim ArgsSupplied = NumOfArgs > 0
       Dim ArgsCounted = 0
       Dim internalError As Internal_IssueReport = Nothing
       Dim CurrentPosition = 0
       Dim LengthOfTheText = format.Length
       Dim CurrentCharacter = ControlChars.NullChar
+        Dim Width = 0
       Dim cf As ICustomFormatter = Nothing
       If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
       Try
@@ -93,8 +95,10 @@ Namespace Global.Roslyn.StringFormatDiagnostics
                   Exit While
                   ' Throw New UnexpectedChar(Curr, pos)
                 End If
-            End Select
-            ' Normally here we would Append( Curr ) but this is just checking the validity of the formatstring.
+            End Select  
+            
+            'Normally here we would Append( Curr ) but this is just checking the validity of the formatstring.
+output.Append(CurrentCharacter )
             If cancellationToken.IsCancellationRequested Then Exit Function
           End While
           ' Have we reached the end of the format string?
@@ -171,7 +175,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
             ' Reset the markers for highlighter
             StartPositionForThisPart = CurrentPosition
             EndPositionForThisPart = CurrentPosition
-            Dim Width = 0
+             Width = 0
             Do
               If cancellationToken.IsCancellationRequested Then Exit Function
               If Not ParsingIsInAnErrorState Then
@@ -202,6 +206,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
           ' |  Start of Parsing for formatting strings 
           ' +--------------------------------------------
           '
+          Dim fmt As System.Text.StringBuilder = Nothing
           If CurrentCharacter = _COLON_ Then
             CurrentPosition += 1
             While True
@@ -230,9 +235,10 @@ Namespace Global.Roslyn.StringFormatDiagnostics
                     Exit While
                   End If
 
-
-
               End Select
+              If fmt Is Nothing Then fmt = New System.Text.StringBuilder
+                  fmt.Append(CurrentCharacter ) 
+              
             End While
           End If
           If CurrentCharacter <> Closing_Brace Then
@@ -246,39 +252,40 @@ Namespace Global.Roslyn.StringFormatDiagnostics
           '
           ' NOTE: Probably don't need to following for just checking the validation
           '
-          'Dim sFmt As String = Nothing
-          'Dim s As String = Nothing
-          'If cf IsNot Nothing Then
-          '  If fmt IsNot Nothing Then sFmt = fmt.ToString
-          '  s = cf.Format(sFmt, arg, provider)
-          'End If
+          Dim sFmt As String = Nothing
+          Dim s As String = Nothing
+          Dim arg = Args(ArgIndex )
+          If cf IsNot Nothing Then
+            If fmt IsNot Nothing Then sFmt = fmt.ToString
+            s = cf.Format(sFmt, arg, provider)
+          End If
 
-          'If s Is Nothing Then
-          '  Dim formattableArg As IFormattable = CType(arg, IFormattable)
-          '  '
-          '  '         #If FEATURE_LEGACYNETCF
-          '  ' If CompatibilitySwitch.IsAppEarlierThanWindows8 Then
-          '  ' // TimeSpan does not implement IFormattable in Mango
-          '  ' If TypeOf arg Is TimeSpan Then formattableArg = null
-          '  ' End If
-          '  ' #End If
+          If s Is Nothing Then
+            Dim formattableArg As IFormattable = CType(arg, IFormattable)
+            '
+            '         #If FEATURE_LEGACYNETCF
+            ' If CompatibilitySwitch.IsAppEarlierThanWindows8 Then
+            ' // TimeSpan does not implement IFormattable in Mango
+            ' If TypeOf arg Is TimeSpan Then formattableArg = null
+            ' End If
+            ' #End If
 
-          '  If formattableArg IsNot Nothing Then
-          '    If (sFmt Is Nothing) AndAlso (fmt IsNot Nothing) Then sFmt = fmt.ToString()
-          '    s = formattableArg.ToString(sFmt, provider)
-          '  ElseIf arg IsNot Nothing Then
-          '    s = arg.ToString
-          '  End If
+            If formattableArg IsNot Nothing Then
+              If (sFmt Is Nothing) AndAlso (fmt IsNot Nothing) Then sFmt = fmt.ToString()
+              s = formattableArg.ToString(sFmt, provider)
+            ElseIf arg IsNot Nothing Then
+              s = arg.ToString
+            End If
 
-          'End If 
+          End If
 
-          '' apply the alignment
-          'If s Is Nothing Then s= String.Empty
-          'Dim pad = Width - s.Length
-          'If (Not LeftJustifiy) AndAlso (pad > 0) Then Append(_SPACE_, pad)
-          'Append(s)
-          'If LeftJustifiy AndAlso (pad > 0) Then Append(_SPACE_,pad) 
-          ''
+          ' apply the alignment
+          If s Is Nothing Then s = String.Empty
+          Dim pad = Width - s.Length
+          If (Not LeftJustifiy) AndAlso (pad > 0) Then output. Append(_SPACE_, pad)
+          output.Append(s)
+          If LeftJustifiy AndAlso (pad > 0) Then output.Append(_SPACE_, pad)
+          '
         End While
         If ArgsSupplied Then
           If ArgsCounted = 0 Then Yield New ContainsNoArgs
@@ -290,6 +297,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
         internalError = New Internal_IssueReport(ex.ToString)
       End Try
       If internalError IsNot Nothing Then Yield internalError
+      Yield New FinalOutput(output.ToString)
     End Function
     Private Sub ConsumeSpaces(format As String, ByRef pos As Integer, len As Integer, ByRef Curr As Char, cancellationToken As CancellationToken)
       ' Consume spaces
@@ -358,6 +366,12 @@ Namespace Global.Roslyn.StringFormatDiagnostics
     Inherits IssueReport
     Public Sub New()
       MyBase.New("")
+    End Sub
+  End Class
+  Public Class FinalOutput
+    Inherits IssueReport
+    Public Sub New(output As string)
+      MyBase.New(String.Format("Output:= {0}",output ))
     End Sub
   End Class
   Public MustInherit Class IssueReportWithStartPosition
