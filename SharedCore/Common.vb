@@ -45,7 +45,7 @@ Const Opening_Brace As Char = "{"c
 
 
     Iterator Function AnalyseFormatString(cancellationToken As CancellationToken, format As String, NumOfArgs As Integer,
-                                          Optional Args As IEnumerable(Of Object) = Nothing,
+                                           Args As IEnumerable(Of Object),
                                           Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
       If format Is Nothing Then Throw New ArgumentNullException("fs")
       'If Args Is Nothing Then Throw New ArgumentNullException("Args")
@@ -63,6 +63,7 @@ Const Opening_Brace As Char = "{"c
       '
       '
       '
+      
       Dim output As New System.Text.StringBuilder 
       Dim ArgsSupplied = NumOfArgs > 0
       Dim ArgsCounted = 0
@@ -75,7 +76,8 @@ Const Opening_Brace As Char = "{"c
       If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
       Try
         While True
-          Dim ParsingIsInAnErrorState = False ' This flag enables the parser to continue parsing whilst there is an issue found. Allowing us to report additional issue.
+    Dim InvalidIndex As Boolean = False
+      Dim ParsingIsInAnErrorState = False ' This flag enables the parser to continue parsing whilst there is an issue found. Allowing us to report additional issue.
           Dim StartPositionForThisPart = 0
           Dim EndPositionForThisPart = 0
           While CurrentPosition < LengthOfTheText
@@ -150,12 +152,14 @@ output.Append(CurrentCharacter )
           If ArgsSupplied AndAlso ArgIndex >= _LIMIT_ Then
             ' Index Value is greater or equal to limit.
             Yield New ArgIndexHasExceedLimit("Arg Index", ArgIndex.ToString, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart)
+            InvalidIndex=True 
             If ExitOnFirst Then Exit Function
           End If
           If ArgsSupplied AndAlso Not ParsingIsInAnErrorState AndAlso (ArgIndex >= NumOfArgs) Then
             ' Index is out of the bounds of the supplied args.
             Yield New ArgIndexOutOfRange(ArgIndex, NumOfArgs, StartPositionForThisPart, EndPositionForThisPart)
             ' ToDo: Get the Start and End positions of opening and closing braces.
+            InvalidIndex = True
             If ExitOnFirst Then Exit Function
           End If
           ' Reset the ParsingIsInAnErrorState Flag 
@@ -267,7 +271,7 @@ output.Append(CurrentCharacter )
           '
           Dim sFmt As String = Nothing
           Dim s As String = Nothing
-          Dim arg = Args(ArgIndex )
+          Dim arg =If(InvalidIndex=True ,"",Args(ArgIndex ))
           If cf IsNot Nothing Then
             If fmt IsNot Nothing Then sFmt = fmt.ToString
             s = cf.Format(sFmt, arg, provider)

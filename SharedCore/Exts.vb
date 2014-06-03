@@ -14,6 +14,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
 
       <Extension>
       Public Function GetArgumentTypes(args As CodeAnalysis.VisualBasic.Syntax.ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of ITypeSymbol)
+        'If args Is Nothing Then Return Enumerable.Empty(Of ITypeSymbol )        
         Return args.Arguments.Select(Function(arg) arg.ArgumentType(sm, ct))
       End Function
 
@@ -25,25 +26,14 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       <Extension>
       Public Iterator Function GetArgumentAsObjects(args As CodeAnalysis.VisualBasic.Syntax.ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of Object)
         Dim ArgTypes = args.GetArgumentTypes(sm, ct)
-
         For i = 0 To args.Arguments.Count - 1
           Dim ov As Object
-          Dim ni = CType(args.Arguments(i), CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax)
-          Dim na = TryCast(ni.Expression, CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax)
-
-          If na IsNot Nothing Then
-            ov = ni.IdentifierValue(sm, ct)
-
+          Dim Arg = CType(args.Arguments(i), CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax)
+          If TypeOf Arg.Expression Is CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax Then
+            ov = IdentifierValue(Arg.Expression,sm, ct)
           Else
-
-            Dim FullyNamed = ArgTypes(i).ToFullyQualifiedName
-            Dim GottenType = Type.GetType(FullyNamed, False, True)
-
             Try
-              '  Dim na= args.Arguments(i)
-              Dim ds = ni.DescendantTokens.First.Value
-
-              ov = Convert.ChangeType(ds, GottenType)
+              ov = Convert.ChangeType(Arg.DescendantTokens.First.Value, Type.GetType(ArgTypes(i).ToFullyQualifiedName, False, True))
             Catch ex As Exception
               ov = Nothing
             End Try
@@ -52,23 +42,31 @@ Namespace Global.Roslyn.StringFormatDiagnostics
         Next
       End Function
 
+      <Extension >
+      function IsExternal(sn As SyntaxNode,sm As SemanticModel, ct As CancellationToken  ) As Boolean 
+        Return sm.GetSymbolInfo(sn,ct).Symbol .IsExtern 
+      End function
       <Extension>
-      Function IdentifierValue(ni As CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax, sm As SemanticModel, ct As CancellationToken) As Object
-        Dim ThisIdentifier = TryCast(ni.Expression, CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax)
-
+      Function IdentifierValue(ThisIdentifier As CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax, sm As SemanticModel, ct As CancellationToken) As Object
         If ThisIdentifier Is Nothing Then Return Nothing
-        Dim ConstValue = sm.GetConstantValue(ThisIdentifier, ct)
-        'If ConstValue.HasValue = False Then  return nothing
+        'Dim ConstValue = sm.GetConstantValue(ThisIdentifier, ct)
+        ''If ConstValue.HasValue = False Then  return nothing
         Dim FoundSymbol = sm.LookupSymbols(ThisIdentifier.Span.Start, name:=ThisIdentifier.Identifier.Text)(0)
         Dim VariableDeclarationSite = TryCast(FoundSymbol.DeclaringSyntaxReferences(0).GetSyntax.Parent, CodeAnalysis.VisualBasic.Syntax.VariableDeclaratorSyntax)
         If VariableDeclarationSite Is Nothing Then Return Nothing
         Dim TheValueOfTheVariable = VariableDeclarationSite.Initializer.Value.DescendantTokens().First.Value
-        Dim FullyNamed = sm.GetTypeInfo(ni.Expression, ct).Type.ToFullyQualifiedName
-
-        Dim GottenType = Type.GetType(FullyNamed, False, True)
-        Return Convert.ChangeType(TheValueOfTheVariable, GottenType)
+        Return Convert.ChangeType(TheValueOfTheVariable, Type.GetType(sm.GetTypeInfo(ThisIdentifier, ct).Type.ToFullyQualifiedName, False, True))
 
       End Function
+
+
+'      Function PotentiallyChanged(sn As SyntaxNode,sm As SemanticModel, ct As CancellationToken ) As Boolean
+'Dim d = sm.GetSymbolInfo(sn,ct).Symbol.DeclaringSyntaxReferences(0).GetSyntax.Parent        
+' Dim v = sm.AnalyzeDataFlow(d,sn)
+' Dim wo =      v.WrittenOutside ()
+' Return        wo(0).
+'      End Function
+
 
       <Extension>
       Public Function CalledOnType(n As CodeAnalysis.VisualBasic.Syntax.MemberAccessExpressionSyntax, sm As SemanticModel, ct As CancellationToken) As INamedTypeSymbol
