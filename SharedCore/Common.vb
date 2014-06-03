@@ -31,9 +31,9 @@ Namespace Global.Roslyn.StringFormatDiagnostics
     Public Function AddInformation(node As SyntaxNode, msg As String) As Diagnostic
       Return Diagnostic.Create(DiagnosticId, Category, msg, DiagnosticSeverity.Info, 0, False, Location.Create(node.SyntaxTree, node.Span))
     End Function
-    
 
-Const Opening_Brace As Char = "{"c
+
+    Const Opening_Brace As Char = "{"c
     Const Closing_Brace As Char = "}"c
     Const _SPACE_ As Char = " "c
     Const _COMMA_ As Char = ","c
@@ -44,7 +44,7 @@ Const Opening_Brace As Char = "{"c
 
 
 
-    Iterator Function AnalyseFormatString(cancellationToken As CancellationToken, format As String, NumOfArgs As Integer,
+    Iterator Function AnalyseFormatString(ct As CancellationToken, format As String, NumOfArgs As Integer,
                                            Args As IEnumerable(Of Object),
                                           Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
       If format Is Nothing Then Throw New ArgumentNullException("fs")
@@ -63,68 +63,71 @@ Const Opening_Brace As Char = "{"c
       '
       '
       '
-      
-      Dim output As New System.Text.StringBuilder 
+
+      Dim fr As StringReader = StringReader.Create(format)
+
+      Dim output As New System.Text.StringBuilder
       Dim ArgsSupplied = NumOfArgs > 0
       Dim ArgsCounted = 0
       Dim internalError As Internal_IssueReport = Nothing
-      Dim CurrentPosition = 0
-      Dim LengthOfTheText = format.Length
-      Dim CurrentCharacter = ControlChars.NullChar
-        Dim Width = 0
+      'Dim CurrentCharacter = ControlChars.NullChar
+      Dim Width = 0
       Dim cf As ICustomFormatter = Nothing
       If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
       Try
         While True
-    Dim InvalidIndex As Boolean = False
-      Dim ParsingIsInAnErrorState = False ' This flag enables the parser to continue parsing whilst there is an issue found. Allowing us to report additional issue.
+          Dim InvalidIndex As Boolean = False
+          Dim ParsingIsInAnErrorState = False ' This flag enables the parser to continue parsing whilst there is an issue found. Allowing us to report additional issue.
           Dim StartPositionForThisPart = 0
           Dim EndPositionForThisPart = 0
-          While CurrentPosition < LengthOfTheText
-            CurrentCharacter = format(CurrentPosition)
-            CurrentPosition += 1
-            Select Case CurrentCharacter
+
+          While fr.IsNotBeyondEndOfText
+
+            Dim ThisChar = fr.Curr.Value
+
+            Select Case ThisChar
               Case Closing_Brace
-                If (CurrentPosition < LengthOfTheText) AndAlso format(CurrentPosition) = Closing_Brace Then
+                If fr.IsNotBeyondEndOfText AndAlso fr.Peek.Value = Closing_Brace Then
                   ' This brace has escaped! }}
-                  CurrentPosition += 1
+                  fr.Next()
                 Else
-                  If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then
+                  If ArgsSupplied AndAlso fr.IsBeyondEndOfText Then
                     Yield New UnexpectedlyReachedEndOfText
                     Exit Function
                   End If
-                  Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
+                  Yield New UnexpectedChar(ThisChar, fr.Index)
                   If ExitOnFirst Then Exit Function
                 End If
               Case Opening_Brace
-                If (CurrentPosition < LengthOfTheText) AndAlso format(CurrentPosition) = Opening_Brace Then
+                If fr.IsNotBeyondEndOfText AndAlso fr.Peek = Opening_Brace Then
                   ' This brace has escaped! {{
-                  CurrentPosition += 1
+                  fr.Next()
                 Else
-                  If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then
+                  If ArgsSupplied AndAlso fr.IsBeyondEndOfText Then
                     Yield New UnexpectedlyReachedEndOfText
                     Exit Function
                   End If
-                  StartPositionForThisPart = CurrentPosition ' This is the char index of the first character in the IndexPart
-                  CurrentPosition -= 1
+                  StartPositionForThisPart = fr.Index + 1  ' This is the char index of the first character in the IndexPart
+
                   Exit While
-                  ' Throw New UnexpectedChar(Curr, pos)
+
                 End If
-            End Select  
-            
+            End Select
+
             'Normally here we would Append( Curr ) but this is just checking the validity of the formatstring.
-output.Append(CurrentCharacter )
-            If cancellationToken.IsCancellationRequested Then Exit Function
+            output.Append(ThisChar)
+            fr.Next()
+            If ct.IsCancellationRequested Then Exit Function
           End While
           ' Have we reached the end of the format string?
-          If (CurrentPosition >= LengthOfTheText) Then Exit While
-          CurrentPosition += 1
-          If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+          If fr.IsBeyondEndOfText Then Exit While
+          fr.Next()
+          If ArgsSupplied AndAlso fr.IsBeyondEndOfText Then Yield New UnexpectedlyReachedEndOfText : Exit Function
           ' Get current character of the text.
-          CurrentCharacter = format(CurrentPosition)
-          If ArgsSupplied AndAlso Not IsDigit(CurrentCharacter) Then
+          'CurrentCharacter = fr.Curr.Value
+          If ArgsSupplied AndAlso Not IsDigit(fr.Curr.Value) Then
             ParsingIsInAnErrorState = True
-            Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
+            Yield New UnexpectedChar(fr.Curr.Value, fr.Index)
             If ExitOnFirst Then Exit Function
           End If
           '
@@ -133,26 +136,27 @@ output.Append(CurrentCharacter )
           ' +---------------------------------------------------
           '
           ' -- Parse and Calculate IndexPart Value
-          Dim ArgIndex = 0
-          Do
-            ' Was cancellation requestes? If so exit.
-            If cancellationToken.IsCancellationRequested Then Exit Function
-            If Not ParsingIsInAnErrorState Then
-              ' Work out the new value of the Index
-              ArgIndex = (10 * ArgIndex) + DigitValue(CurrentCharacter)
-            End If
-            CurrentPosition += 1
-            If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
-            CurrentCharacter = format(CurrentPosition)
-            If Not ParsingIsInAnErrorState AndAlso (ArgIndex >= _LIMIT_) Then ParsingIsInAnErrorState = True
-          Loop While IsDigit(CurrentCharacter)
+          Dim ArgIndex = ParseValue(fr,ct,_Limit_,ParsingIsInAnErrorState)
+          'Dim ArgIndex = 0
+          'Do
+          '  ' Was cancellation requestes? If so exit.
+          '  If ct.IsCancellationRequested Then Exit Function
+          '  If Not ParsingIsInAnErrorState Then
+          '    ' Work out the new value of the Index
+          '    ArgIndex = (10 * ArgIndex) + DigitValue(fr.Curr.Value)
+          '  End If
+          '  fr.Next()
+          '  If ArgsSupplied AndAlso fr.IsBeyondEndOfText Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+          '  'CurrentCharacter = fr.Curr.Value
+          '  If Not ParsingIsInAnErrorState AndAlso (ArgIndex >= _LIMIT_) Then ParsingIsInAnErrorState = True
+          'Loop While IsDigit(fr.Curr.Value)
           ' Why did we exit?
           ArgsCounted += 1
-          EndPositionForThisPart = CurrentPosition - 1
+          EndPositionForThisPart = fr.Index - 1
           If ArgsSupplied AndAlso ArgIndex >= _LIMIT_ Then
             ' Index Value is greater or equal to limit.
             Yield New ArgIndexHasExceedLimit("Arg Index", ArgIndex.ToString, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart)
-            InvalidIndex=True 
+            InvalidIndex = True
             If ExitOnFirst Then Exit Function
           End If
           If ArgsSupplied AndAlso Not ParsingIsInAnErrorState AndAlso (ArgIndex >= NumOfArgs) Then
@@ -164,51 +168,52 @@ output.Append(CurrentCharacter )
           End If
           ' Reset the ParsingIsInAnErrorState Flag 
           ParsingIsInAnErrorState = False
-          ConsumeSpaces(format, CurrentPosition, LengthOfTheText, CurrentCharacter, cancellationToken)
-          If (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+          ConsumeSpaces(fr, ct)
+          If fr.IsBeyondEndOfText Then Yield New UnexpectedlyReachedEndOfText : Exit Function
           '
           ' +-----------------------------------------
           ' | Start of Parsing for the AlignmentPart  
           ' +-----------------------------------------
           '
           Dim LeftJustifiy = False
-          If CurrentCharacter = _COMMA_ Then
-            CurrentPosition += 1
-            ConsumeSpaces(format, CurrentPosition, LengthOfTheText, CurrentCharacter, cancellationToken)
-            If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
-            CurrentCharacter = format(CurrentPosition)
-            If CurrentCharacter = _MINUS_ Then
+          If fr.Curr.Value = _COMMA_ Then
+            fr.Next()
+            ConsumeSpaces(fr, ct)
+            If ArgsSupplied AndAlso fr.IsBeyondEndOfText Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+            'CurrentCharacter = fr.Curr.Value
+            If fr.Curr.Value = _MINUS_ Then
               LeftJustifiy = True
-              CurrentPosition += 1
-              If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
-              CurrentCharacter = format(CurrentPosition)
+              fr.Next()
+              If ArgsSupplied AndAlso fr.IsBeyondEndOfText Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+              'CurrentCharacter = fr.Curr.Value
             End If
             ' If next Character after a minus, or currenct character isnot a Digit then it is an error
-            If ArgsSupplied AndAlso Not IsDigit(CurrentCharacter) Then
+            If ArgsSupplied AndAlso Not IsDigit(fr.Curr.Value) Then
               ParsingIsInAnErrorState = True
-              Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
+              Yield New UnexpectedChar(fr.Curr.Value, fr.Index)
               If ExitOnFirst Then Exit Function
             End If
             ' Reset the markers for highlighter
-            StartPositionForThisPart = CurrentPosition
-            EndPositionForThisPart = CurrentPosition
-             Width = 0
-            Do
-              If cancellationToken.IsCancellationRequested Then Exit Function
-              If Not ParsingIsInAnErrorState Then
-                ' Calculate the new value of width
-                Width = (10 * Width) + DigitValue(CurrentCharacter)
-              End If
-              CurrentPosition += 1
-              If (CurrentPosition >= LengthOfTheText) Then
-                Yield New UnexpectedlyReachedEndOfText
-                Exit Function
-              End If
-              If Not ParsingIsInAnErrorState AndAlso (Width >= _LIMIT_) Then ParsingIsInAnErrorState = True
-              CurrentCharacter = format(CurrentPosition)
-            Loop While IsDigit(CurrentCharacter) 'AndAlso (Width < _LIMIT_)
+            StartPositionForThisPart = fr.Index
+            EndPositionForThisPart = fr.Index
+            Width = ParseValue(fr,ct,_LIMIT_,ParsingIsInAnErrorState )
+            'Width = 0
+            'Do
+            '  If ct.IsCancellationRequested Then Exit Function
+            '  If Not ParsingIsInAnErrorState Then
+            '    ' Calculate the new value of width
+            '    Width = (10 * Width) + DigitValue(fr.Curr.Value)
+            '  End If
+            '  fr.Next()
+            '  If fr.IsBeyondEndOfText Then
+            '    Yield New UnexpectedlyReachedEndOfText
+            '    Exit Function
+            '  End If
+            '  If Not ParsingIsInAnErrorState AndAlso (Width >= _LIMIT_) Then ParsingIsInAnErrorState = True
+            '  'CurrentCharacter = fr.Curr.Value
+            'Loop While IsDigit(fr.Curr.Value) 'AndAlso (Width < _LIMIT_)
             ' Why did we exit?
-            EndPositionForThisPart = CurrentPosition - 1
+            EndPositionForThisPart = fr.Index - 1
             If ArgsSupplied AndAlso Width >= _LIMIT_ Then
               ' Index Value is greater or equal to limit.
               Dim WidthText = format.Substring(StartPositionForThisPart, (EndPositionForThisPart - StartPositionForThisPart) + 1)
@@ -216,65 +221,62 @@ output.Append(CurrentCharacter )
               If ExitOnFirst Then Exit Function
             End If
           End If
-          ConsumeSpaces(format, CurrentPosition, LengthOfTheText, CurrentCharacter, cancellationToken)
-          If ArgsSupplied AndAlso Not ParsingIsInAnErrorState AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+          ConsumeSpaces(fr, ct)
+          If ArgsSupplied AndAlso Not ParsingIsInAnErrorState AndAlso fr.IsBeyondEndOfText Then Yield New UnexpectedlyReachedEndOfText : Exit Function
           '
           ' +--------------------------------------------
           ' |  Start of Parsing for formatting strings 
           ' +--------------------------------------------
           '
           Dim fmt As System.Text.StringBuilder = Nothing
-          If CurrentCharacter = _COLON_ Then
-            CurrentPosition += 1
+          If fr.Curr.Value = _COLON_ Then
+            fr.Next()
             While True
-              If cancellationToken.IsCancellationRequested Then Exit Function
-              If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
-              CurrentCharacter = format(CurrentPosition)
-              CurrentPosition += 1
-              Select Case CurrentCharacter
+              If ct.IsCancellationRequested Then Exit Function
+              If ArgsSupplied AndAlso fr.IsBeyondEndOfText Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+              Dim ThisChar = fr.Curr.Value
+              Select Case ThisChar
                 Case Opening_Brace
-                  If (CurrentPosition < LengthOfTheText) AndAlso format(CurrentPosition) = Opening_Brace Then
+                  If fr.IsNotBeyondEndOfText AndAlso fr.Peek.Value = Opening_Brace Then
                     ' This brace has escaped! {{
-                    CurrentPosition += 1
+                    fr.Next()
                   Else
-                    If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
-                    If ArgsSupplied Then Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
+                    If ArgsSupplied AndAlso fr.IsBeyondEndOfText Then Yield New UnexpectedlyReachedEndOfText : Exit Function
+                    If ArgsSupplied Then Yield New UnexpectedChar(ThisChar, fr.Index)
                     If ExitOnFirst Then Exit Function
                   End If
                 Case Closing_Brace
-                  If (CurrentPosition < LengthOfTheText) AndAlso format(CurrentPosition) = Closing_Brace Then
+                  If fr.IsNotBeyondEndOfText AndAlso fr.Peek.Value = Closing_Brace Then
                     ' This brace has escaped! }}
-                    CurrentPosition += 1
+                    fr.Next()
                   Else
-                    If ArgsSupplied AndAlso (CurrentPosition >= LengthOfTheText) Then Yield New UnexpectedlyReachedEndOfText : Exit Function
-
-                    CurrentPosition -= 1
+                    If ArgsSupplied AndAlso fr.IsBeyondEndOfText Then Yield New UnexpectedlyReachedEndOfText : Exit Function
                     Exit While
                   End If
 
               End Select
               If fmt Is Nothing Then fmt = New System.Text.StringBuilder
-                  fmt.Append(CurrentCharacter ) 
-              
+              fmt.Append(ThisChar)
+              fr.Next()
             End While
           End If
-          If CurrentCharacter <> Closing_Brace Then
+          If fr.Curr.Value <> Closing_Brace Then
             If ArgsSupplied Then
               ParsingIsInAnErrorState = True
-              Yield New UnexpectedChar(CurrentCharacter, CurrentPosition)
+              Yield New UnexpectedChar(fr.Curr.Value, fr.Index)
             End If
             If ExitOnFirst Then Exit Function
           End If
-          CurrentPosition += 1
+          fr.Next()
           '
           ' NOTE: Probably don't need to following for just checking the validation
           '
           Dim sFmt As String = Nothing
           Dim s As String = Nothing
-          Dim arg =If(InvalidIndex=True ,"",Args(ArgIndex ))
+          Dim arg = If(InvalidIndex = True, "", Args(ArgIndex))
           If cf IsNot Nothing Then
             If fmt IsNot Nothing Then sFmt = fmt.ToString
-            s = cf.Format(sFmt, arg, provider)
+            s = cf.Format(sFmt, arg, Provider)
           End If
 
           If s Is Nothing Then
@@ -289,7 +291,7 @@ output.Append(CurrentCharacter )
 
             If formattableArg IsNot Nothing Then
               If (sFmt Is Nothing) AndAlso (fmt IsNot Nothing) Then sFmt = fmt.ToString()
-              s = formattableArg.ToString(sFmt, provider)
+              s = formattableArg.ToString(sFmt, Provider)
             ElseIf arg IsNot Nothing Then
               s = arg.ToString
             End If
@@ -299,7 +301,7 @@ output.Append(CurrentCharacter )
           ' apply the alignment
           If s Is Nothing Then s = String.Empty
           Dim pad = Width - s.Length
-          If (Not LeftJustifiy) AndAlso (pad > 0) Then output. Append(_SPACE_, pad)
+          If (Not LeftJustifiy) AndAlso (pad > 0) Then output.Append(_SPACE_, pad)
           output.Append(s)
           If LeftJustifiy AndAlso (pad > 0) Then output.Append(_SPACE_, pad)
           '
@@ -317,13 +319,24 @@ output.Append(CurrentCharacter )
       Yield New FinalOutput(output.ToString)
     End Function
 
-    Private Sub ConsumeSpaces(format As String, ByRef pos As Integer, len As Integer, ByRef Curr As Char, cancellationToken As CancellationToken)
+    Private Function ParseValue(fr As StringReader, ct As CancellationToken, Limit As Integer, ByRef ParsingIsInAnErrorState As Boolean) As Integer 
+     Dim Value = 0
+      Do
+        If ct.IsCancellationRequested Then Return Value
+        If Not ParsingIsInAnErrorState Then Value = (10 * Value) + DigitValue(fr.Curr.Value)
+        fr.Next()
+        If fr.IsBeyondEndOfText Then Return Value
+        If Not ParsingIsInAnErrorState AndAlso Value >= Limit Then ParsingIsInAnErrorState = True
+      Loop While IsDigit(fr.Curr.Value )
+      Return Value 
+    End Function
+
+    Private Sub ConsumeSpaces(byref fr As StringReader, ct As CancellationToken)
       ' Consume spaces
-      While (pos < len)
-        If cancellationToken.IsCancellationRequested Then Exit Sub
-        Curr = format(pos)
-        If Curr <> _SPACE_ Then Exit While
-        pos += 1
+      While fr.IsNotBeyondEndOfText
+        If ct.IsCancellationRequested Then Exit Sub
+        If fr.Curr.Value <> _SPACE_ Then Exit While
+        fr.Next()
       End While
     End Sub
 
@@ -380,7 +393,7 @@ output.Append(CurrentCharacter )
   Public Class UnexpectedChar
     Inherits IssueReportWithStartPosition
     Public Sub New(C As Char, Start As Integer)
-      MyBase.New("Unexpected Character (" & C & ")", Start)
+      MyBase.New("Unexpected Character '" & C & "'", Start)
     End Sub
   End Class
 
@@ -400,8 +413,8 @@ output.Append(CurrentCharacter )
 
   Public Class FinalOutput
     Inherits IssueReport
-    Public Sub New(output As string)
-      MyBase.New(String.Format("Output:= {0}",output ))
+    Public Sub New(output As String)
+      MyBase.New(String.Format("Output:= {0}", output))
     End Sub
   End Class
 
@@ -429,5 +442,59 @@ output.Append(CurrentCharacter )
 
   End Class
 
+ Public Class StringReader
+    Public ReadOnly Property Source As String
+    Public ReadOnly Property Index As Integer
 
+    Public ReadOnly Property Curr As Char?
+      Get
+        If Index < 0 Then Return New Char?
+        If Index >= Source.Length Then Return New Char?
+        Return New Char?(Source(Index))
+      End Get
+    End Property
+    Public ReadOnly Property Peek As Char?
+      Get
+        If Index+1 < 0 Then Return New Char?
+        If Index+1 >= Source.Length Then Return New Char?
+        Return New Char?(Source(Index+1))
+      End Get
+    End Property
+    Public Sub [Next]()
+      If Index = Source.Length Then Exit Sub
+      _Index += 1
+    End Sub
+    Public Sub Back()
+      If Index < 0 Then Exit Sub
+      _Index -=1
+    End Sub
+
+    Public Sub New(s As String)
+      _Source = s
+      _Index = 0
+    End Sub
+
+    Public ReadOnly Property IsBeyondEndOfText() As Boolean
+      Get
+        Return Index >= Source.Length
+      End Get
+    End Property
+    Public ReadOnly Property IsNotBeyondEndOfText() As Boolean
+      Get
+        Return Not IsBeyondEndOfText
+      End Get
+    End Property
+    Public Overrides  Function ToString() As String
+      Dim s=""
+      If Me.Index >= 0 Then s = Me.Source.Substring(0, Index + 1)
+      s &= "->" & Me.Curr.Value & "<-"
+      If Me.Index < (Me.Source.Length - 1) Then s &= Me.Source.Substring(Me.Index + 1)
+      Return s
+    End Function
+    Public Shared Function Create(Source As String) As StringReader
+      If Source Is Nothing Then Return Nothing
+      Return New StringReader(Source)
+    End Function
+
+  End Class
 End Namespace
