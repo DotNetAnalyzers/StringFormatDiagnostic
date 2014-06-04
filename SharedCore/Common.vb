@@ -65,12 +65,11 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       '
 
       Dim fr As StringReader = StringReader.Create(format)
-
       Dim output As New System.Text.StringBuilder
       Dim ArgsSupplied = NumOfArgs > 0
       Dim ArgsCounted = 0
       Dim internalError As Internal_IssueReport = Nothing
-      'Dim CurrentCharacter = ControlChars.NullChar
+
       Dim Width = 0
       Dim cf As ICustomFormatter = Nothing
       If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
@@ -80,11 +79,8 @@ Namespace Global.Roslyn.StringFormatDiagnostics
           Dim ParsingIsInAnErrorState = False ' This flag enables the parser to continue parsing whilst there is an issue found. Allowing us to report additional issue.
           Dim StartPositionForThisPart = 0
           Dim EndPositionForThisPart = 0
-
           While fr.IsNotBeyondEndOfText
-
             Dim ThisChar = fr.Curr.Value
-
             Select Case ThisChar
               Case Closing_Brace
                 If fr.IsNotBeyondEndOfText AndAlso fr.Peek.Value = Closing_Brace Then
@@ -108,12 +104,9 @@ Namespace Global.Roslyn.StringFormatDiagnostics
                     Exit Function
                   End If
                   StartPositionForThisPart = fr.Index + 1  ' This is the char index of the first character in the IndexPart
-
                   Exit While
-
                 End If
             End Select
-
             'Normally here we would Append( Curr ) but this is just checking the validity of the formatstring.
             output.Append(ThisChar)
             fr.Next()
@@ -137,19 +130,6 @@ Namespace Global.Roslyn.StringFormatDiagnostics
           '
           ' -- Parse and Calculate IndexPart Value
           Dim ArgIndex = ParseValue(fr,ct,_Limit_,ParsingIsInAnErrorState)
-          'Dim ArgIndex = 0
-          'Do
-          '  ' Was cancellation requestes? If so exit.
-          '  If ct.IsCancellationRequested Then Exit Function
-          '  If Not ParsingIsInAnErrorState Then
-          '    ' Work out the new value of the Index
-          '    ArgIndex = (10 * ArgIndex) + DigitValue(fr.Curr.Value)
-          '  End If
-          '  fr.Next()
-          '  If ArgsSupplied AndAlso fr.IsBeyondEndOfText Then Yield New UnexpectedlyReachedEndOfText : Exit Function
-          '  'CurrentCharacter = fr.Curr.Value
-          '  If Not ParsingIsInAnErrorState AndAlso (ArgIndex >= _LIMIT_) Then ParsingIsInAnErrorState = True
-          'Loop While IsDigit(fr.Curr.Value)
           ' Why did we exit?
           ArgsCounted += 1
           EndPositionForThisPart = fr.Index - 1
@@ -197,21 +177,6 @@ Namespace Global.Roslyn.StringFormatDiagnostics
             StartPositionForThisPart = fr.Index
             EndPositionForThisPart = fr.Index
             Width = ParseValue(fr,ct,_LIMIT_,ParsingIsInAnErrorState )
-            'Width = 0
-            'Do
-            '  If ct.IsCancellationRequested Then Exit Function
-            '  If Not ParsingIsInAnErrorState Then
-            '    ' Calculate the new value of width
-            '    Width = (10 * Width) + DigitValue(fr.Curr.Value)
-            '  End If
-            '  fr.Next()
-            '  If fr.IsBeyondEndOfText Then
-            '    Yield New UnexpectedlyReachedEndOfText
-            '    Exit Function
-            '  End If
-            '  If Not ParsingIsInAnErrorState AndAlso (Width >= _LIMIT_) Then ParsingIsInAnErrorState = True
-            '  'CurrentCharacter = fr.Curr.Value
-            'Loop While IsDigit(fr.Curr.Value) 'AndAlso (Width < _LIMIT_)
             ' Why did we exit?
             EndPositionForThisPart = fr.Index - 1
             If ArgsSupplied AndAlso Width >= _LIMIT_ Then
@@ -253,7 +218,6 @@ Namespace Global.Roslyn.StringFormatDiagnostics
                     If ArgsSupplied AndAlso fr.IsBeyondEndOfText Then Yield New UnexpectedlyReachedEndOfText : Exit Function
                     Exit While
                   End If
-
               End Select
               If fmt Is Nothing Then fmt = New System.Text.StringBuilder
               fmt.Append(ThisChar)
@@ -278,39 +242,24 @@ Namespace Global.Roslyn.StringFormatDiagnostics
             If fmt IsNot Nothing Then sFmt = fmt.ToString
             s = cf.Format(sFmt, arg, Provider)
           End If
-
           If s Is Nothing Then
             Dim formattableArg As IFormattable = TryCast(arg, IFormattable)
-            '
-            '         #If FEATURE_LEGACYNETCF
-            ' If CompatibilitySwitch.IsAppEarlierThanWindows8 Then
-            ' // TimeSpan does not implement IFormattable in Mango
-            ' If TypeOf arg Is TimeSpan Then formattableArg = null
-            ' End If
-            ' #End If
-
             If formattableArg IsNot Nothing Then
               If (sFmt Is Nothing) AndAlso (fmt IsNot Nothing) Then sFmt = fmt.ToString()
               s = formattableArg.ToString(sFmt, Provider)
             ElseIf arg IsNot Nothing Then
               s = arg.ToString
             End If
-
           End If
-
           ' apply the alignment
           If s Is Nothing Then s = String.Empty
           Dim pad = Width - s.Length
-          If (Not LeftJustifiy) AndAlso (pad > 0) Then output.Append(_SPACE_, pad)
+          If (Not LeftJustifiy) AndAlso (pad > 0) Then output.Append( _SPACE_, pad)
           output.Append(s)
           If LeftJustifiy AndAlso (pad > 0) Then output.Append(_SPACE_, pad)
-          '
         End While
-        If ArgsSupplied Then
-          If ArgsCounted = 0 Then Yield New ContainsNoArgs
-        Else
-          If ArgsCounted > 0 Then Yield New ContainsNoParameters
-        End If
+        If ArgsSupplied AndAlso ArgsCounted = 0 Then Yield New ContainsNoArgs
+        If Not(ArgsSupplied) AndAlso ArgsCounted > 0 Then Yield New ContainsNoParameters
       Catch ex As Exception
         ' Let's use the IDE error window to also report internal errors, :-)
         internalError = New Internal_IssueReport(ex.ToString)
@@ -445,7 +394,6 @@ Namespace Global.Roslyn.StringFormatDiagnostics
  Public Class StringReader
     Public ReadOnly Property Source As String
     Public ReadOnly Property Index As Integer
-
     Public ReadOnly Property Curr As Char?
       Get
         If Index < 0 Then Return New Char?
@@ -468,12 +416,10 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       If Index < 0 Then Exit Sub
       _Index -=1
     End Sub
-
     Public Sub New(s As String)
       _Source = s
       _Index = 0
     End Sub
-
     Public ReadOnly Property IsBeyondEndOfText() As Boolean
       Get
         Return Index >= Source.Length
@@ -485,16 +431,12 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       End Get
     End Property
     Public Overrides  Function ToString() As String
-      Dim s=""
-      If Me.Index >= 0 Then s = Me.Source.Substring(0, Index + 1)
-      s &= "->" & Me.Curr.Value & "<-"
-      If Me.Index < (Me.Source.Length - 1) Then s &= Me.Source.Substring(Me.Index + 1)
-      Return s
-    End Function
+      Dim pre = If(Index > 0, Source.Substring(0, Index), "")
+      Dim post=  If(Index<(Source.Length-1),Source.Substring(Index+1),"")
+       Return String.Format("{0}{1}{2}{3}{4}",pre,"¦'",Curr.Value ,"'¦",post)
+  End Function
     Public Shared Function Create(Source As String) As StringReader
-      If Source Is Nothing Then Return Nothing
-      Return New StringReader(Source)
+      Return If( Source Is Nothing,Nothing,New StringReader(Source))
     End Function
-
   End Class
 End Namespace

@@ -8,9 +8,9 @@ Imports System.Runtime.InteropServices
 ' Review the values of the assembly attributes
 
 <Assembly: AssemblyTitle("StringFormatDiagnostic_CS")>
-<Assembly: AssemblyDescription("")>
-<Assembly: AssemblyCompany("")>
-<Assembly: AssemblyProduct("StringFormatDiagnostic_CS")>
+<Assembly: AssemblyDescription("Validate the text of a format string pre compilation.")>
+<Assembly: AssemblyCompany("AdamSpeight2008")>
+<Assembly: AssemblyProduct("String.Format Diagnostic (C#)")>
 <Assembly: AssemblyCopyright("Copyright ©  2014")>
 <Assembly: AssemblyTrademark("")>
 
@@ -27,5 +27,5 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("1.5.0.0")>
-<Assembly: AssemblyFileVersion("1.5.0.0")>
+<Assembly: AssemblyVersion("1.6.0.0")>
+<Assembly: AssemblyFileVersion("1.6.0.0")>
