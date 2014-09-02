@@ -12,13 +12,13 @@ Namespace Global.Roslyn.StringFormatDiagnostics
                 Return sm.GetTypeInfo(CType(arg, CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax).Expression, ct).Type
             End Function
 
-            <Extension>
-            Public Function GetArgumentTypes(args As CodeAnalysis.VisualBasic.Syntax.ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of ITypeSymbol)
-                'If args Is Nothing Then Return Enumerable.Empty(Of ITypeSymbol )        
-                Return args.Arguments.Select(Function(arg) arg.ArgumentType(sm, ct))
-            End Function
+      <Extension>
+      Public Function GetArgumentTypes(args As CodeAnalysis.VisualBasic.Syntax.ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of ITypeSymbol)
+        If args Is Nothing Then Return Enumerable.Empty(Of ITypeSymbol)
+        Return args.Arguments.Select(Function(arg) arg.ArgumentType(sm, ct))
+      End Function
 
-            <Extension>
+      <Extension>
             Public Function GetArgumentTypesNames(args As CodeAnalysis.VisualBasic.Syntax.ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of String)
                 Return args.GetArgumentTypes(sm, ct).Select(Function(tsym) tsym.ToFullyQualifiedName)
             End Function

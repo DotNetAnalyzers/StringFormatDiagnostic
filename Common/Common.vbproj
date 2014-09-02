@@ -113,7 +113,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common.vb" />
+    <Compile Include="DiagMeth.vb" />
     <Compile Include="Exts.vb" />
+    <Compile Include="ISourceText.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Application.myapp</DependentUpon>
@@ -129,6 +131,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="ParsedChar.vb" />
+    <Compile Include="Results\Reault.vb" />
+    <Compile Include="TheSourceText.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">

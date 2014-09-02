@@ -29,71 +29,75 @@ Public Class DiagnosticAnalyzer
         Dim x = CType(node, MemberAccessExpressionSyntax)
         If x Is Nothing Then Exit Sub
         If x.OperatorToken.ValueText = "." Then
-            Dim mn = x.Name.ToString
-            If mn = "" Then Exit Sub
-            Dim ct = x.CalledOnType(semanticModel, cancellationToken)
-            Dim tn = If(ct Is Nothing, "", ct.ToFullyQualifiedName)
-            Dim invokation = TryCast(x.Parent, InvocationExpressionSyntax)
-            If invokation Is Nothing Then Exit Sub
-            Dim Args = invokation.ArgumentList
+      Dim _MethodName = x.Name.ToString
+      If _MethodName = "" Then Exit Sub
+      Dim ct = x.CalledOnType(semanticModel, cancellationToken)
+      Dim _NameOfType = If(ct Is Nothing, "", ct.ToFullyQualifiedName)
+      Dim invokation = TryCast(x.Parent, InvocationExpressionSyntax)
+      If invokation Is Nothing Then Exit Sub
+      Dim Args = invokation.ArgumentList
 
-            Dim ArgTypes = Args.GetArgumentTypes(semanticModel, cancellationToken)
-            Dim ArgTypeNames = Args.GetArgumentTypesNames(semanticModel, cancellationToken)
-            'Dim FullyNamed = ArgTypes(1).ToFullyQualifiedName
-            'Dim GottenType = Type.GetType(FullyNamed, False, True)
-            ''Dim Obj = GottenType.BuildMeOne '.GetConstructors()(0).Invoke({Nothing})
-            'Dim ov = Convert.ChangeType(Args.Arguments(1).ToString, GottenType)
+      Dim ArgTypes = Args.GetArgumentTypes(semanticModel, cancellationToken)
+      Dim ArgTypeNames = Args.GetArgumentTypesNames(semanticModel, cancellationToken)
+      'Dim FullyNamed = ArgTypes(1).ToFullyQualifiedName
+      'Dim GottenType = Type.GetType(FullyNamed, False, True)
+      ''Dim Obj = GottenType.BuildMeOne '.GetConstructors()(0).Invoke({Nothing})
+      'Dim ov = Convert.ChangeType(Args.Arguments(1).ToString, GottenType)
 
-            'Debugger.Break 
+      'Debugger.Break 
 
-            Select Case tn
-                Case "System.Console"
-                    Select Case mn
-                        Case "Write", "WriteLine" : DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
-                    End Select
-                Case "System.String"
-                    Select Case mn
-                        Case "Format" : DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
-                    End Select
-                Case "System.Text.StringBuilder"
-                    Select Case mn
-                        Case "AppendFormat"
-                            Select Case Args.Arguments.Count
-                                Case 0, 1 : Exit Sub
-                                Case 2, 3, 4
-                                    If ArgTypeNames(0) = "System.String" Then DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
+      Select Case _NameOfType
+        Case "System.Console"
+          Select Case _MethodName
+            Case "Write", "WriteLine" : DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
+          End Select
+        Case "System.String"
+          Select Case _MethodName
+            Case "Format" : DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
+          End Select
+        Case "System.Text.StringBuilder"
+          Select Case _MethodName
+            Case "AppendFormat"
+              Select Case Args.Arguments.Count
+                Case 0, 1 : Exit Sub
+                Case 2, 3, 4
+                  If ArgTypeNames(0) = "System.String" Then DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
 
-                                Case Else
-                                    If ArgTypeNames(0) = "System.String" Then DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
-                            End Select
-                    End Select
                 Case Else
-                    'Select Case mn
-                    '  Case "ToString"
-                    '    Select Case Args.Arguments.Count
-                    '      Case 1
-                    '        Select Case ArgTypeNames(0)
-                    '          Case "String"
-                    '          Case "IFormatProvider"
-                    '            'Dim FullyNamed = ArgTypes(0).ToFullyQualifiedName
-                    '            'Dim GottenType = Type.GetType(FullyNamed, False, True)
-                    '            'Dim Obj = GottenType.BuildMeOne'.GetConstructors()(0).Invoke({Nothing})
+                  If ArgTypeNames(0) = "System.String" Then DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
+              End Select
+          End Select
+        Case Else
+          'Select Case _MethodName
+          '  Case "ToString"
+          '    Select Case _NameOfType
+          '      Case "System.Integer"
 
-                    '            'Debugger.breAK
-                    '        End Select
-                    '      Case 2
-                    '        Dim ii = ArgTypes(1).Interfaces.Where(Function(i) i.Name = "IFormatProvider").FirstOrDefault
-                    '        If ii IsNot Nothing Then Exit Sub
-                    '        '             Dim ir = semanticModel.GetSymbolInfo (ArgTypes(1),cancellationToken ).S 
-                    '        'If ArgTypeNames(0) = "String" AndAlso  Then
+          '    End Select
+          '    'Select Case Args.Arguments.Count
+          '    '  Case 1
+          '    '    Select Case ArgTypeNames(0)
+          '    '      Case "String"
+          '    '      Case "IFormatProvider"
+          '    '        'Dim FullyNamed = ArgTypes(0).ToFullyQualifiedName
+          '    '        'Dim GottenType = Type.GetType(FullyNamed, False, True)
+          '    '        'Dim Obj = GottenType.BuildMeOne'.GetConstructors()(0).Invoke({Nothing})
 
-                    '        '    End If
-                    '      Case Else
-                    '        Exit Sub
-                    '    End Select
-                    'End Select
-            End Select
-        End If
+          '    '        'Debugger.breAK
+          '    '    End Select
+          '    '  Case 2
+          '    '    Dim ii = ArgTypes(1).Interfaces.Where(Function(i) i.Name = "IFormatProvider").FirstOrDefault
+          '    '    If ii IsNot Nothing Then Exit Sub
+          '    '  '             Dim ir = semanticModel.GetSymbolInfo (ArgTypes(1),cancellationToken ).S 
+          '    '  'If ArgTypeNames(0) = "String" AndAlso  Then
+
+          '    '  '    End If
+          '    '  Case Else
+          '    '    Exit Sub
+          '    'End Select
+          'End Select
+      End Select
+    End If
     End Sub
 
 
