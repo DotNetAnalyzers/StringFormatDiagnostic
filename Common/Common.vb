@@ -121,6 +121,55 @@ Public  Function DeString(s As String) As String
     End If
   End Function
 
+  Public Iterator Function Analyse_TimeSpan_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
+    If format Is Nothing Then Throw New ArgumentNullException("fs")
+    Dim cf As ICustomFormatter = Nothing
+    If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
+    If format.Length = 0 Then Exit Function
+    If format.Length = 1 Then
+      ' Standard TimeSpan Format Strings (http://msdn.microsoft.com/en-us/library/ee372286(v=vs.110)
+      If "cgG".Contains(format(0)) Then
+        ' Valid specifier
+      Else
+        Yield New UnknownSpecifier(format(0), 0)
+      End If
+    Else
+      ' Custom format string
+    End If
+  End Function
+  Public Iterator Function Analyse_DateTimeOffset_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
+    If format Is Nothing Then Throw New ArgumentNullException("fs")
+    Dim cf As ICustomFormatter = Nothing
+    If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
+    If format.Length = 0 Then Exit Function
+    If format.Length = 1 Then
+      ' Standard DateTimeOffset Format Strings (http://msdn.microsoft.com/en-us/library/bb346136(v=vs.110)
+      If "cgGKUru".Contains(format(0)) Then
+        ' Valid specifier
+      Else
+        Yield New UnknownSpecifier(format(0), 0)
+      End If
+    Else
+      ' Custom format string
+    End If
+  End Function
+  Public Iterator Function Analyse_Enum_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
+    If format Is Nothing Then Throw New ArgumentNullException("fs")
+    Dim cf As ICustomFormatter = Nothing
+    If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
+    If format.Length = 0 Then Exit Function
+    If format.Length = 1 Then
+      ' Standard Enum Format Strings (http://msdn.microsoft.com/en-us/library//c3s1ez6e(v=vs.110)
+      If "GgFfDdXx".Contains(format(0)) Then
+        ' Valid specifier
+      Else
+        Yield New UnknownSpecifier(format(0), 0)
+      End If
+    Else
+      ' Custom format string
+    End If
+  End Function
+
   Public Iterator Function AnalyseFormatString(ct As CancellationToken, format As String, NumOfArgs As Integer,
                                          Args As IEnumerable(Of Object),
                                         Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
