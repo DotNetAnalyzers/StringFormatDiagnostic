@@ -75,29 +75,51 @@ Public  Function DeString(s As String) As String
     Return s
   End Function
 
-  Public Iterator Function AnalyseToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
+  Public Iterator Function Analyse_Numeric_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
     If format Is Nothing Then Throw New ArgumentNullException("fs")
+    Dim cf As ICustomFormatter = Nothing
+    If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
     If format.Length > 0 Then
-      If "CcDdEeFfGgNnPpRrXx".Contains(format(0)) Then
-        Select Case format.Length
-          Case 1
-          Case 2, 3
-            For i = 1 To format.Length - 1
-              If "0"c <= format(i) AndAlso format(i) <= "9"c Then
-              Else
-                Yield New UnexpectedChar(format(i), i)
-                Exit For
-              End If
-            Next
-          Case Else
-            Yield New UnexpectedChar(format(3), 3)
-        End Select
-      Else
-        Yield New UnknownSpecifier(format(0),0)
+      ' The length of the format string is less than 4, I'm going to assume it is a standard numeric format string (http://msdn.microsoft.com/en-us/library/dwhawy9k(v=vs.110)
+      If format.Length < 4 Then
+        If "CcDdEeFfGgNnPpRrXx".Contains(format(0)) Then
+          Select Case format.Length
+            Case 1
+            Case 2, 3
+              For i = 1 To format.Length - 1
+                If "0"c <= format(i) AndAlso format(i) <= "9"c Then
+                  ' Parsed as a standard format string.
+                Else
+                  Yield New UnexpectedChar(format(i), i)
+                  Exit For
+                End If
+              Next
+            Case Else
+              Yield New UnexpectedChar(format(3), 3)
+          End Select
+        Else
+          Yield New UnknownSpecifier(format(0), 0)
+        End If
       End If
     End If
- End Function
+  End Function
 
+  Public Iterator Function Analyse_DateTime_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
+    If format Is Nothing Then Throw New ArgumentNullException("fs")
+    Dim cf As ICustomFormatter = Nothing
+    If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
+    If format.Length = 0 Then Exit Function
+    If format.Length = 1 Then
+      ' Standard Date and Time Format Strings (http://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110)
+        If "dDfFgGmMoOrRstTuUyY".Contains(format(0)) Then
+        ' Valid specifier
+      Else
+          Yield New UnknownSpecifier(format(0), 0)
+        End If
+    Else
+     ' Custom format string
+    End If
+  End Function
 
   Public Iterator Function AnalyseFormatString(ct As CancellationToken, format As String, NumOfArgs As Integer,
                                          Args As IEnumerable(Of Object),
