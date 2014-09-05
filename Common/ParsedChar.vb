@@ -12,12 +12,16 @@ Public Class ParsedChar
   End Sub
 
   Public Function [Next]() As ParsedChar
+    ' If already set then return cached verison
     If _NS Then Return _NC
+
     _NC = If(Index < _Source.EndIndex, New ParsedChar(_Source, Index + 1), Nothing)
     _NS = True
     Return _NC
   End Function
+
   Public Function Back() As ParsedChar
+    ' If already set then return cached verison
     If _BS Then Return _BC
     _BC = If(Index > 0, New ParsedChar(_Source, Index - 1), Nothing)
     _BS = True
@@ -29,6 +33,7 @@ Public Class ParsedChar
       Return _Source(Index)
     End Get
   End Property
+
   Public Overrides Function ToString() As String
     Return String.Format("({0}):=[{1}]", Index, Value)
   End Function
@@ -40,4 +45,21 @@ Public Class ParsedChar
   Shared Operator =(pc As ParsedChar, c As Char) As Boolean
     Return pc.Value = c
   End Operator
+
+  Shared Operator <(pc As ParsedChar, c As Char) As Boolean
+    Return pc.Value < c
+  End Operator
+
+  Shared Operator <=(pc As ParsedChar, c As Char) As Boolean
+    Return pc.Value <= c
+  End Operator
+
+  Shared Operator >(pc As ParsedChar, c As Char) As Boolean
+    Return pc.Value > c
+  End Operator
+
+  Shared Operator >=(pc As ParsedChar, c As Char) As Boolean
+    Return pc.Value >= c
+  End Operator
+
 End Class

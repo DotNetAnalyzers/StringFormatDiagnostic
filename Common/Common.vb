@@ -4,6 +4,8 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Text
+Imports Roslyn.StringFormatDiagnostics
+
 Public Module Common
 
 
@@ -28,7 +30,7 @@ Public Module Common
       Return _TheSimpleOnes
     End Get
   End Property
-  Private  _TheSimpleOnes As DiagMeth() = {New DiagMeth("System.Console", {"Write", "WriteLine"}),
+  Private _TheSimpleOnes As DiagMeth() = {New DiagMeth("System.Console", {"Write", "WriteLine"}),
                 New DiagMeth("System.Diagnostics.Debug", {"WriteLine"}),
                 New DiagMeth("System.IO.TextWriter", {"WriteLine"}),
                 New DiagMeth("System.Diagnostics.Trace", {"TraceError", "TraceInformation", "TraceWarning"}),
@@ -58,20 +60,25 @@ Public Module Common
                              location:=Location.Create(node.SyntaxTree, node.Span))
   End Function
 
-
+#Region "Coomonly used Characters"
   Const Opening_Brace As Char = "{"c
   Const Closing_Brace As Char = "}"c
   Const _SPACE_ As Char = " "c
   Const _COMMA_ As Char = ","c
   Const _COLON_ As Char = ":"c
   Const _MINUS_ As Char = "-"c
+  Const _QUOTE_ As Char = """"c
+#End Region
   Const _LIMIT_ As Integer = 1000000  ' This limit is found inside the .net implementation of String.Format.
   Const ExitOnFirst = False
-  Const _QUOTE_ As Char =""""c
-Public  Function DeString(s As String) As String
+
+
+
+  Public Function DeString(s As String) As String
+    ' If a string is included in double qoutes (") remove the match pair.
     If s Is Nothing Then Return ""
-    If (s.Length>0) AndAlso (s.Last=_QUOTE_) Then s = s.Substring(0,s.Length-1)
-    If (s.Length>0) AndAlso (s.First=_QUOTE_) Then    s=s.Substring(1)
+    If (s.Length > 0) AndAlso (s.Last = _QUOTE_) Then s = s.Substring(0, s.Length - 1)
+    If (s.Length > 0) AndAlso (s.First = _QUOTE_) Then s = s.Substring(1)
     Return s
   End Function
 
@@ -80,8 +87,9 @@ Public  Function DeString(s As String) As String
     Dim cf As ICustomFormatter = Nothing
     If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
     If format.Length > 0 Then
-      ' The length of the format string is less than 4, I'm going to assume it is a standard numeric format string (http://msdn.microsoft.com/en-us/library/dwhawy9k(v=vs.110)
-      If format.Length < 4 Then
+      If format.ContainsMoreThan(1, Function(c) Char.IsLetter(c) OrElse Char.IsWhiteSpace(c)) = False Then
+        ' The length of the format string is less than 4, I'm going to assume it is a standard numeric format string (http://msdn.microsoft.com/en-us/library/dwhawy9k(v=vs.110)
+      'If format.Length < 4 Then
         If "CcDdEeFfGgNnPpRrXx".Contains(format(0)) Then
           Select Case format.Length
             Case 1
@@ -100,6 +108,8 @@ Public  Function DeString(s As String) As String
         Else
           Yield New UnknownSpecifier(format(0), 0)
         End If
+      Else
+        ' parse custon numeric string.
       End If
     End If
   End Function
@@ -111,13 +121,13 @@ Public  Function DeString(s As String) As String
     If format.Length = 0 Then Exit Function
     If format.Length = 1 Then
       ' Standard Date and Time Format Strings (http://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110)
-        If "dDfFgGmMoOrRstTuUyY".Contains(format(0)) Then
+      If "dDfFgGmMoOrRstTuUyY".Contains(format(0)) Then
         ' Valid specifier
       Else
-          Yield New UnknownSpecifier(format(0), 0)
-        End If
+        Yield New UnknownSpecifier(format(0), 0)
+      End If
     Else
-     ' Custom format string
+      ' Custom format string
     End If
   End Function
 
@@ -137,6 +147,7 @@ Public  Function DeString(s As String) As String
       ' Custom format string
     End If
   End Function
+
   Public Iterator Function Analyse_DateTimeOffset_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
     If format Is Nothing Then Throw New ArgumentNullException("fs")
     Dim cf As ICustomFormatter = Nothing
@@ -153,6 +164,7 @@ Public  Function DeString(s As String) As String
       ' Custom format string
     End If
   End Function
+
   Public Iterator Function Analyse_Enum_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
     If format Is Nothing Then Throw New ArgumentNullException("fs")
     Dim cf As ICustomFormatter = Nothing
@@ -180,17 +192,14 @@ Public  Function DeString(s As String) As String
     '
     ' Rough Grammar Rules
     ' 
-    ' Digit::= '0' - '9'
-    ' Spaces::= ' '*
-    ' IndexPart::= Spaces Digit Spaces
-    ' AlignmentPart::= _Comma_ Spaces _MINUS_? Digit* Spaces
-    ' FormatPart::= _COLON_ Spaces ?? Spaces
-    ' FormatString ::= Opening_Brace IndexPart AlignmentPart? FormatPart? Closing_Brace 
+    '         Digit ::= '0' - '9'
+    '        Spaces ::= ' '*
+    '     IndexPart ::= Spaces Digit Spaces
+    ' AlignmentPart ::= _Comma_ Spaces _MINUS_? Digit* Spaces
+    '    FormatPart ::= _COLON_ Spaces ?? Spaces
+    '  FormatString ::= Opening_Brace IndexPart AlignmentPart? FormatPart? Closing_Brace 
     '
     '
-    '
-
-    ' Dim fr As StringReader = StringReader.Create(format)
     Dim curr As New ParsedChar(New TheSourceText(format), 0)
     Dim output As New System.Text.StringBuilder
     Dim ArgsSupplied = NumOfArgs > 0

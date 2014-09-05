@@ -199,6 +199,7 @@ Public Class DiagnosticAnalyzer
         End If
     End Select
   End Sub
+
   Public Sub Check_Enum_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
     Dim p = CType(node.Parent, InvocationExpressionSyntax)
 
