@@ -83,8 +83,9 @@ Public Module Common
     Return s
   End Function
 
-  Public Iterator Function Analyse_Numeric_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
-    If format Is Nothing Then Throw New ArgumentNullException("fs")
+  Public Function Analyse_Numeric_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Dim _res_ As New OutputResult(Of String)
+    If format Is Nothing Then _res_.AddError(New Internal_IssueReport(New ArgumentNullException("format").ToString)) : Return _res_
     Dim cf As ICustomFormatter = Nothing
     If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
     If format.Length > 0 Then
@@ -95,8 +96,10 @@ Public Module Common
           Case 1
             If _SNFS_.Contains(format(0)) Then
               ' ' Parsed as a standard format string.
+              _res_.AddError(New Internal_IssueReport("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
+
             Else
-              Yield New UnknownSpecifier(format(0), 0)
+              _res_.AddError(New UnknownSpecifier(format(0), 0))
             End If
           Case 2
             If _SNFS_.Contains(format(0)) Then
@@ -104,9 +107,11 @@ Public Module Common
                 ' Parsed as a standard format string.
               Else
                 ' Parse as a Custom Numeric format string
+                _res_.AddError(New Internal_IssueReport("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
+
               End If
             Else
-              Yield New UnknownSpecifier(format(0), 0)
+              _res_.AddError(New UnknownSpecifier(format(0), 0))
             End If
           Case 3
             If _SNFS_.Contains(format(0)) Then
@@ -115,90 +120,117 @@ Public Module Common
                   ' Parsed as a standard format string.
                 Else
                   ' Parse as a Custom Numeric format string
+                  _res_.AddError(New Internal_IssueReport("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
+
                 End If
               Else
                 ' Parse as a Custom Numeric format string
+                _res_.AddError(New Internal_IssueReport("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
+
               End If
             Else
-              Yield New UnknownSpecifier(format(0), 0)
+              _res_.AddError(New UnknownSpecifier(format(0), 0))
             End If
           Case Else
             ' Parse as a Custom Numeric format string
+            _res_.AddError(New Internal_IssueReport("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
+
         End Select
 
       Else
         ' parse custon numeric string.
+        _res_.AddError(New Internal_IssueReport("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
       End If
     End If
+    Return _res_
   End Function
 
-  Public Iterator Function Analyse_DateTime_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
-    If format Is Nothing Then Throw New ArgumentNullException("fs")
+  Public Function Analyse_DateTime_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Dim _res_ As New OutputResult(Of String)
+    If format Is Nothing Then _res_.AddError(New Internal_IssueReport(New ArgumentNullException("format").ToString)) : Return _res_
     Dim cf As ICustomFormatter = Nothing
     If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
-    If format.Length = 0 Then Exit Function
+    If format.Length = 0 Then Return _res_
+
     If format.Length = 1 Then
       ' Standard Date and Time Format Strings (http://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110)
       If "dDfFgGmMoOrRstTuUyY".Contains(format(0)) Then
         ' Valid specifier
       Else
-        Yield New UnknownSpecifier(format(0), 0)
+        _res_.AddError(New UnknownSpecifier(format(0), 0))
       End If
     Else
       ' Custom format string
+      _res_.AddError(New Internal_IssueReport("(DateTime) CustomFormatString Diagnostic Not yet Implemented."))
     End If
+    Return _res_
   End Function
 
-  Public Iterator Function Analyse_TimeSpan_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
-    If format Is Nothing Then Throw New ArgumentNullException("fs")
+  Public Function Analyse_TimeSpan_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Dim _res_ As New OutputResult(Of String)
+    If format Is Nothing Then _res_.AddError(New Internal_IssueReport(New ArgumentNullException("fs").ToString)) : Return _res_
+
     Dim cf As ICustomFormatter = Nothing
     If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
-    If format.Length = 0 Then Exit Function
+    If format.Length = 0 Then Return _res_
     If format.Length = 1 Then
       ' Standard TimeSpan Format Strings (http://msdn.microsoft.com/en-us/library/ee372286(v=vs.110)
       If "cgG".Contains(format(0)) Then
         ' Valid specifier
       Else
-        Yield New UnknownSpecifier(format(0), 0)
+        _res_.AddError(New UnknownSpecifier(format(0), 0))
       End If
     Else
       ' Custom format string
+      _res_.AddError(New Internal_IssueReport("(TimeSpan) CustomFormatString Diagnostic Not yet Implemented."))
+
     End If
+    Return _res_
   End Function
 
-  Public Iterator Function Analyse_DateTimeOffset_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
-    If format Is Nothing Then Throw New ArgumentNullException("fs")
+  Public Function Analyse_DateTimeOffset_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Dim _res_ As New OutputResult(Of String)
+    If format Is Nothing Then _res_.AddError(New Internal_IssueReport(New ArgumentNullException("fs").ToString)) : Return _res_
     Dim cf As ICustomFormatter = Nothing
     If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
-    If format.Length = 0 Then Exit Function
+    If format.Length = 0 Then Return _res_
     If format.Length = 1 Then
       ' Standard DateTimeOffset Format Strings (http://msdn.microsoft.com/en-us/library/bb346136(v=vs.110)
       If "cgGKUru".Contains(format(0)) Then
         ' Valid specifier
       Else
-        Yield New UnknownSpecifier(format(0), 0)
+        _res_.AddError(New UnknownSpecifier(format(0), 0))
       End If
     Else
       ' Custom format string
+      _res_.AddError(New Internal_IssueReport("(DataTimeOffset) CustomFormatString Diagnostic Not yet Implemented."))
     End If
+    Return _res_
   End Function
 
-  Public Iterator Function Analyse_Enum_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As IEnumerable(Of IssueReport)
-    If format Is Nothing Then Throw New ArgumentNullException("fs")
+  Public Function Analyse_Enum_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Dim _res_ As New OutputResult(Of String)
+    If format Is Nothing Then _res_.AddError(New Internal_IssueReport(New ArgumentNullException("fs").ToString)) : Return _res_
     Dim cf As ICustomFormatter = Nothing
     If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
-    If format.Length = 0 Then Exit Function
+
+    If format.Length = 0 Then Return _res_
     If format.Length = 1 Then
       ' Standard Enum Format Strings (http://msdn.microsoft.com/en-us/library//c3s1ez6e(v=vs.110)
       If "GgFfDdXx".Contains(format(0)) Then
         ' Valid specifier
+        Return _res_
       Else
-        Yield New UnknownSpecifier(format(0), 0)
+        _res_.AddError(New UnknownSpecifier(format(0), 0))
       End If
     Else
       ' Custom format string
+      _res_.AddError(New Internal_IssueReport("(Enum) CustomFormatString Diagnostic Not yet Implemented."))
     End If
+    Return _res_
   End Function
+
+
 
   Public Function AnalyseFormatString(ct As CancellationToken, format As String, NumOfArgs As Integer,
                                          Args As IEnumerable(Of Object),
@@ -244,16 +276,16 @@ Public Module Common
                 ' This brace has escaped! }}
                 curr = curr.Next
               Else
-                If ArgsSupplied AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function 
+                If ArgsSupplied AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function
                 _res_.AddError(New UnexpectedChar(curr.Value, curr.Index))
-                If ExitOnFirst Then  GoTo Exit_Function 
+                If ExitOnFirst Then GoTo Exit_Function
               End If
             Case Opening_Brace
               If (curr IsNot Nothing) AndAlso (curr.Next IsNot Nothing) AndAlso (curr.Next = Opening_Brace) Then
                 ' This brace has escaped! {{
                 curr = curr.Next
               Else
-                If ArgsSupplied AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function 
+                If ArgsSupplied AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function
                 StartPositionForThisPart = curr.Index + 1  ' This is the char index of the first character in the IndexPart
                 Exit While
               End If
@@ -261,18 +293,18 @@ Public Module Common
           'Normally here we would Append( Curr ) but this is just checking the validity of the formatstring.      
           _res_.Output.Append(curr.Value)
           curr = curr.Next
-          If ct.IsCancellationRequested Then  GoTo Exit_Function 
+          If ct.IsCancellationRequested Then GoTo Exit_Function
         End While
         ' Have we reached the end of the format string?
         If curr Is Nothing Then Exit While
         curr = curr.Next
-        If ArgsSupplied AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function 
+        If ArgsSupplied AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function
         ' Get current character of the text.
         'CurrentCharacter = fr.Curr.Value
         If ArgsSupplied AndAlso Not IsDigit(curr) Then
           ParsingIsInAnErrorState = True
           _res_.AddError(New UnexpectedChar(curr.Value, curr.Index))
-          If ExitOnFirst Then  GoTo Exit_Function 
+          If ExitOnFirst Then GoTo Exit_Function
         End If
         '
         ' +---------------------------------------------------
@@ -288,19 +320,19 @@ Public Module Common
           ' Index Value is greater or equal to limit.
           _res_.AddError(New ArgIndexHasExceedLimit("Arg Index", ArgIndex.ToString, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart)) ' NOTE: Check API
           InvalidIndex = True
-          If ExitOnFirst Then  GoTo Exit_Function 
+          If ExitOnFirst Then GoTo Exit_Function
         End If
         If ArgsSupplied AndAlso Not ParsingIsInAnErrorState AndAlso (ArgIndex >= NumOfArgs) Then
           ' Index is out of the bounds of the supplied args.
           _res_.AddError(New ArgIndexOutOfRange(ArgIndex, NumOfArgs, StartPositionForThisPart, EndPositionForThisPart))
           ' ToDo: Get the Start and End positions of opening and closing braces.
           InvalidIndex = True
-          If ExitOnFirst Then  GoTo Exit_Function 
+          If ExitOnFirst Then GoTo Exit_Function
         End If
         ' Reset the ParsingIsInAnErrorState Flag 
         ParsingIsInAnErrorState = False
         ConsumeSpaces(curr, ct)
-        If curr Is Nothing Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function 
+        If curr Is Nothing Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function
 
         '
         ' +-----------------------------------------
@@ -311,12 +343,12 @@ Public Module Common
         If curr = _COMMA_ Then
           curr = curr.Next
           ConsumeSpaces(curr, ct)
-          If ArgsSupplied AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function 
+          If ArgsSupplied AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function
           'CurrentCharacter = fr.Curr.Value
           If curr = _MINUS_ Then
             LeftJustifiy = True
             curr = curr.Next
-            If ArgsSupplied AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText): GoTo Exit_Function 
+            If ArgsSupplied AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function
 
             'CurrentCharacter = fr.Curr.Value
           End If
@@ -324,7 +356,7 @@ Public Module Common
           If ArgsSupplied AndAlso Not IsDigit(curr) Then
             ParsingIsInAnErrorState = True
             _res_.AddError(New UnexpectedChar(curr.Value, curr.Index))
-            If ExitOnFirst Then  GoTo Exit_Function 
+            If ExitOnFirst Then GoTo Exit_Function
           End If
           ' Reset the markers for highlighter
           StartPositionForThisPart = curr.Index
@@ -340,7 +372,7 @@ Public Module Common
           End If
         End If
         ConsumeSpaces(curr, ct)
-        If ArgsSupplied AndAlso Not ParsingIsInAnErrorState AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText): GoTo Exit_Function 
+        If ArgsSupplied AndAlso Not ParsingIsInAnErrorState AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function
         '
         ' +--------------------------------------------
         ' |  Start of Parsing for formatting strings 
@@ -350,8 +382,8 @@ Public Module Common
         If curr.Value = _COLON_ Then
           curr = curr.Next
           While True
-            If ct.IsCancellationRequested Then  GoTo Exit_Function 
-            If ArgsSupplied AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText): GoTo Exit_Function 
+            If ct.IsCancellationRequested Then GoTo Exit_Function
+            If ArgsSupplied AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function
             Select Case curr.Value
               Case Opening_Brace
                 If (curr IsNot Nothing) AndAlso (curr.Next IsNot Nothing) AndAlso (curr.Next = Opening_Brace) Then
@@ -359,18 +391,18 @@ Public Module Common
                   curr = curr.Next
                 Else
                   If ArgsSupplied Then
-                    If curr Is Nothing Then _res_.AddError(New UnexpectedlyReachedEndOfText) : : GoTo Exit_Function 
+                    If curr Is Nothing Then _res_.AddError(New UnexpectedlyReachedEndOfText) :: GoTo Exit_Function
                     _res_.AddError(New UnexpectedlyReachedEndOfText)
                   End If
 
-                  If ExitOnFirst Then  GoTo Exit_Function 
+                  If ExitOnFirst Then GoTo Exit_Function
                 End If
               Case Closing_Brace
                 If (curr IsNot Nothing) AndAlso (curr.Next IsNot Nothing) AndAlso (curr.Next = Closing_Brace) Then
                   ' This brace has escaped! }}
                   curr = curr.Next
                 Else
-                  If ArgsSupplied AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function 
+                  If ArgsSupplied AndAlso (curr Is Nothing) Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function
                   Exit While
                 End If
             End Select
@@ -384,7 +416,7 @@ Public Module Common
             ParsingIsInAnErrorState = True
             _res_.AddError(New UnexpectedChar(curr.Value, curr.Index))
           End If
-          If ExitOnFirst Then  GoTo Exit_Function 
+          If ExitOnFirst Then GoTo Exit_Function
         End If
         curr = curr.Next()
         '
@@ -413,14 +445,14 @@ Public Module Common
         _res_.Output.Append(s)
         If LeftJustifiy AndAlso (pad > 0) Then _res_.Output.Append(_SPACE_, pad)
       End While
-      If ArgsSupplied AndAlso ArgsCounted = 0 Then  _res_.AddError(New ContainsNoArgs)
-      If Not (ArgsSupplied) AndAlso ArgsCounted > 0 Then        _res_.AddError(New ContainsNoParameters)
+      If ArgsSupplied AndAlso ArgsCounted = 0 Then _res_.AddError(New ContainsNoArgs)
+      If Not (ArgsSupplied) AndAlso ArgsCounted > 0 Then _res_.AddError(New ContainsNoParameters)
 
     Catch ex As Exception
       ' Let's use the IDE error window to also report internal errors, :-)
       internalError = New Internal_IssueReport(ex.ToString)
     End Try
-  Exit_Function:
+Exit_Function:
     If internalError IsNot Nothing Then _res_.AddError(internalError)
     _res_.AddError(New FinalOutput(_res_.Output.ToString))
     Return _res_
