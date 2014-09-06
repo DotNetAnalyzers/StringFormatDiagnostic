@@ -30,6 +30,7 @@ Public Module Common
       Return _TheSimpleOnes
     End Get
   End Property
+
   Private _TheSimpleOnes As DiagMeth() = {New DiagMeth("System.Console", {"Write", "WriteLine"}),
                 New DiagMeth("System.Diagnostics.Debug", {"WriteLine"}),
                 New DiagMeth("System.IO.TextWriter", {"WriteLine"}),
@@ -88,26 +89,43 @@ Public Module Common
     If Provider IsNot Nothing Then cf = CType(Provider.GetFormat(GetType(ICustomFormatter)), ICustomFormatter)
     If format.Length > 0 Then
       If format.ContainsMoreThan(1, Function(c) Char.IsLetter(c) OrElse Char.IsWhiteSpace(c)) = False Then
-        ' The length of the format string is less than 4, I'm going to assume it is a standard numeric format string (http://msdn.microsoft.com/en-us/library/dwhawy9k(v=vs.110)
-      'If format.Length < 4 Then
-        If "CcDdEeFfGgNnPpRrXx".Contains(format(0)) Then
-          Select Case format.Length
-            Case 1
-            Case 2, 3
-              For i = 1 To format.Length - 1
-                If "0"c <= format(i) AndAlso format(i) <= "9"c Then
+        Const _SNFS_ = "CcDdEeFfGgNnPpRrXx"
+        Select Case format.Length
+            Case 0
+            Case 1 
+              If _SNFS_.Contains(format(0)) Then
+               ' ' Parsed as a standard format string.
+              Else
+               Yield New UnknownSpecifier(format(0), 0)
+              End If
+            Case 2
+            If _SNFS_.Contains(format(0)) Then
+              If format(1).IsDigit Then
+                ' Parsed as a standard format string.
+              Else
+                 ' Parse as a Custom Numeric format string
+              End If
+              Else
+                 Yield New UnknownSpecifier(format(0), 0)
+              End If
+          Case 3
+            If _SNFS_.Contains(format(0)) Then
+              If format(1).IsDigit Then
+                If format(2).IsDigit Then
                   ' Parsed as a standard format string.
                 Else
-                  Yield New UnexpectedChar(format(i), i)
-                  Exit For
+                   ' Parse as a Custom Numeric format string
                 End If
-              Next
+              Else
+                ' Parse as a Custom Numeric format string
+              End If
+            Else
+               Yield New UnknownSpecifier(format(0), 0)
+            End If
             Case Else
-              Yield New UnexpectedChar(format(3), 3)
-          End Select
-        Else
-          Yield New UnknownSpecifier(format(0), 0)
-        End If
+             ' Parse as a Custom Numeric format string
+        End Select
+
       Else
         ' parse custon numeric string.
       End If
@@ -408,17 +426,6 @@ Public Module Common
     Yield New FinalOutput(output.ToString)
   End Function
 
-  'Private Function ParseValue(fr As StringReader, ct As CancellationToken, Limit As Integer, ByRef ParsingIsInAnErrorState As Boolean) As Integer
-  '  Dim Value = 0
-  '  Do
-  '    If ct.IsCancellationRequested Then Return Value
-  '    If Not ParsingIsInAnErrorState Then Value = (10 * Value) + DigitValue(fr.Curr.Value)
-  '    fr.Next()
-  '    If fr.IsBeyondEndOfText Then Return Value
-  '    If Not ParsingIsInAnErrorState AndAlso Value >= Limit Then ParsingIsInAnErrorState = True
-  '  Loop While IsDigit(fr.Curr.Value)
-  '  Return Value
-  'End Function
 
   Private Function ParseValue(ByRef pc As ParsedChar, ct As CancellationToken, Limit As Integer, ByRef ParsingIsInAnErrorState As Boolean) As Integer
     Dim Value = 0
@@ -432,15 +439,6 @@ Public Module Common
     Return Value
   End Function
 
-  'Private Sub ConsumeSpaces(ByRef fr As StringReader, ct As CancellationToken)
-  '  ' Consume spaces
-  '  While fr.IsNotBeyondEndOfText
-  '    If ct.IsCancellationRequested Then Exit Sub
-  '    If fr.Curr.Value <> _SPACE_ Then Exit While
-  '    fr.Next()
-  '  End While
-  'End Sub
-
   Private Sub ConsumeSpaces(ByRef pc As ParsedChar, ct As CancellationToken)
     ' Consume spaces
     While pc IsNot Nothing
@@ -450,9 +448,6 @@ Public Module Common
     End While
   End Sub
 
-  'Private Function IsDigit(c As Char) As Boolean
-  '  Return "0"c <= c AndAlso c <= "9"c
-  'End Function
   Private Function IsDigit(c As ParsedChar) As Boolean
     Return ("0"c <= c.Value) AndAlso (c.Value <= "9"c)
   End Function
@@ -476,6 +471,7 @@ Public Module Common
 
 End Module
 
+#Region "Error Classes"
 
 Public Class UnexpectedlyReachedEndOfText
   Inherits IssueReport
@@ -483,7 +479,6 @@ Public Class UnexpectedlyReachedEndOfText
     MyBase.New("Unexpectedly Reached End Of Text")
   End Sub
 End Class
-
 
 Public Class ArgIndexHasExceedLimit
   Inherits IssueReportWithStartPosition
@@ -560,6 +555,9 @@ Public MustInherit Class IssueReport
   End Sub
 
 End Class
+
+#End Region
+
 
 'Public Class StringReader
 '  Public ReadOnly Property Source As String
