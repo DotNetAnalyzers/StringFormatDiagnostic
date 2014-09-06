@@ -42,11 +42,12 @@ Namespace Global.Roslyn.StringFormatDiagnostics
                 Next
             End Function
 
-            <Extension>
-            Function IsExternal(sn As SyntaxNode, sm As SemanticModel, ct As CancellationToken) As Boolean
-                Return sm.GetSymbolInfo(sn, ct).Symbol.IsExtern
-            End Function
-            <Extension>
+      <Extension>
+      Function IsExternal(sn As SyntaxNode, sm As SemanticModel, ct As CancellationToken) As Boolean
+        Return sm.GetSymbolInfo(sn, ct).Symbol.IsExtern
+      End Function
+
+      <Extension>
             Function IdentifierValue(ThisIdentifier As CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax, sm As SemanticModel, ct As CancellationToken) As Object
                 If ThisIdentifier Is Nothing Then Return Nothing
                 'Dim ConstValue = sm.GetConstantValue(ThisIdentifier, ct)

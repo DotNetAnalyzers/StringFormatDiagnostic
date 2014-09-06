@@ -610,7 +610,7 @@ Public Class DiagnosticAnalyzer
           Select Case TheFormatString.Expression.VisualBasicKind
             Case SyntaxKind.StringLiteralExpression
               Dim ReportedIssues = AnalyseFormatString(ct, fs.ToString, args.Count - 1, p.ArgumentList.GetArgumentAsObjects(sm, ct).Skip(1).ToArray)
-              For Each ReportedIssue In ReportedIssues
+              For Each ReportedIssue In ReportedIssues.Errors 
                 'Select Case ReportedIssue
                 '    Case cex As ArgIndexOutOfRange : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
                 '    Case cex As UnexpectedChar : addDiagnostic(AddWarning(fs, cex.Start, cex.Start + 1, ReportedIssue))
@@ -656,7 +656,7 @@ Public Class DiagnosticAnalyzer
               If FoundSymbol.IsExtern Then
                 ' Use usage site for location of Warings, ignore the yield ranges and use the span of ThisIdentifier.
                 Dim ReportedIssues = AnalyseFormatString(ct, ConstValue.Value.ToString, args.Count - 1, p.ArgumentList.GetArgumentAsObjects(sm, ct).Skip(1).ToArray)
-                For Each ReportedIssue In ReportedIssues
+                For Each ReportedIssue In ReportedIssues.Errors
                   Select Case True
                     Case TypeOf ReportedIssue Is ArgIndexOutOfRange
                       addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
@@ -679,7 +679,7 @@ Public Class DiagnosticAnalyzer
               Else
                 ' Use the declaration site location ( SpanOfConstantValue ) for the location of the warnings. Also use the yield ranges for the highlighting.              
                 Dim ReportedIssues = AnalyseFormatString(ct, ConstValue.Value.ToString, args.Count - 1, p.ArgumentList.GetArgumentAsObjects(sm, ct).Skip(1).ToArray)
-                For Each ReportedIssue In ReportedIssues
+                For Each ReportedIssue In ReportedIssues.Errors
                   Select Case True
                     Case TypeOf ReportedIssue Is ArgIndexOutOfRange
                       Dim cex = DirectCast(ReportedIssue, ArgIndexOutOfRange)

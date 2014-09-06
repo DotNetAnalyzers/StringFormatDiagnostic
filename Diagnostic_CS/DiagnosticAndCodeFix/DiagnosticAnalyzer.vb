@@ -116,7 +116,7 @@ Public Class DiagnosticAnalyzer
                     Select Case TheFormatString.Expression.CSharpKind
                         Case CSharp.SyntaxKind.StringLiteralExpression
                             Dim ReportedIssues = AnalyseFormatString(ct, fs.ToString, args.Count - 1, p.ArgumentList.GetArgumentAsObjects(sm, ct).Skip(1).ToArray)
-                            For Each ReportedIssue In ReportedIssues
+                            For Each ReportedIssue In ReportedIssues.Errors
                                 Select Case True
                                     Case TypeOf ReportedIssue Is ArgIndexOutOfRange
                                         Dim cex = DirectCast(ReportedIssue, ArgIndexOutOfRange)
@@ -152,7 +152,7 @@ Public Class DiagnosticAnalyzer
                             If FoundSymbol.IsExtern Then
                                 ' Use usage site for location of Warings, ignore the yield ranges and use the span of ThisIdentifier.
                                 Dim ReportedIssues = AnalyseFormatString(ct, ConstValue.Value.ToString, args.Count - 1, p.ArgumentList.GetArgumentAsObjects(sm, ct).Skip(1).ToArray)
-                                For Each ReportedIssue In ReportedIssues
+                                For Each ReportedIssue In ReportedIssues.Errors
                                     Select Case True
                                         Case TypeOf ReportedIssue Is ArgIndexOutOfRange
                                             addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
@@ -175,30 +175,30 @@ Public Class DiagnosticAnalyzer
                             Else
                                 ' Use the declaration site location ( SpanOfConstantValue ) for the location of the warnings. Also use the yield ranges for the highlighting.              
                                 Dim ReportedIssues = AnalyseFormatString(ct, ConstValue.Value.ToString, args.Count - 1, p.ArgumentList.GetArgumentAsObjects(sm, ct).Skip(1).ToArray)
-                                For Each ReportedIssue In ReportedIssues
-                                    Select Case True
-                                        Case TypeOf ReportedIssue Is ArgIndexOutOfRange
-                                            Dim cex = DirectCast(ReportedIssue, ArgIndexOutOfRange)
-                                            addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
-                                        Case TypeOf ReportedIssue Is UnexpectedChar
-                                            Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
-                                            addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, cex.Start + 2, ReportedIssue))
-                                        Case TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText
-                                            addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
-                                        Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit
-                                            Dim cex = DirectCast(ReportedIssue, ArgIndexHasExceedLimit)
-                                            addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
-                                        Case TypeOf ReportedIssue Is FinalOutput
-                                            addDiagnostic(AddInformation(fs, ReportedIssue.Message))
-                                        Case TypeOf ReportedIssue Is ContainsNoArgs
-                                            addDiagnostic(AddInformation(TheValueOfTheVariable, "Contains no args! Are you sure this Is correct?"))
-                                        Case TypeOf ReportedIssue Is ContainsNoParameters
-                                            addDiagnostic(AddInformation(TheValueOfTheVariable, "No parameters! Are you sure this Is correct?"))
-                                        Case TypeOf ReportedIssue Is Internal_IssueReport
-                                            addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
-                                    End Select
-                                Next
-                            End If
+                For Each ReportedIssue In ReportedIssues.Errors
+                  Select Case True
+                    Case TypeOf ReportedIssue Is ArgIndexOutOfRange
+                      Dim cex = DirectCast(ReportedIssue, ArgIndexOutOfRange)
+                      addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
+                    Case TypeOf ReportedIssue Is UnexpectedChar
+                      Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
+                      addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                    Case TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText
+                      addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
+                    Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit
+                      Dim cex = DirectCast(ReportedIssue, ArgIndexHasExceedLimit)
+                      addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
+                    Case TypeOf ReportedIssue Is FinalOutput
+                      addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                    Case TypeOf ReportedIssue Is ContainsNoArgs
+                      addDiagnostic(AddInformation(TheValueOfTheVariable, "Contains no args! Are you sure this Is correct?"))
+                    Case TypeOf ReportedIssue Is ContainsNoParameters
+                      addDiagnostic(AddInformation(TheValueOfTheVariable, "No parameters! Are you sure this Is correct?"))
+                    Case TypeOf ReportedIssue Is Internal_IssueReport
+                      addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
+                  End Select
+                Next
+              End If
                     End Select
                 End If
         End Select
