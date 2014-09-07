@@ -149,6 +149,11 @@ Public Module Common
 
         Case "'"c, _QUOTE_ ' Literal String Delimiter 
         ' Parse Quoted String
+        Curr = Curr.Next
+        While Curr.IsEoT
+            If (Curr ="'"c) OrElse (Curr= _QUOTE_) Then Curr=Curr.Next : Exit While
+            Curr=Curr.Next  
+        End While
 
         Case ";"c ' Group Separator and Number Scaling
           If Sections < 3 Then
