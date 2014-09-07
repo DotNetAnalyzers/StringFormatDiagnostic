@@ -73,6 +73,17 @@ Public Module Common
   Const _LIMIT_ As Integer = 1000000  ' This limit is found inside the .net implementation of String.Format.
   Const ExitOnFirst = False
 
+  Public Function LiteralString( pc As ParsedChar, q As Char) As OutputResult(Of boolean)
+    Dim res As New OutputResult(Of Boolean )
+    Dim curr = pc.Next
+    While curr.IsEoT AndAlso res.Output = False
+      If curr = q Then res.Output = True : Exit While
+      curr=curr.Next 
+    End While
+    If Not res.Output Then res.AddError( New UnexpectedlyReachedEndOfText )
+    res.LastParse=curr
+    Return res
+  End Function
 
 
   Public Function DeString(s As String) As String
@@ -241,6 +252,243 @@ Public Module Common
     Return _res_
   End Function
 
+  Private Function Analyse_Custom_DateTime(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Dim _res_ As New OutputResult(Of String)
+    '_res_.AddError(New Internal_Information("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
+    Dim _ExitOnFirst_ = False
+    Dim s As New TheSourceText(format)
+    Dim Curr As New ParsedChar(s, 0)
+
+    While Curr.IsNotEoT
+      Select Case Curr.Value
+        Case "d"c
+          Dim reps = Curr.RepCount("d"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+            Select Case reps.Output
+              Case 0 ' Should never occure
+              Case 1 
+              Case 2
+              Case 3
+              Case 4
+              Case 5
+              Case 6
+              Case 7
+              Case Else
+            End Select
+            Curr = _res_.LastParse 
+          End If
+        Case "f"c
+          Dim reps = Curr.RepCount("f"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+            Select Case reps.Output
+              Case 0 ' Should never occure
+              Case 1
+              Case 2
+              Case 3
+              Case 4
+              Case 5
+              Case 6
+              Case 7
+              Case Else
+            End Select
+            Curr = _res_.LastParse
+          End If
+        Case "F"c
+          Dim reps = Curr.RepCount("F"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+            Select Case reps.Output
+              Case 0 ' Should never occure
+              Case 1
+              Case 2
+              Case 3
+              Case 4
+              Case 5
+              Case 6
+              Case 7
+              Case Else
+            End Select
+            Curr = _res_.LastParse
+          End If
+        Case "g"c
+          Dim reps = Curr.RepCount("g"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+            Select Case reps.Output
+              Case 0 ' Should never occure
+              Case 1
+              Case 2
+              Case Else
+                ' Add an error unknown specifier
+
+            End Select
+            Curr = _res_.LastParse
+          End If
+        Case "h"c
+          Dim reps = Curr.RepCount("h"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+            Select Case reps.Output
+              Case 0 ' Should never occure
+              Case 1
+              Case 2
+              Case Else
+                ' Add an error unknown specifier
+            End Select
+            Curr = _res_.LastParse
+          End If
+        Case "H"c
+          Dim reps = Curr.RepCount("H"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+            Select Case reps.Output
+              Case 0 ' Should never occure
+              Case 1
+              Case 2
+              Case Else
+                ' Add an error unknown specifier
+            End Select
+            Curr = _res_.LastParse
+          End If
+        Case "K"c
+          Dim reps = Curr.RepCount("K"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+            Select Case reps.Output
+              Case 0 ' Should never occure
+              Case 1
+              Case 2
+              Case Else
+                ' Add an error unknown specifier
+            End Select
+            Curr = _res_.LastParse
+          End If
+        Case "m"c
+          Dim reps = Curr.RepCount("m"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+            Select Case reps.Output
+              Case 0 ' Should never occure
+              Case 1
+              Case 2
+              Case Else
+                ' Add an error unknown specifier
+            End Select
+            Curr = _res_.LastParse
+          End If
+        Case "M"c
+          Dim reps = Curr.RepCount("M"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+            Select Case reps.Output
+              Case 0 ' Should never occure
+              Case 1
+              Case 2
+              Case Else
+                ' Add an error unknown specifier
+            End Select
+            Curr = _res_.LastParse
+          End If
+        Case "s"c
+          Dim reps = Curr.RepCount("s"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+            Select Case reps.Output
+              Case 0 ' Should never occure
+              Case 1
+              Case 2
+              Case Else
+                ' Add an error unknown specifier
+            End Select
+            Curr = _res_.LastParse
+          End If
+        Case "t"c
+          Dim reps = Curr.RepCount("t"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+            Select Case reps.Output
+              Case 0 ' Should never occure
+              Case 1
+              Case 2
+              Case Else
+                ' Add an error unknown specifier
+            End Select
+            Curr = _res_.LastParse
+          End If
+        Case "y"c
+          Dim reps = Curr.RepCount("y"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+            Select Case reps.Output
+              Case 0 ' Should never occure
+              Case 1
+              Case 2
+              Case 3
+              Case 4
+              Case 5
+              Case Else
+                ' Add an error unknown specifier
+            End Select
+            Curr = _res_.LastParse
+          End If
+        Case "z"c
+          Dim reps = Curr.RepCount("z"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+            Select Case reps.Output
+              Case 0 ' Should never occure
+              Case 1
+              Case 2
+              Case 3
+              Case Else
+                ' Add an error unknown specifier
+            End Select
+            Curr = _res_.LastParse
+          End If
+        Case ":"c
+          Dim reps = Curr.RepCount(":"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+'          If reps.Output <> 1 Then _res_.AddError()
+            Curr = _res_.LastParse
+          End If
+        Case "/"c
+          Dim reps = Curr.RepCount("/"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid = False Then
+            '          If reps.Output <> 1 Then _res_.AddError()
+            Curr = _res_.LastParse
+          End If
+        Case "\"c
+          Curr=Curr.Next
+          If Curr.IsEoT Then _res_.AddError( New UnexpectedlyReachedEndOfText()) : Exit While
+          '          If reps.Output <> 1 Then _res_.AddError()
+          Curr = Curr.Next
+        Case "'"c, _QUOTE_
+          Dim r = LiteralString(Curr,Curr.Value )
+          _res_.IncludeErrorsFrom(r)
+          If r.IsValid = False Then Exit While
+          Curr= r.LastParse 
+        Case "%"c
+          Dim nc = Curr.Next
+          If nc.IsEoT Then
+            _res_.AddError(New UnexpectedlyReachedEndOfText )
+          Else
+            If "dfFghHKmMstyz:/".Contains(nc.Value) Then
+              Curr = nc
+            Else
+              _res_.AddError(New UnexpectedChar(nc.Value,nc.Index ))
+            End If
+          End If
+        Case Else
+          Curr = Curr.Next 
+      End Select
+    End While
+    Return _res_
+  End Function 
+
   Public Function Analyse_DateTime_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     If format Is Nothing Then _res_.AddError(New Internal_IssueReport(New ArgumentNullException("format").ToString)) : Return _res_
@@ -257,7 +505,7 @@ Public Module Common
       End If
     Else
       ' Custom format string
-      _res_.AddError(New Internal_Information("(DateTime) CustomFormatString Diagnostic Not yet Implemented."))
+      _res_.IncludeErrorsFrom(Analyse_Custom_DateTime(ct, format, Provider))
     End If
     Return _res_
   End Function
@@ -576,9 +824,9 @@ Exit_Function:
     End While
   End Sub
 
-  Private Function IsDigit(c As ParsedChar) As Boolean
-    Return ("0"c <= c.Value) AndAlso (c.Value <= "9"c)
-  End Function
+  'Private Function IsDigit(c As ParsedChar) As Boolean
+  '  Return ("0"c <= c.Value) AndAlso (c.Value <= "9"c)
+  'End Function
 
   Private Function DigitValue(c As Char) As Integer
     Select Case c

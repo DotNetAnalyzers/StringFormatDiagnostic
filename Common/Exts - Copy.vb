@@ -24,10 +24,11 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       Return (pc IsNot Nothing) AndAlso ((pc.Value>="A"c AndAlso pc.Value<="Z"c) OrElse (pc.Value>="a"c AndAlso pc.Value<="z"c))
     End Function
 #End If
-    <Extension >
-    Public Function IsEoT(pc As ParsedChar ) As Boolean
-      Return pc Is Nothing 
+    <Extension>
+    Public Function IsEoT(pc As ParsedChar) As Boolean
+      Return pc Is Nothing
     End Function
+
     <Extension>
     Public Function IsNotEoT(pc As ParsedChar) As Boolean
       Return pc IsNot Nothing
@@ -44,6 +45,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       Return res
     End Function
 
+    <Extension>
     Public Function RepCount(pc As ParsedChar, c As Char) As OutputResult(Of Integer)
       Dim res As New OutputResult(Of Integer)
       Dim curr = pc
@@ -58,10 +60,12 @@ Namespace Global.Roslyn.StringFormatDiagnostics
     Public Function IsDigit(c As Char) As Boolean
       Return Char.IsDigit(c)
     End Function
+
     <Extension>
     Public Function IsDigit(pc As ParsedChar) As Boolean
       Return (pc >= "0"c) AndAlso (pc <="9"c)
     End Function
+
     <Extension>
     Public Function IsLetterOrWhitespace(pc As ParsedChar) As Boolean
       Return (pc IsNot Nothing) AndAlso (pc.IsLetter OrElse pc.IsWhitespace)
