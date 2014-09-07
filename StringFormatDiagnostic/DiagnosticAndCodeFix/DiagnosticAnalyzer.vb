@@ -218,8 +218,6 @@ Public Class DiagnosticAnalyzer
     _Shared_Checker_(AddressOf Analyse_DateTimeOffset_ToString, node, sm, addDiagnostic, ct)
   End Sub
 
-
-
   Public Sub Check_DateTime_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
     _Shared_Checker_(AddressOf Analyse_DateTime_ToString, node, sm, addDiagnostic, ct)
   End Sub
@@ -227,7 +225,6 @@ Public Class DiagnosticAnalyzer
   Public Sub Check_Numeric_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
     _Shared_Checker_(AddressOf Analyse_Numeric_ToString, node, sm, addDiagnostic, ct)
   End Sub
-
 
   Public Sub DoValidation(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
     Dim p = CType(node.Parent, InvocationExpressionSyntax)
