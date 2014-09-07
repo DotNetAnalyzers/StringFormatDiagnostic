@@ -254,7 +254,7 @@ Public Module Common
 
   Private Function Analyse_Custom_DateTime(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
-    '_res_.AddError(New Internal_Information("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
+    '_res_.AddError(New Internal_Information("(DateTime) CustomFormatString Diagnostic Not yet Implemented."))
     Dim _ExitOnFirst_ = False
     Dim s As New TheSourceText(format)
     Dim Curr As New ParsedChar(s, 0)
@@ -510,6 +510,110 @@ Public Module Common
     Return _res_
   End Function
 
+  Private Function Analyse_Custom_TimeSpan(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Dim _res_ As New OutputResult(Of String)
+    '_res_.AddError(New Internal_Information("(TimeSpan) CustomFormatString Diagnostic Not yet Implemented."))
+    Dim _ExitOnFirst_ = False
+    Dim s As New TheSourceText(format)
+    Dim Curr As New ParsedChar(s, 0)
+    While Curr.IsNotEoT
+     Select Case Curr.Value
+       Case "d"c
+         Dim reps = Curr.RepCount("d"c)
+         _res_.IncludeErrorsFrom(reps)
+          If _res_.IsValid Then
+            Select Case reps.Output
+              Case 0 ' Should never occur
+              Case 1 '
+              Case 2 To 8
+              Case Else
+                ' _res_.AddError( ?? )
+            End Select
+          End If
+          Curr = reps.LastParse
+        Case "h"c
+          Dim reps = Curr.RepCount("h"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid Then
+          Select Case reps.Output
+            Case 0
+            Case 1
+            Case 2
+            Case Else
+              ' _res_.AddError( ?? )
+          End Select
+          End If
+                  Curr = reps.LastParse 
+        Case "m"c
+          Dim reps = Curr.RepCount("m"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid Then
+            Select Case reps.Output
+              Case 0
+              Case 1
+              Case 2
+              Case Else
+                ' _res_.AddError( ?? )
+            End Select
+          End If
+                  Curr = reps.LastParse 
+        Case "s"c
+          Dim reps = Curr.RepCount("s"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid Then
+            Select Case reps.Output
+              Case 0
+              Case 1
+              Case 2
+              Case Else
+                ' _res_.AddError( ?? )
+            End Select
+          End If
+                  Curr = reps.LastParse 
+        Case "f"c
+          Dim reps = Curr.RepCount("f"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid Then
+            Select Case reps.Output
+              Case 0
+              Case 1
+              Case 2 To 7
+              Case Else
+                ' _res_.AddError( ?? )
+            End Select
+          End If
+                  Curr = reps.LastParse 
+        Case "F"c
+          Dim reps = Curr.RepCount("F"c)
+          _res_.IncludeErrorsFrom(reps)
+          If reps.IsValid Then
+            Select Case reps.Output
+              Case 0
+              Case 1
+              Case 2
+              Case Else
+                ' _res_.AddError( ?? )
+            End Select 
+          End If
+          Curr = reps.LastParse 
+        Case "'"c
+          Dim r = LiteralString(Curr, Curr.Value)
+          _res_.IncludeErrorsFrom(r)
+          If r.IsValid = False Then Exit While
+          Curr = r.LastParse
+        Case "\"c
+          If Curr.Next.IsEoT Then _res_.AddError(New UnexpectedlyReachedEndOfText()) : Exit While 
+          Curr= Curr.Next.Next 
+        Case Else
+          ' Error
+          _res_.AddError( new UnexpectedChar(Curr.Value, Curr.Index ))
+          Exit While 
+      End Select
+
+    End While
+    Return _res_
+  End Function 
+
   Public Function Analyse_TimeSpan_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     If format Is Nothing Then _res_.AddError(New Internal_IssueReport(New ArgumentNullException("fs").ToString)) : Return _res_
@@ -526,8 +630,7 @@ Public Module Common
       End If
     Else
       ' Custom format string
-      _res_.AddError(New Internal_Information("(TimeSpan) CustomFormatString Diagnostic Not yet Implemented."))
-
+     _res_.IncludeErrorsFrom( Analyse_Custom_TimeSpan(ct,format,Provider ))
     End If
     Return _res_
   End Function
