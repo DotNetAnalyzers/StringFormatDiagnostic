@@ -30,7 +30,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
                     Dim ov As Object
                     Dim Arg = CType(args.Arguments(i), CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax)
                     If TypeOf Arg.Expression Is CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax Then
-                        ov = IdentifierValue(Arg.Expression, sm, ct)
+                        ov = IdentifierValue(DirectCast( Arg.Expression,IdentifierNameSyntax), sm, ct)
                     Else
                         Try
                             ov = Convert.ChangeType(Arg.DescendantTokens.First.Value, Type.GetType(ArgTypes(i).ToFullyQualifiedName, False, True))

@@ -23,11 +23,12 @@ Public Class ParsedChar
   Public Function IsNotBoT() As Boolean
     Return _Index >= 0
   End Function
+
   Public Function [Next]() As ParsedChar
     ' If already set then return cached verison
     If _NS Then Return _NC
 
-    _NC = If(Index < _Source.EndIndex, New ParsedChar(_Source, Index + 1), Nothing)
+    _NC = If(Index < _Source.EndIndex, New ParsedChar(_Source, Index + 1), New ParsedChar(_Source,Index))
     _NS = True
     Return _NC
   End Function
@@ -35,7 +36,7 @@ Public Class ParsedChar
   Public Function Back() As ParsedChar
     ' If already set then return cached verison
     If _BS Then Return _BC
-    _BC = If(Index > 0, New ParsedChar(_Source, Index - 1), Nothing)
+    _BC = If(Index >= 0, New ParsedChar(_Source, Index - 1), New ParsedChar(_Source,-1))
     _BS = True
     Return _BC
   End Function

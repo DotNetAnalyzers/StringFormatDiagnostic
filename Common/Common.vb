@@ -116,7 +116,7 @@ Public Module Common
         Case "E"c, "e"c ' Expotential Holder
           Curr = Curr.Next
           If Curr.IsEoT Then
-                          _res_.AddError(New UnexpectedlyReachedEndOfText())
+            _res_.AddError(New UnexpectedlyReachedEndOfText())
           ElseIf Curr = "-"c Then
             Curr = Curr.Next
             If Curr.IsEoT Then
@@ -151,8 +151,11 @@ Public Module Common
         ' Parse Quoted String
         Curr = Curr.Next
         While Curr.IsEoT
-            If (Curr ="'"c) OrElse (Curr= _QUOTE_) Then Curr=Curr.Next : Exit While
-            Curr=Curr.Next  
+            If (Curr = "'"c) OrElse (Curr = _QUOTE_) Then
+              Curr = Curr.Next
+              Exit While
+            End If
+            Curr =Curr.Next  
         End While
 
         Case ";"c ' Group Separator and Number Scaling
@@ -162,20 +165,19 @@ Public Module Common
             _res_.AddError(New TooManySections(Curr.Index))
             Exit While
           End If
+        Curr=Curr.Next 
         Case "\"c ' Escape Character
-          If Curr.Next.IsEoT Then
+          Curr = Curr.Next 
+          If Curr.IsEoT Then
             _res_.AddError(New UnexpectedlyReachedEndOfText)
             Exit While
-
           Else
-            Curr = Curr.Next
             Select Case Curr
               Case "\"c, "0"c, "#"c, "."c, "'"c, _QUOTE_, ";"c, "%"c, "‰"c
                 Curr = Curr.Next
               Case Else
-
+                Curr = Curr.Next 
             End Select
-
           End If
         Case Else ' All other characters
           Curr = Curr.Next
