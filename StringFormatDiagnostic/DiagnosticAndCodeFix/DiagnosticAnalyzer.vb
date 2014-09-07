@@ -61,7 +61,7 @@ Public Class DiagnosticAnalyzer
             Select Case _TypeName
               Case "System.Int32", "System.Int16", "System.Int64", "System.UInt32", "System.UInt16", "System.UInt64",
                    "System.Byte", "System.UByte",
-                   "System.Double", "System.Double",
+                   "System.Double", "System.Single",
                    "System.Decimal"
                 Select Case _MethodName
                   Case "ToString"
