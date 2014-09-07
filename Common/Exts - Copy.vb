@@ -23,11 +23,15 @@ Namespace Global.Roslyn.StringFormatDiagnostics
     Public Function IsLetter(pc As ParsedChar) As Boolean
       Return (pc IsNot Nothing) AndAlso ((pc.Value>="A"c AndAlso pc.Value<="Z"c) OrElse (pc.Value>="a"c AndAlso pc.Value<="z"c))
     End Function
-    #End If
+#End If
 
     <Extension>
     Public Function IsDigit(c As Char) As Boolean
       Return Char.IsDigit(c)
+    End Function
+    <Extension>
+    Public Function IsDigit(pc As ParsedChar) As Boolean
+      Return (pc >= "0"c) AndAlso (pc <="9"c)
     End Function
     <Extension>
     Public Function IsLetterOrWhitespace(pc As ParsedChar) As Boolean

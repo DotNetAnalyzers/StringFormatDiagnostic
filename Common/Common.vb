@@ -83,6 +83,103 @@ Public Module Common
     Return s
   End Function
 
+  Private Function Analyse_Custom_Numeric(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Dim _res_ As New OutputResult(Of String)
+    _res_.AddError(New Internal_Information("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
+    Dim _ExitOnFirst_ = False
+    Dim s As New TheSourceText(format)
+    Dim Curr As New ParsedChar(s, 0)
+    Dim Decimal_Points = 0
+    Dim Sections = 1
+
+    While Curr.IsNotEoT
+      Select Case Curr.Value
+        Case "0"c ' Zero Placeholder
+          Curr = Curr.Next
+        Case "#"c ' Digit Placeholder
+          Curr = Curr.Next
+        'Case "."c When Decimal_Points = 0 : Decimal_Points +=1
+        'Case "."c When Decimal_Points>0 
+        '  Decimal_Points +=1
+        '_res_.AddError(New IgnoredChar(Curr.Value,Curr.Index ))
+        Case "."c ' Decimal Point
+          If Decimal_Points > 0 Then
+            _res_.AddError(New IgnoredChar(Curr.Value, Curr.Index))
+            If _ExitOnFirst_ Then Exit While
+          End If
+          Decimal_Points += 1
+          Curr = Curr.Next
+        Case "%"c ' Percentage Holder
+          Curr = Curr.Next
+        Case "‰"c ' Per Mille Placeholder
+          Curr = Curr.Next
+        Case "E"c, "e"c ' Expotential Holder
+          Curr = Curr.Next
+          If Curr.IsEoT Then
+                          _res_.AddError(New UnexpectedlyReachedEndOfText())
+          ElseIf Curr = "-"c Then
+            Curr = Curr.Next
+            If Curr.IsEoT Then
+              _res_.AddError(New UnexpectedlyReachedEndOfText())
+            ElseIf Curr.IsDigit Then
+              While Curr.IsNotEoT AndAlso Curr.IsDigit
+                Curr = Curr.Next
+              End While
+            Else
+              _res_.AddError(New UnexpectedChar(Curr.Value, Curr.Index))
+            End If
+          ElseIf Curr = "+"c Then
+            Curr = Curr.Next
+            If Curr.IsEoT Then
+              _res_.AddError(New UnexpectedlyReachedEndOfText())
+            ElseIf Curr.IsDigit Then
+              While Curr.IsNotEoT AndAlso Curr.IsDigit
+                Curr = Curr.Next
+              End While
+            Else
+              _res_.AddError(New UnexpectedChar(Curr.Value, Curr.Index))
+            End If
+          ElseIf Curr.IsDigit Then
+            While Curr.IsNotEoT AndAlso Curr.IsDigit
+              Curr = Curr.Next
+            End While
+          Else
+            _res_.AddError(New UnexpectedChar(Curr.Value, Curr.Index))
+          End If
+
+        Case "'"c, _QUOTE_ ' Literal String Delimiter 
+        ' Parse Quoted String
+
+        Case ";"c ' Group Separator and Number Scaling
+          If Sections < 3 Then
+            Sections += 1
+          Else
+            _res_.AddError(New TooManySections(Curr.Index))
+            Exit While
+          End If
+        Case "\"c ' Escape Character
+          If Curr.Next.IsEoT Then
+            _res_.AddError(New UnexpectedlyReachedEndOfText)
+            Exit While
+
+          Else
+            Curr = Curr.Next
+            Select Case Curr
+              Case "\"c, "0"c, "#"c, "."c, "'"c, _QUOTE_, ";"c, "%"c, "‰"c
+                Curr = Curr.Next
+              Case Else
+
+            End Select
+
+          End If
+        Case Else ' All other characters
+          Curr = Curr.Next
+      End Select
+    End While
+
+    Return _res_
+  End Function
+
   Public Function Analyse_Numeric_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     If format Is Nothing Then _res_.AddError(New Internal_IssueReport(New ArgumentNullException("format").ToString)) : Return _res_
@@ -96,8 +193,6 @@ Public Module Common
           Case 1
             If _SNFS_.Contains(format(0)) Then
               ' ' Parsed as a standard format string.
-              _res_.AddError(New Internal_IssueReport("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
-
             Else
               _res_.AddError(New UnknownSpecifier(format(0), 0))
             End If
@@ -107,8 +202,7 @@ Public Module Common
                 ' Parsed as a standard format string.
               Else
                 ' Parse as a Custom Numeric format string
-                _res_.AddError(New Internal_IssueReport("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
-
+                _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, Provider))
               End If
             Else
               _res_.AddError(New UnknownSpecifier(format(0), 0))
@@ -120,26 +214,23 @@ Public Module Common
                   ' Parsed as a standard format string.
                 Else
                   ' Parse as a Custom Numeric format string
-                  _res_.AddError(New Internal_IssueReport("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
-
+                  _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, Provider))
                 End If
               Else
                 ' Parse as a Custom Numeric format string
-                _res_.AddError(New Internal_IssueReport("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
-
+                _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, Provider))
               End If
             Else
               _res_.AddError(New UnknownSpecifier(format(0), 0))
             End If
           Case Else
             ' Parse as a Custom Numeric format string
-            _res_.AddError(New Internal_IssueReport("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
-
+            _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, Provider))
         End Select
 
       Else
         ' parse custon numeric string.
-        _res_.AddError(New Internal_IssueReport("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
+        _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, Provider))
       End If
     End If
     Return _res_
@@ -161,7 +252,7 @@ Public Module Common
       End If
     Else
       ' Custom format string
-      _res_.AddError(New Internal_IssueReport("(DateTime) CustomFormatString Diagnostic Not yet Implemented."))
+      _res_.AddError(New Internal_Information("(DateTime) CustomFormatString Diagnostic Not yet Implemented."))
     End If
     Return _res_
   End Function
@@ -182,7 +273,7 @@ Public Module Common
       End If
     Else
       ' Custom format string
-      _res_.AddError(New Internal_IssueReport("(TimeSpan) CustomFormatString Diagnostic Not yet Implemented."))
+      _res_.AddError(New Internal_Information("(TimeSpan) CustomFormatString Diagnostic Not yet Implemented."))
 
     End If
     Return _res_
@@ -203,7 +294,7 @@ Public Module Common
       End If
     Else
       ' Custom format string
-      _res_.AddError(New Internal_IssueReport("(DataTimeOffset) CustomFormatString Diagnostic Not yet Implemented."))
+      _res_.AddError(New Internal_Information("(DataTimeOffset) CustomFormatString Diagnostic Not yet Implemented."))
     End If
     Return _res_
   End Function
@@ -225,7 +316,7 @@ Public Module Common
       End If
     Else
       ' Custom format string
-      _res_.AddError(New Internal_IssueReport("(Enum) CustomFormatString Diagnostic Not yet Implemented."))
+      _res_.AddError(New Internal_Information("(Enum) CustomFormatString Diagnostic Not yet Implemented."))
     End If
     Return _res_
   End Function
@@ -391,7 +482,7 @@ Public Module Common
                   curr = curr.Next
                 Else
                   If ArgsSupplied Then
-                    If curr Is Nothing Then _res_.AddError(New UnexpectedlyReachedEndOfText) :: GoTo Exit_Function
+                    If curr Is Nothing Then _res_.AddError(New UnexpectedlyReachedEndOfText) : GoTo Exit_Function
                     _res_.AddError(New UnexpectedlyReachedEndOfText)
                   End If
 
@@ -503,140 +594,5 @@ Exit_Function:
 
 End Module
 
-#Region "Error Classes"
 
-Public Class UnexpectedlyReachedEndOfText
-  Inherits IssueReport
-  Public Sub New()
-    MyBase.New("Unexpectedly Reached End Of Text")
-  End Sub
-End Class
-
-Public Class ArgIndexHasExceedLimit
-  Inherits IssueReportWithStartPosition
-  Public ReadOnly Property Finish As Integer
-  Public Sub New(ParamName As String, Value As String, Limit As Integer, start As Integer, Finish As Integer)
-    MyBase.New(String.Format("{2} of ({0}) has exceed .net String.Format limit of {1}.", Value, Limit, ParamName), start)
-    _Finish = Finish
-  End Sub
-End Class
-
-Public Class ArgIndexOutOfRange
-  Inherits IssueReportWithStartPosition
-  Public ReadOnly Property Finish As Integer
-  Public Sub New(Index As Integer, Limit As Integer, start As Integer, Finish As Integer)
-    MyBase.New(String.Format("Index of ({0}) is invalid. (0 <= Index < {1})", Index, Limit), start)
-    _Finish = Finish
-  End Sub
-End Class
-
-Public Class UnexpectedChar
-  Inherits IssueReportWithStartPosition
-  Public Sub New(C As Char, Start As Integer)
-    MyBase.New("Unexpected Character '" & C & "'", Start)
-  End Sub
-End Class
-
-Public Class UnknownSpecifier
-  Inherits IssueReportWithStartPosition
-  Public Sub New(C As Char, Start As Integer)
-    MyBase.New("Unknown Specifier '" & C & "'", Start)
-  End Sub
-End Class
-Public Class ContainsNoArgs
-  Inherits IssueReport
-  Public Sub New()
-    MyBase.New("")
-  End Sub
-End Class
-
-Public Class ContainsNoParameters
-  Inherits IssueReport
-  Public Sub New()
-    MyBase.New("")
-  End Sub
-End Class
-
-Public Class FinalOutput
-  Inherits IssueReport
-  Public Sub New(output As String)
-    MyBase.New(String.Format("Output:= {0}", output))
-  End Sub
-End Class
-
-Public MustInherit Class IssueReportWithStartPosition
-  Inherits IssueReport
-  Public ReadOnly Property Start As Integer
-  Friend Sub New(Msg As String, Start As Integer)
-    MyBase.New(Msg)
-    _Start = Start
-  End Sub
-End Class
-
-Public Class Internal_IssueReport
-  Inherits IssueReport
-  Sub New(Msg As String)
-    MyBase.New(Msg)
-  End Sub
-End Class
-
-Public MustInherit Class IssueReport
-  Public ReadOnly Property Message As String
-  Friend Sub New(Msg As String)
-    _Message = Msg
-  End Sub
-
-End Class
-
-#End Region
-
-
-'Public Class StringReader
-'  Public ReadOnly Property Source As String
-'  Public ReadOnly Property Index As Integer
-'  Public ReadOnly Property Curr As Char?
-'    Get
-'      If Index < 0 Then Return New Char?
-'      If Index >= Source.Length Then Return New Char?
-'      Return New Char?(Source(Index))
-'    End Get
-'  End Property
-'  Public ReadOnly Property Peek As Char?
-'    Get
-'      If Index + 1 < 0 Then Return New Char?
-'      If Index + 1 >= Source.Length Then Return New Char?
-'      Return New Char?(Source(Index + 1))
-'    End Get
-'  End Property
-'  Public Sub [Next]()
-'    If Index = Source.Length Then Exit Sub
-'    _Index += 1
-'  End Sub
-'  Public Sub Back()
-'    If Index < 0 Then Exit Sub
-'    _Index -= 1
-'  End Sub
-'  Public Sub New(s As String)
-'    _Source = s
-'    _Index = 0
-'  End Sub
-'  Public ReadOnly Property IsBeyondEndOfText() As Boolean
-'    Get
-'      Return Index >= Source.Length
-'    End Get
-'  End Property
-'  Public ReadOnly Property IsNotBeyondEndOfText() As Boolean
-'    Get
-'      Return Not IsBeyondEndOfText
-'    End Get
-'  End Property
-'  Public Overrides Function ToString() As String
-'    Dim pre = If(Index > 0, Source.Substring(0, Index), "")
-'    Dim post = If(Index < (Source.Length - 1), Source.Substring(Index + 1), "")
-'    Return String.Format("{0}{1}{2}{3}{4}", pre, "¦'", Curr.Value, "'¦", post)
-'  End Function
-'  Public Shared Function Create(Source As String) As StringReader
-'    Return If(Source Is Nothing, Nothing, New StringReader(Source))
-'  End Function
-'End Class
 
