@@ -83,6 +83,26 @@ Public Module Common
     Return s
   End Function
 
+  Private Function ExponentValue(pc As ParsedChar) As OutputResult(Of Integer)
+    Dim _res_ As New OutputResult(Of Integer)
+    Dim sp = pc
+    Dim pr = ParseDigits(sp)
+    If pr.Output.Length > 0 Then
+      Dim value As Integer '.TrimStart("0"c)
+      If Integer.TryParse(pr.Output, value) Then
+        If value < 0 Then
+        ElseIf value > 99 Then
+          _res_.AddError(New ValueHasExceedLimit("Exponent", pr.Output, 99, sp.Index, pr.LastParse.Index))
+        Else
+          _res_.Output = value
+        End If
+      Else
+      End If
+    End If
+    _res_.LastParse = pr.LastParse
+    Return _res_
+  End Function
+
   Private Function Analyse_Custom_Numeric(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     '_res_.AddError(New Internal_Information("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
@@ -98,10 +118,6 @@ Public Module Common
           Curr = Curr.Next
         Case "#"c ' Digit Placeholder
           Curr = Curr.Next
-        'Case "."c When Decimal_Points = 0 : Decimal_Points +=1
-        'Case "."c When Decimal_Points>0 
-        '  Decimal_Points +=1
-        '_res_.AddError(New IgnoredChar(Curr.Value,Curr.Index ))
         Case "."c ' Decimal Point
           If Decimal_Points > 0 Then
             _res_.AddError(New IgnoredChar(Curr.Value, Curr.Index))
@@ -115,103 +131,52 @@ Public Module Common
           Curr = Curr.Next
         Case "E"c, "e"c ' Expotential Holder
           Curr = Curr.Next
-          If Curr.IsEoT Then
-            _res_.AddError(New UnexpectedlyReachedEndOfText())
-          ElseIf Curr = "-"c Then
-            Curr = Curr.Next
-            If Curr.IsEoT Then
-              _res_.AddError(New UnexpectedlyReachedEndOfText())
-            ElseIf Curr.IsDigit Then
-              Dim sp =curr
-              Dim pr = ParseDigits(curr)
-              If pr.Output.Length > 0 Then
-                         Dim value As Integer
-                If Integer.TryParse(pr.Output.TrimStart("0"c), value) Then
-                  If value < 0 Then
-                  ElseIf value > 99 Then
-                     _res_.AddError(New ValueHasExceedLimit("Exponent", pr.Output, 99, sp.Index, pr.LastParse .Index))
-                  Else
-                  End If
-                Else
-                End If
-              End If
-              Curr=pr.LastParse 
-            Else
-              _res_.AddError(New UnexpectedChar(Curr.Value, Curr.Index))
-            End If
-          ElseIf Curr = "+"c Then
-            Curr = Curr.Next
-            If Curr.IsEoT Then
-              _res_.AddError(New UnexpectedlyReachedEndOfText())
-            ElseIf Curr.IsDigit Then
-              Dim sp = Curr
-              Dim pr = ParseDigits(Curr)
-              If pr.Output.Length > 0 Then
-                Dim value As Integer
-                If Integer.TryParse(pr.Output.TrimStart("0"c), value) Then
-                  If value < 0 Then
-                  ElseIf value > 99 Then
-                     _res_.AddError(New ValueHasExceedLimit("Exponent",pr.Output, 99, sp.Index, pr.LastParse .Index))
-                  Else
-                  End If
-                Else
-                End If
-              End If
+          If Curr.IsEoT Then _res_.AddError(New UnexpectedlyReachedEndOfText()) : Exit Select
+          Select Case Curr
+            Case "0"c To "9"c
+              Dim pr = ExponentValue(Curr)
+              _res_.IncludeErrorsFrom(pr)
               Curr = pr.LastParse
-            Else
+            Case "-"c
+              Curr = Curr.Next
+              If Curr.IsEoT Then _res_.AddError(New UnexpectedlyReachedEndOfText()) : Exit Select
+              If Not Curr.IsDigit Then _res_.AddError(New UnexpectedChar(Curr.Value, Curr.Index)) : Exit Select
+              Dim pr = ExponentValue(Curr)
+              _res_.IncludeErrorsFrom(pr)
+              Curr = pr.LastParse
+            Case "+"c
+              Curr = Curr.Next
+              If Curr.IsEoT Then _res_.AddError(New UnexpectedlyReachedEndOfText()) : Exit Select
+              If Not Curr.IsDigit Then _res_.AddError(New UnexpectedChar(Curr.Value, Curr.Index)) : Exit Select
+              Dim pr = ExponentValue(Curr)
+              _res_.IncludeErrorsFrom(pr)
+              Curr = pr.LastParse
+            Case Else
               _res_.AddError(New UnexpectedChar(Curr.Value, Curr.Index))
-            End If
-          ElseIf Curr.IsDigit Then
-            Dim sp = Curr
-            Dim pr = ParseDigits(Curr)
-            If pr.Output.Length > 0 Then
-                Dim value As Integer
-                If Integer.TryParse(pr.Output.TrimStart("0"c), value) Then
-                  If value < 0 Then
-                  ElseIf value > 99 Then
-                     _res_.AddError(New ValueHasExceedLimit("Exponent",pr.Output, 99, sp.Index, pr.LastParse .Index))
-                  Else
-                  End If
-              Else
-              End If
-            End If
-            Curr = pr.LastParse
-          Else
-            _res_.AddError(New UnexpectedChar(Curr.Value, Curr.Index))
-          End If
+          End Select
 
         Case "'"c, _QUOTE_ ' Literal String Delimiter 
-        ' Parse Quoted String
-        Curr = Curr.Next
-        While Curr.IsEoT
-            If (Curr = "'"c) OrElse (Curr = _QUOTE_) Then
-              Curr = Curr.Next
-              Exit While
-            End If
-            Curr =Curr.Next  
-        End While
+          ' The same character terminates parsing of the literal string eg 'abc'  || "abc"
+          Curr = Curr.Next
+          While Curr.IsEoT
+            If (Curr = "'"c) OrElse (Curr = _QUOTE_) Then Curr = Curr.Next : Exit While
+            Curr = Curr.Next
+          End While
 
         Case ";"c ' Group Separator and Number Scaling
-          If Sections < 3 Then
-            Sections += 1
-          Else
-            _res_.AddError(New TooManySections(Curr.Index))
-            Exit While
-          End If
-        Curr=Curr.Next 
+          If Sections >= 3 Then _res_.AddError(New TooManySections(Curr.Index)) : Exit While
+          Sections += 1
+          Curr = Curr.Next
         Case "\"c ' Escape Character
-          Curr = Curr.Next 
-          If Curr.IsEoT Then
-            _res_.AddError(New UnexpectedlyReachedEndOfText)
-            Exit While
-          Else
+          Curr = Curr.Next
+          If Curr.IsEoT Then _res_.AddError(New UnexpectedlyReachedEndOfText): Exit While
             Select Case Curr
               Case "\"c, "0"c, "#"c, "."c, "'"c, _QUOTE_, ";"c, "%"c, "‰"c
                 Curr = Curr.Next
               Case Else
-                Curr = Curr.Next 
+               ' To Chek: Could be a parsed error
+                Curr = Curr.Next
             End Select
-          End If
         Case Else ' All other characters
           Curr = Curr.Next
       End Select

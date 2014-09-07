@@ -121,9 +121,10 @@
     <Compile Include="Errors\Error Classes\IssueReport.vb" />
     <Compile Include="Errors\ErrorMsg.vb" />
     <Compile Include="Errors\Errors.vb" />
+    <Compile Include="%28CS%29\Exts - %28CS%29.vb" />
     <Compile Include="Exts - Copy.vb" />
-    <Compile Include="Exts.vb" />
-    <Compile Include="ISourceText.vb" />
+    <Compile Include="%28VB%29\Exts - %28VB%29.vb" />
+    <Compile Include="SourceText\Interface\ISourceText.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Application.myapp</DependentUpon>
@@ -139,10 +140,10 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="ParsedChar.vb" />
+    <Compile Include="SourceText\ParsedChar\ParsedChar.vb" />
     <Compile Include="Results\OutputResult.vb" />
     <Compile Include="Results\Reault.vb" />
-    <Compile Include="TheSourceText.vb" />
+    <Compile Include="SourceText\TheSourceText.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">

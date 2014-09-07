@@ -44,6 +44,16 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       Return res
     End Function
 
+    Public Function RepCount(pc As ParsedChar, c As Char) As OutputResult(Of Integer)
+      Dim res As New OutputResult(Of Integer)
+      Dim curr = pc
+      While curr.IsNotEoT AndAlso (curr = c)
+        res.Output += 1
+      End While
+      res.LastParse = curr
+      Return res
+    End Function
+
     <Extension>
     Public Function IsDigit(c As Char) As Boolean
       Return Char.IsDigit(c)
