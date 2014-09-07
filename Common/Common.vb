@@ -85,7 +85,7 @@ Public Module Common
 
   Private Function Analyse_Custom_Numeric(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
-    _res_.AddError(New Internal_Information("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
+    '_res_.AddError(New Internal_Information("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
     Dim _ExitOnFirst_ = False
     Dim s As New TheSourceText(format)
     Dim Curr As New ParsedChar(s, 0)

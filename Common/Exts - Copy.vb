@@ -24,6 +24,14 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       Return (pc IsNot Nothing) AndAlso ((pc.Value>="A"c AndAlso pc.Value<="Z"c) OrElse (pc.Value>="a"c AndAlso pc.Value<="z"c))
     End Function
 #End If
+    <Extension >
+    Public Function IsEoT(pc As ParsedChar ) As Boolean
+      Return pc Is Nothing 
+    End Function
+    <Extension>
+    Public Function IsNotEoT(pc As ParsedChar) As Boolean
+      Return pc IsNot Nothing
+    End Function
 
     <Extension>
     Public Function IsDigit(c As Char) As Boolean

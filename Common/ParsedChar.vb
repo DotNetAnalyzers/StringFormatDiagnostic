@@ -11,24 +11,24 @@ Public Class ParsedChar
     _Index = Index : _Source = Source
   End Sub
 
-  Public Function IsEoT() As Boolean
-    Return _Index > _Source.EndIndex 
-  End Function
-  Public Function IsNotEoT() As Boolean
-    Return _Index <= _Source.EndIndex  
-  End Function
-  Public Function IsBoT() As Boolean
-    Return _Index < 0
-  End Function
-  Public Function IsNotBoT() As Boolean
-    Return _Index >= 0
-  End Function
+  'Public Function IsEoT() As Boolean
+  '  Return   _Index > _Source.EndIndex 
+  'End Function
+  'Public Function IsNotEoT() As Boolean
+  '  Return _Index <= _Source.EndIndex  
+  'End Function
+  'Public Function IsBoT() As Boolean
+  '  Return _Index < 0
+  'End Function
+  'Public Function IsNotBoT() As Boolean
+  '  Return _Index >= 0
+  'End Function
 
   Public Function [Next]() As ParsedChar
     ' If already set then return cached verison
     If _NS Then Return _NC
 
-    _NC = If(Index < _Source.EndIndex, New ParsedChar(_Source, Index + 1), New ParsedChar(_Source,Index))
+    _NC = If(Index < _Source.EndIndex, New ParsedChar(_Source, Index + 1),Nothing) ' New ParsedChar(_Source,Index))
     _NS = True
     Return _NC
   End Function
