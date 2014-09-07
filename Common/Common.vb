@@ -122,9 +122,20 @@ Public Module Common
             If Curr.IsEoT Then
               _res_.AddError(New UnexpectedlyReachedEndOfText())
             ElseIf Curr.IsDigit Then
-              While Curr.IsNotEoT AndAlso Curr.IsDigit
-                Curr = Curr.Next
-              End While
+              Dim sp =curr
+              Dim pr = ParseDigits(curr)
+              If pr.Output.Length > 0 Then
+                         Dim value As Integer
+                If Integer.TryParse(pr.Output.TrimStart("0"c), value) Then
+                  If value < 0 Then
+                  ElseIf value > 99 Then
+                     _res_.AddError(New ValueHasExceedLimit("Exponent", pr.Output, 99, sp.Index, pr.LastParse .Index))
+                  Else
+                  End If
+                Else
+                End If
+              End If
+              Curr=pr.LastParse 
             Else
               _res_.AddError(New UnexpectedChar(Curr.Value, Curr.Index))
             End If
@@ -133,16 +144,38 @@ Public Module Common
             If Curr.IsEoT Then
               _res_.AddError(New UnexpectedlyReachedEndOfText())
             ElseIf Curr.IsDigit Then
-              While Curr.IsNotEoT AndAlso Curr.IsDigit
-                Curr = Curr.Next
-              End While
+              Dim sp = Curr
+              Dim pr = ParseDigits(Curr)
+              If pr.Output.Length > 0 Then
+                Dim value As Integer
+                If Integer.TryParse(pr.Output.TrimStart("0"c), value) Then
+                  If value < 0 Then
+                  ElseIf value > 99 Then
+                     _res_.AddError(New ValueHasExceedLimit("Exponent",pr.Output, 99, sp.Index, pr.LastParse .Index))
+                  Else
+                  End If
+                Else
+                End If
+              End If
+              Curr = pr.LastParse
             Else
               _res_.AddError(New UnexpectedChar(Curr.Value, Curr.Index))
             End If
           ElseIf Curr.IsDigit Then
-            While Curr.IsNotEoT AndAlso Curr.IsDigit
-              Curr = Curr.Next
-            End While
+            Dim sp = Curr
+            Dim pr = ParseDigits(Curr)
+            If pr.Output.Length > 0 Then
+                Dim value As Integer
+                If Integer.TryParse(pr.Output.TrimStart("0"c), value) Then
+                  If value < 0 Then
+                  ElseIf value > 99 Then
+                     _res_.AddError(New ValueHasExceedLimit("Exponent",pr.Output, 99, sp.Index, pr.LastParse .Index))
+                  Else
+                  End If
+              Else
+              End If
+            End If
+            Curr = pr.LastParse
           Else
             _res_.AddError(New UnexpectedChar(Curr.Value, Curr.Index))
           End If

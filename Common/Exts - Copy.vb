@@ -33,6 +33,17 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       Return pc IsNot Nothing
     End Function
 
+    Public Function ParseDigits(pc As ParsedChar) As OutputResult(Of String)
+      Dim curr = pc
+      Dim res As New OutputResult(Of string)With {.Output =""}
+      While curr.IsNotEoT AndAlso Curr.IsDigit
+        res.Output &= curr.Value
+        curr =curr.next        
+      End While
+      res.LastParse = curr
+      Return res
+    End Function
+
     <Extension>
     Public Function IsDigit(c As Char) As Boolean
       Return Char.IsDigit(c)

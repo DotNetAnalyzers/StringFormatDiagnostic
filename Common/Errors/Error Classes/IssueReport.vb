@@ -37,7 +37,14 @@ Public Class UnexpectedlyReachedEndOfText
     MyBase.New("Unexpectedly Reached End Of Text")
   End Sub
 End Class
-
+Public Class ValueHasExceedLimit
+  Inherits IssueReportWithStartPosition
+  Public ReadOnly Property Finish As Integer
+  Public Sub New(ParamName As String, Value As String, Limit As Integer, start As Integer, Finish As Integer)
+    MyBase.New(String.Format("{2} of ({0}) has exceeded limit of {1}.", Value, Limit,ParamName), start)
+    _Finish = Finish
+  End Sub
+End Class
 Public Class ArgIndexHasExceedLimit
   Inherits IssueReportWithStartPosition
   Public ReadOnly Property Finish As Integer

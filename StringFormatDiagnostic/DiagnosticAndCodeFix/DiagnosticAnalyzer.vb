@@ -129,6 +129,9 @@ Public Class DiagnosticAnalyzer
                     addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
                   Case TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText
                     addDiagnostic(AddWarning(fs, 0, fs.Span.Length, ReportedIssue))
+                  Case TypeOf ReportedIssue Is ValueHasExceedLimit
+                    Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
+                    addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 1+((cex.Finish + 1) - cex.Start), ReportedIssue))
                   Case TypeOf ReportedIssue Is Internal_Information 
                     addDiagnostic(AddInformation(fs, ReportedIssue.Message))
                   Case TypeOf ReportedIssue Is FinalOutput
@@ -160,6 +163,9 @@ Public Class DiagnosticAnalyzer
                       addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit
                       addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
+                    Case TypeOf ReportedIssue Is ValueHasExceedLimit
+                    Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
+                    addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 1+((cex.Finish + 1) - cex.Start), ReportedIssue))
                     Case TypeOf ReportedIssue Is FinalOutput
                       addDiagnostic(AddInformation(fs, ReportedIssue.Message))
                     Case TypeOf ReportedIssue Is ContainsNoArgs
@@ -189,6 +195,9 @@ Public Class DiagnosticAnalyzer
                     Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit
                       Dim cex = DirectCast(ReportedIssue, ArgIndexHasExceedLimit)
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
+                    Case TypeOf ReportedIssue Is ValueHasExceedLimit
+                      Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
+                      addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 1 + ((cex.Finish + 1) - cex.Start), ReportedIssue))
                     Case TypeOf ReportedIssue Is FinalOutput
                       Dim cex = DirectCast(ReportedIssue, ArgIndexOutOfRange)
                       addDiagnostic(AddInformation(fs, ReportedIssue.Message))
@@ -366,6 +375,9 @@ Public Class DiagnosticAnalyzer
                   Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit
                     Dim cex = DirectCast(ReportedIssue, ArgIndexHasExceedLimit)
                     addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
+                  Case TypeOf ReportedIssue Is ValueHasExceedLimit
+                    Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
+                    addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
                   Case TypeOf ReportedIssue Is FinalOutput
                     addDiagnostic(AddInformation(fs, ReportedIssue.Message))
                   Case TypeOf ReportedIssue Is ContainsNoArgs
@@ -401,6 +413,9 @@ Public Class DiagnosticAnalyzer
                       addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit
                       addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
+                    Case TypeOf ReportedIssue Is ValueHasExceedLimit
+                      addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
+
                     Case TypeOf ReportedIssue Is FinalOutput
                       addDiagnostic(AddInformation(fs, ReportedIssue.Message))
                     Case TypeOf ReportedIssue Is ContainsNoArgs
@@ -432,6 +447,9 @@ Public Class DiagnosticAnalyzer
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit
                       Dim cex = DirectCast(ReportedIssue, ArgIndexHasExceedLimit)
+                      addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
+                    Case TypeOf ReportedIssue Is ValueHasExceedLimit
+                      Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
                     Case TypeOf ReportedIssue Is FinalOutput
                       Dim cex = DirectCast(ReportedIssue, ArgIndexOutOfRange)
