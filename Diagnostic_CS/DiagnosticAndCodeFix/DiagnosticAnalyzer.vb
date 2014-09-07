@@ -119,13 +119,18 @@ Public Class DiagnosticAnalyzer
         Dim TheFormatString = CType(fs, ArgumentSyntax)
         If TheFormatString IsNot Nothing Then
           Select Case TheFormatString.Expression.CSharpKind
-
             Case SyntaxKind.StringLiteralExpression
               Dim ReportedIssues = fn(ct, Common.DeString(fs.ToString), Nothing)
               For Each ReportedIssue In ReportedIssues.Errors
                 Select Case True
                   Case TypeOf ReportedIssue Is UnexpectedChar
                     Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
+                    addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                  Case TypeOf ReportedIssue Is IgnoredChar
+                    Dim cex = DirectCast(ReportedIssue, IgnoredChar)
+                    addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                  Case TypeOf ReportedIssue Is TooManySections
+                    Dim cex = DirectCast(ReportedIssue, TooManySections)
                     addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
                   Case TypeOf ReportedIssue Is UnknownSpecifier
                     Dim cex = DirectCast(ReportedIssue, UnknownSpecifier)
@@ -156,8 +161,12 @@ Public Class DiagnosticAnalyzer
                   Select Case True
                     Case TypeOf ReportedIssue Is ArgIndexOutOfRange : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is UnexpectedChar : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
+                    Case TypeOf ReportedIssue Is IgnoredChar : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
+                    Case TypeOf ReportedIssue Is TooManySections
+                      Dim cex = DirectCast(ReportedIssue, TooManySections)
+                      addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
                     Case TypeOf ReportedIssue Is ValueHasExceedLimit
                       Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
                       addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 1 + ((cex.Finish + 1) - cex.Start), ReportedIssue))
@@ -178,7 +187,13 @@ Public Class DiagnosticAnalyzer
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
                     Case TypeOf ReportedIssue Is UnexpectedChar
                       Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
-                      addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                      addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                    Case TypeOf ReportedIssue Is IgnoredChar
+                      Dim cex = DirectCast(ReportedIssue, IgnoredChar)
+                      addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                    Case TypeOf ReportedIssue Is TooManySections
+                      Dim cex = DirectCast(ReportedIssue, TooManySections)
+                      addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
                     Case TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText
                       Dim cex = DirectCast(ReportedIssue, ArgIndexOutOfRange)
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
@@ -199,6 +214,9 @@ Public Class DiagnosticAnalyzer
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is Internal_Information
                       addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                    Case TypeOf ReportedIssue Is SpecifierUnkown
+                      Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
+                      addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
                   End Select
                 Next
               End If
@@ -366,15 +384,28 @@ Public Class DiagnosticAnalyzer
         Dim TheFormatString = CType(fs, ArgumentSyntax)
         If TheFormatString IsNot Nothing Then
           Select Case TheFormatString.Expression.CSharpKind
-            Case CSharp.SyntaxKind.StringLiteralExpression
+            Case SyntaxKind.StringLiteralExpression
               Dim ReportedIssues = AnalyseFormatString(ct, fs.ToString, args.Count - 1, p.ArgumentList.GetArgumentAsObjects(sm, ct).Skip(1).ToArray)
               For Each ReportedIssue In ReportedIssues.Errors
+                'Select Case ReportedIssue
+                '    Case cex As ArgIndexOutOfRange : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
+                '    Case cex As UnexpectedChar : addDiagnostic(AddWarning(fs, cex.Start, cex.Start + 1, ReportedIssue))
+                '    Case cex As UnexpectedlyReachedEndOfText : addDiagnostic(AddWarning(fs, 0, fs.Span.Length, ReportedIssue))
+                '    Case cex As ArgIndexHasExceedLimit : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
+                '    Case ___ As FinalOutput : addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                '    Case ___ As ContainsNoArgs : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this Is correct?"))
+                '    Case ___ As ContainsNoParameters : addDiagnostic(AddInformation(fs, "No parameters! Are you sure this Is correct?"))
+                '    Case ___ As Internal_IssueReport : addDiagnostic(AddWarning(node, 0, fs.Span.Length, ReportedIssue))
+                'End Select
                 Select Case True
                   Case TypeOf ReportedIssue Is ArgIndexOutOfRange
                     Dim cex = DirectCast(ReportedIssue, ArgIndexOutOfRange)
                     addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
                   Case TypeOf ReportedIssue Is UnexpectedChar
                     Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
+                    addDiagnostic(AddWarning(fs, cex.Start, cex.Start + 1, ReportedIssue))
+                  Case TypeOf ReportedIssue Is IgnoredChar
+                    Dim cex = DirectCast(ReportedIssue, IgnoredChar)
                     addDiagnostic(AddWarning(fs, cex.Start, cex.Start + 1, ReportedIssue))
                   Case TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText
                     addDiagnostic(AddWarning(fs, 0, fs.Span.Length, ReportedIssue))
@@ -394,6 +425,12 @@ Public Class DiagnosticAnalyzer
                     addDiagnostic(AddWarning(node, 0, fs.Span.Length, ReportedIssue))
                   Case TypeOf ReportedIssue Is Internal_Information
                     addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                  Case TypeOf ReportedIssue Is TooManySections
+                    Dim cex = DirectCast(ReportedIssue, TooManySections)
+                    addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                  Case TypeOf ReportedIssue Is SpecifierUnkown
+                    Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
+                    addDiagnostic(AddWarning(fs, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
                 End Select
               Next
             Case SyntaxKind.IdentifierName
@@ -421,6 +458,12 @@ Public Class DiagnosticAnalyzer
                     Case TypeOf ReportedIssue Is ContainsNoParameters : addDiagnostic(AddInformation(fs, "No parameters! Are you sure this Is correct?"))
                     Case TypeOf ReportedIssue Is Internal_IssueReport : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is Internal_Information : addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                    Case TypeOf ReportedIssue Is SpecifierUnkown
+                      Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
+                      addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
+                    Case TypeOf ReportedIssue Is TooManySections
+                      Dim cex = DirectCast(ReportedIssue, TooManySections)
+                      addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
                   End Select
                 Next
               Else
@@ -434,6 +477,9 @@ Public Class DiagnosticAnalyzer
                     Case TypeOf ReportedIssue Is UnexpectedChar
                       Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                    Case TypeOf ReportedIssue Is IgnoredChar
+                      Dim cex = DirectCast(ReportedIssue, IgnoredChar)
+                      addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, cex.Start + 2, ReportedIssue))
                     Case TypeOf ReportedIssue Is UnexpectedChar
                       Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, cex.Start + 2, ReportedIssue))
@@ -446,9 +492,12 @@ Public Class DiagnosticAnalyzer
                     Case TypeOf ReportedIssue Is ValueHasExceedLimit
                       Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
+                    Case TypeOf ReportedIssue Is SpecifierUnkown
+                      Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
+                      addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
                     Case TypeOf ReportedIssue Is FinalOutput
                       Dim cex = DirectCast(ReportedIssue, ArgIndexOutOfRange)
-                      addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                      addDiagnostic(AddInformation(TheValueOfTheVariable, ReportedIssue.Message))
                     Case TypeOf ReportedIssue Is ContainsNoArgs
                       addDiagnostic(AddInformation(TheValueOfTheVariable, "Contains no args! Are you sure this Is correct?"))
                     Case TypeOf ReportedIssue Is ContainsNoParameters
@@ -456,7 +505,10 @@ Public Class DiagnosticAnalyzer
                     Case TypeOf ReportedIssue Is Internal_IssueReport
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is Internal_Information
-                      addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                      addDiagnostic(AddInformation(TheValueOfTheVariable, ReportedIssue.Message))
+                    Case TypeOf ReportedIssue Is TooManySections
+                      Dim cex = DirectCast(ReportedIssue, TooManySections)
+                      addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, cex.Start + 2, ReportedIssue))
                   End Select
                 Next
               End If

@@ -119,10 +119,8 @@
     <Compile Include="Common.vb" />
     <Compile Include="DiagMeth.vb" />
     <Compile Include="Errors\Error Classes\IssueReport.vb" />
-    <Compile Include="Errors\ErrorMsg.vb" />
-    <Compile Include="Errors\Errors.vb" />
     <Compile Include="%28CS%29\Exts - %28CS%29.vb" />
-    <Compile Include="Exts - Copy.vb" />
+    <Compile Include="Exts.vb" />
     <Compile Include="%28VB%29\Exts - %28VB%29.vb" />
     <Compile Include="SourceText\Interface\ISourceText.vb" />
     <Compile Include="My Project\Application.Designer.vb">

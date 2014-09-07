@@ -49,7 +49,16 @@ Public Class ArgIndexHasExceedLimit
   Inherits IssueReportWithStartPosition
   Public ReadOnly Property Finish As Integer
   Public Sub New(ParamName As String, Value As String, Limit As Integer, start As Integer, Finish As Integer)
-    MyBase.New(String.Format("{2} of ({0}) has exceed .net String.Format limit of {1}.", Value, Limit,ParamName), start)
+    MyBase.New(String.Format("{2} of ({0}) has exceed .net String.Format limit of {1}.", Value, Limit, ParamName), start)
+    _Finish = Finish
+  End Sub
+End Class
+
+Public Class SpecifierUnkown
+  Inherits IssueReportWithStartPosition
+  Public ReadOnly Property Finish As Integer
+  Public Sub New(Specifier As String, start As Integer, Finish As Integer)
+    MyBase.New(String.Format("Unknown Specifier: [{0}]", Specifier), start)
     _Finish = Finish
   End Sub
 End Class

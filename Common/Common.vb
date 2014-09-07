@@ -175,8 +175,9 @@ Public Module Common
           End While
 
         Case ";"c ' Group Separator and Number Scaling
-          If Sections >= 3 Then _res_.AddError(New TooManySections(Curr.Index)) : Exit While
+           If Sections >= 3 Then _res_.AddError(New TooManySections(Curr.Index)) ': Exit While
           Sections += 1
+
           Curr = Curr.Next
         Case "\"c ' Escape Character
           Curr = Curr.Next
@@ -322,7 +323,7 @@ Public Module Common
               Case 2
               Case Else
                 ' Add an error unknown specifier
-
+_res_.AddError( new SpecifierUnkown(New String("g"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             End Select
             Curr = _res_.LastParse
           End If
@@ -349,6 +350,7 @@ Public Module Common
               Case 2
               Case Else
                 ' Add an error unknown specifier
+                _res_.AddError( new SpecifierUnkown(New String("H"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             End Select
             Curr = _res_.LastParse
           End If
@@ -362,6 +364,7 @@ Public Module Common
               Case 2
               Case Else
                 ' Add an error unknown specifier
+                _res_.AddError( new SpecifierUnkown(New String("K"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             End Select
             Curr = _res_.LastParse
           End If
@@ -375,6 +378,7 @@ Public Module Common
               Case 2
               Case Else
                 ' Add an error unknown specifier
+                _res_.AddError( new SpecifierUnkown(New String("m"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             End Select
             Curr = _res_.LastParse
           End If
@@ -388,6 +392,7 @@ Public Module Common
               Case 2
               Case Else
                 ' Add an error unknown specifier
+                _res_.AddError( new SpecifierUnkown(New String("M"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             End Select
             Curr = _res_.LastParse
           End If
@@ -401,6 +406,7 @@ Public Module Common
               Case 2
               Case Else
                 ' Add an error unknown specifier
+                _res_.AddError( new SpecifierUnkown(New String("s"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             End Select
             Curr = _res_.LastParse
           End If
@@ -414,6 +420,7 @@ Public Module Common
               Case 2
               Case Else
                 ' Add an error unknown specifier
+                _res_.AddError( new SpecifierUnkown(New String("t"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             End Select
             Curr = _res_.LastParse
           End If
@@ -430,6 +437,7 @@ Public Module Common
               Case 5
               Case Else
                 ' Add an error unknown specifier
+                _res_.AddError( new SpecifierUnkown(New String("y"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             End Select
             Curr = _res_.LastParse
           End If
@@ -444,6 +452,7 @@ Public Module Common
               Case 3
               Case Else
                 ' Add an error unknown specifier
+                _res_.AddError( new SpecifierUnkown(New String("z"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             End Select
             Curr = _res_.LastParse
           End If
@@ -451,20 +460,19 @@ Public Module Common
           Dim reps = Curr.RepCount(":"c)
           _res_.IncludeErrorsFrom(reps)
           If reps.IsValid = False Then
-'          If reps.Output <> 1 Then _res_.AddError()
+          If reps.Output <> 1 Then _res_.AddError( new SpecifierUnkown(New String(":"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             Curr = _res_.LastParse
           End If
         Case "/"c
           Dim reps = Curr.RepCount("/"c)
           _res_.IncludeErrorsFrom(reps)
           If reps.IsValid = False Then
-            '          If reps.Output <> 1 Then _res_.AddError()
+                      If reps.Output <> 1 Then _res_.AddError( new SpecifierUnkown(New String("/"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             Curr = _res_.LastParse
           End If
         Case "\"c
           Curr=Curr.Next
-          If Curr.IsEoT Then _res_.AddError( New UnexpectedlyReachedEndOfText()) : Exit While
-          '          If reps.Output <> 1 Then _res_.AddError()
+          If Curr.IsEoT Then _res_.AddError(New UnexpectedlyReachedEndOfText()) : Exit While
           Curr = Curr.Next
         Case "'"c, _QUOTE_
           Dim r = LiteralString(Curr,Curr.Value )
@@ -513,7 +521,22 @@ Public Module Common
   Private Function Analyse_Custom_TimeSpan(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     '_res_.AddError(New Internal_Information("(TimeSpan) CustomFormatString Diagnostic Not yet Implemented."))
-    Dim _ExitOnFirst_ = False
+ 
+    Const _TS_ = "dhmsfF"
+    Select Case format.Length
+      Case 0
+      Case 1
+        If _TS_. Contains(format(0)) = False Then _res_.AddError( New UnknownSpecifier(format(0),0) )
+      Case 2
+        If Not ((format(0) = "%"c) AndAlso _TS_.Contains(format(1))) Then
+          _res_.AddError(New UnknownSpecifier(format(1), 1))
+        ElseIf Not ((format(0) = " "c) AndAlso _TS_.Contains(format(1))) Then
+          _res_.AddError(New UnknownSpecifier(format(1), 1))
+        Else IF Not (_TS_.Contains(format(0))  AndAlso (format(1)=" "c)) Then
+          _res_.AddError(New UnknownSpecifier(format(1), 1))
+        End If 
+      Case Else
+   Dim _ExitOnFirst_ = False
     Dim s As New TheSourceText(format)
     Dim Curr As New ParsedChar(s, 0)
     While Curr.IsNotEoT
@@ -527,7 +550,7 @@ Public Module Common
               Case 1 '
               Case 2 To 8
               Case Else
-                ' _res_.AddError( ?? )
+                _res_.AddError( new SpecifierUnkown(New String("d"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             End Select
           End If
           Curr = reps.LastParse
@@ -540,7 +563,7 @@ Public Module Common
             Case 1
             Case 2
             Case Else
-              ' _res_.AddError( ?? )
+                             _res_.AddError( new SpecifierUnkown(New String("h"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
           End Select
           End If
                   Curr = reps.LastParse 
@@ -553,7 +576,7 @@ Public Module Common
               Case 1
               Case 2
               Case Else
-                ' _res_.AddError( ?? )
+                _res_.AddError( new SpecifierUnkown(New String("m"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             End Select
           End If
                   Curr = reps.LastParse 
@@ -566,7 +589,7 @@ Public Module Common
               Case 1
               Case 2
               Case Else
-                ' _res_.AddError( ?? )
+                _res_.AddError( new SpecifierUnkown(New String("s"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             End Select
           End If
                   Curr = reps.LastParse 
@@ -579,7 +602,7 @@ Public Module Common
               Case 1
               Case 2 To 7
               Case Else
-                ' _res_.AddError( ?? )
+               _res_.AddError( new SpecifierUnkown(New String("f"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             End Select
           End If
                   Curr = reps.LastParse 
@@ -592,7 +615,7 @@ Public Module Common
               Case 1
               Case 2
               Case Else
-                ' _res_.AddError( ?? )
+                _res_.AddError( new SpecifierUnkown(New String("F"c,reps.Output), Curr.Index, reps.LastParse.Index  ))
             End Select 
           End If
           Curr = reps.LastParse 
@@ -605,12 +628,14 @@ Public Module Common
           If Curr.Next.IsEoT Then _res_.AddError(New UnexpectedlyReachedEndOfText()) : Exit While 
           Curr= Curr.Next.Next 
         Case Else
-          ' Error
+          ' NOTE: There is potential for this to be incorrect 
           _res_.AddError( new UnexpectedChar(Curr.Value, Curr.Index ))
           Exit While 
       End Select
 
     End While
+        End Select
+
     Return _res_
   End Function 
 
@@ -759,6 +784,9 @@ Public Module Common
         ' +---------------------------------------------------
         '
         ' -- Parse and Calculate IndexPart Value
+        '
+        ' IDEA: Use ParseDigit and Value Method that is used in ExponentValue
+        '
         Dim ArgIndex = ParseValue(curr, ct, _LIMIT_, ParsingIsInAnErrorState)
         ' Why did we exit?
         ArgsCounted += 1
@@ -824,6 +852,8 @@ Public Module Common
         ' +--------------------------------------------
         ' |  Start of Parsing for formatting strings 
         ' +--------------------------------------------
+        '
+        ' IDEA: Extend Analysis to the check the type's format strings.
         '
         Dim fmt As System.Text.StringBuilder = Nothing
         If curr.Value = _COLON_ Then

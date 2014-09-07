@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Vsix Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
-  <Identifier Id="DiagnosticAndCodeFix..4cd38dea-8085-466c-89de-e5909952f8fa">
+  <Identifier Id="Diagnostic_CS..4cd38dea-8085-466c-89de-e5909952f8fa">
     <Name>String.Format Diagnostics (CS)</Name>
     <Author>AdamSpeight2008</Author>
     <Version>1.8</Version>

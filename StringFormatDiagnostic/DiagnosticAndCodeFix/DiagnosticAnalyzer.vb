@@ -125,6 +125,12 @@ Public Class DiagnosticAnalyzer
                   Case TypeOf ReportedIssue Is UnexpectedChar
                     Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
                     addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                  Case TypeOf ReportedIssue Is IgnoredChar
+                    Dim cex = DirectCast(ReportedIssue, IgnoredChar)
+                    addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                  Case TypeOf ReportedIssue Is TooManySections
+                    Dim cex = DirectCast(ReportedIssue, TooManySections )
+                    addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
                   Case TypeOf ReportedIssue Is UnknownSpecifier
                     Dim cex = DirectCast(ReportedIssue, UnknownSpecifier)
                     addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
@@ -154,8 +160,12 @@ Public Class DiagnosticAnalyzer
                   Select Case True
                     Case TypeOf ReportedIssue Is ArgIndexOutOfRange           : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is UnexpectedChar               : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
+                     Case TypeOf ReportedIssue Is IgnoredChar               : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
-                    Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit       : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
+                    Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
+                    Case TypeOf ReportedIssue Is TooManySections
+                      Dim cex = DirectCast(ReportedIssue, TooManySections)
+                      addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
                     Case TypeOf ReportedIssue Is ValueHasExceedLimit :
                       Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
                       addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 1+((cex.Finish + 1) - cex.Start), ReportedIssue))
@@ -176,7 +186,13 @@ Public Class DiagnosticAnalyzer
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
                     Case TypeOf ReportedIssue Is UnexpectedChar
                       Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
-                      addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                      addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                    Case TypeOf ReportedIssue Is IgnoredChar 
+                      Dim cex = DirectCast(ReportedIssue, IgnoredChar)
+                      addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                    Case TypeOf ReportedIssue Is TooManySections
+                      Dim cex = DirectCast(ReportedIssue, TooManySections)
+                      addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
                     Case TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText
                       Dim cex = DirectCast(ReportedIssue, ArgIndexOutOfRange)
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
@@ -197,6 +213,9 @@ Public Class DiagnosticAnalyzer
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is Internal_Information
                       addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                    Case TypeOf ReportedIssue Is SpecifierUnkown
+                      Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
+                      addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
                   End Select
                 Next
               End If
@@ -257,6 +276,9 @@ Public Class DiagnosticAnalyzer
                   Case TypeOf ReportedIssue Is UnexpectedChar
                     Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
                     addDiagnostic(AddWarning(fs, cex.Start, cex.Start + 1, ReportedIssue))
+                  Case TypeOf ReportedIssue Is IgnoredChar
+                    Dim cex = DirectCast(ReportedIssue, IgnoredChar)
+                    addDiagnostic(AddWarning(fs, cex.Start, cex.Start + 1, ReportedIssue))
                   Case TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText
                     addDiagnostic(AddWarning(fs, 0, fs.Span.Length, ReportedIssue))
                   Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit
@@ -275,6 +297,12 @@ Public Class DiagnosticAnalyzer
                     addDiagnostic(AddWarning(node, 0, fs.Span.Length, ReportedIssue))
                   Case TypeOf ReportedIssue Is Internal_Information
                     addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                  Case TypeOf ReportedIssue Is TooManySections
+                    Dim cex = DirectCast(ReportedIssue, TooManySections)
+                    addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                  Case TypeOf ReportedIssue Is SpecifierUnkown
+                    Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
+                    addDiagnostic(AddWarning(fs, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
                 End Select
               Next
             Case SyntaxKind.IdentifierName
@@ -301,7 +329,13 @@ Public Class DiagnosticAnalyzer
                     Case TypeOf ReportedIssue Is ContainsNoArgs               :   addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this Is correct?"))
                     Case TypeOf ReportedIssue Is ContainsNoParameters         :   addDiagnostic(AddInformation(fs, "No parameters! Are you sure this Is correct?"))
                     Case TypeOf ReportedIssue Is Internal_IssueReport         :   addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
-                    Case TypeOf ReportedIssue Is Internal_Information         :   addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                    Case TypeOf ReportedIssue Is Internal_Information : addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                    Case TypeOf ReportedIssue Is SpecifierUnkown
+                      Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
+                      addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
+                    Case TypeOf ReportedIssue Is TooManySections
+                      Dim cex = DirectCast(ReportedIssue, TooManySections)
+                      addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
                   End Select
                 Next
               Else
@@ -315,6 +349,9 @@ Public Class DiagnosticAnalyzer
                     Case TypeOf ReportedIssue Is UnexpectedChar
                       Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                    Case TypeOf ReportedIssue Is IgnoredChar
+                      Dim cex = DirectCast(ReportedIssue, IgnoredChar)
+                      addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, cex.Start + 2, ReportedIssue))
                     Case TypeOf ReportedIssue Is UnexpectedChar
                       Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, cex.Start + 2, ReportedIssue))
@@ -327,9 +364,12 @@ Public Class DiagnosticAnalyzer
                     Case TypeOf ReportedIssue Is ValueHasExceedLimit
                       Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
+                    Case TypeOf ReportedIssue Is SpecifierUnkown
+                      Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
+                      addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, 2 + cex.Finish, ReportedIssue))
                     Case TypeOf ReportedIssue Is FinalOutput
                       Dim cex = DirectCast(ReportedIssue, ArgIndexOutOfRange)
-                      addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                      addDiagnostic(AddInformation(TheValueOfTheVariable, ReportedIssue.Message))
                     Case TypeOf ReportedIssue Is ContainsNoArgs
                       addDiagnostic(AddInformation(TheValueOfTheVariable, "Contains no args! Are you sure this Is correct?"))
                     Case TypeOf ReportedIssue Is ContainsNoParameters
@@ -337,7 +377,10 @@ Public Class DiagnosticAnalyzer
                     Case TypeOf ReportedIssue Is Internal_IssueReport
                       addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, 0, TheValueOfTheVariable.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is Internal_Information
-                      addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                      addDiagnostic(AddInformation(TheValueOfTheVariable, ReportedIssue.Message))
+                    Case TypeOf ReportedIssue Is TooManySections
+                      Dim cex = DirectCast(ReportedIssue, TooManySections)
+                      addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, cex.Start + 1, cex.Start + 2, ReportedIssue))
                   End Select
                 Next
               End If
