@@ -21,9 +21,25 @@ Public Class DiagnosticAnalyzer
     End Get
   End Property
 
+  Private Shared _A As New Dictionary(Of String, Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic),CancellationToken))
 
+  Shared Sub New()
+    Common.Initialise 
+    End Sub
+  Sub New()
+    If _A.Count <> 0 Then Exit Sub
+    _A.Add("Num", AddressOf Check_Numeric_ToString)
+    _A.Add("Date", AddressOf Check_DateTime_ToString)
+    _A.Add("Enum", AddressOf Check_Enum_ToString)
+    _A.Add("DateOff", AddressOf Check_DateTimeOffset_ToString)
+    _A.Add("TS", AddressOf Check_TimeSpan_ToString)
+  End Sub
 
-  Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
+  Public Sub AnalyzeNode(node As SyntaxNode,
+                         semanticModel As SemanticModel,
+                         addDiagnostic As Action(Of Diagnostic),
+                         options As AnalyzerOptions,
+                         cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of Microsoft.CodeAnalysis.VisualBasic.SyntaxKind).AnalyzeNode
     Dim x = CType(node, MemberAccessExpressionSyntax)
     If x Is Nothing Then Exit Sub
     If x.OperatorToken.ValueText = "." Then
@@ -39,45 +55,24 @@ Public Class DiagnosticAnalyzer
       Dim ArgTypes = Args.GetArgumentTypes(semanticModel, cancellationToken)
       Dim ArgTypeNames = Args.GetArgumentTypesNames(semanticModel, cancellationToken).ToArray
       ' Try to see if it is one the simple ones
-      Dim res = From tns In Common.TheSimpleOnes
-                Where tns.TypeName = _TypeName
-                Select tns.MethodNames
-      If res.Any Then
-        If res(0).Any(Function(mn) mn = _MethodName) Then DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
-      Else
-        ' Try and see if it is one the more complex options
-        Select Case _TypeName
-          Case "System.String"
-            If _MethodName = "Format" Then
-              If (1 <= ArgTypes.Count) AndAlso (ArgTypes.Count <= 2) Then
-                DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
-              ElseIf ArgTypes.Count = 3 Then
-                If ArgTypeNames.Begins({"System.IFormatProvider", "System.String"}) Then
-                  DoValidation(x, semanticModel, addDiagnostic, cancellationToken, False)
-                ElseIf ArgTypeNames.Begins({"System.String", "System.Object"}) Then
-                  DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
-                End If
-              ElseIf ArgTypes.Count > 3 Then
-                DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
-              End If
-            End If
-          Case "System.Text.StringBuilder"
-            If (_MethodName = "AppendFormat") Then
-              If (ArgTypes.Count >= 2) AndAlso (ArgTypeNames(0) = "System.String") Then DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
-            End If
-          Case Else
-            ' Finally let's see if we can validate the .ToString(" ", ) methods
-            Select Case _TypeName
-              Case "System.Int32", "System.Int16", "System.Int64", "System.UInt32", "System.UInt16", "System.UInt64",
-                     "System.Byte", "System.UByte", "System.Double", "System.Single", "System.Decimal"
-                If (_MethodName = "ToString") AndAlso ((ArgTypes.Count = 1) OrElse (ArgTypes.Count = 2)) Then Check_Numeric_ToString(x, semanticModel, addDiagnostic, cancellationToken)
-              Case "System.DateTime" : If (_MethodName = "ToString") AndAlso ((ArgTypes.Count = 1) OrElse (ArgTypes.Count = 2)) Then Check_DateTime_ToString(x, semanticModel, addDiagnostic, cancellationToken)
-              Case "System.TimeSpan" : If (_MethodName = "ToString") AndAlso ((ArgTypes.Count = 1) OrElse (ArgTypes.Count = 2)) Then Check_TimeSpan_ToString(x, semanticModel, addDiagnostic, cancellationToken)
-              Case "System.DateTimeOffset" : If (_MethodName = "ToString") AndAlso ((ArgTypes.Count = 1) OrElse (ArgTypes.Count = 2)) Then Check_DateTimeOffset_ToString(x, semanticModel, addDiagnostic, cancellationToken)
-              Case "System.Enum" : If (_MethodName = "ToString") AndAlso ((ArgTypes.Count = 1) OrElse (ArgTypes.Count = 2)) Then Check_Enum_ToString(x, semanticModel, addDiagnostic, cancellationToken)
-            End Select
-        End Select
-      End If
+      Dim possibles = From a In Common.Analysis
+                      Where a(0) = _TypeName
+                      Order By a.Count Descending
+
+      If possibles.Any() = False Then Exit Sub
+      For Each possible In possibles
+        If ArgTypeNames.Begins(possible.Skip(4).ToArray) Then
+          If possible(3) = "" Then
+            DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
+              Exit Sub
+          Else If _A.ContainsKey(possible(3)) Then
+              Dim Validator = _A(possible(3))
+              Validator(x, semanticModel, addDiagnostic, cancellationToken)
+            Exit Sub
+          End If
+       
+        End If
+      Next
     End If
   End Sub
 
@@ -214,7 +209,7 @@ Public Class DiagnosticAnalyzer
     _Shared_Checker_(AddressOf Analyse_Numeric_ToString, node, sm, addDiagnostic, ct)
   End Sub
 
-  Public Sub DoValidation(node As MemberAccessExpressionSyntax,
+  Public Shared Sub DoValidation(node As MemberAccessExpressionSyntax,
                           sm As SemanticModel,
                           addDiagnostic As Action(Of Diagnostic),
                           ct As CancellationToken,

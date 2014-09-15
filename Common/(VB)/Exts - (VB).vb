@@ -65,6 +65,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
 
       <Extension>
       Public Function ToFullyQualifiedName(s As ISymbol) As String
+        If s Is Nothing Then Return String.Empty 
         Return s.ToDisplayString(New SymbolDisplayFormat(typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces))
       End Function
 

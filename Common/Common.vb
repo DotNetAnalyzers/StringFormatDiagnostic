@@ -7,7 +7,26 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.StringFormatDiagnostics
 
 Public Module Common
+  Private _Analysis As New List(Of String())
+  Private _IsInitialised AS Boolean = False
 
+  Sub Initialise
+    If _IsInitialised Then Exit Sub 
+    Using CSV As New Microsoft.VisualBasic.FileIO.TextFieldParser("AnalyserList.csv") With {.TrimWhiteSpace=true,.Delimiters={","}, .TextFieldType = FileIO.FieldType.Delimited}
+    CSV.CommentTokens = {"//"}
+    While CSV.EndOfData = False
+    
+      Dim fields = CSV.ReadFields 
+      _Analysis.Add( fields )
+    End While
+      End Using
+
+  End Sub
+  Public ReadOnly Property Analysis() As IEnumerable(Of IEnumerable(Of String))
+  get
+      return _Analysis 
+  End Get
+  End Property
 
   Public Const DiagnosticId = "String.Format Diagnostic"
   Public Const Description = "Is the formatstring valid?"
