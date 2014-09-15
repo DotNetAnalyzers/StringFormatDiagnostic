@@ -7,6 +7,21 @@ Imports Common
 #Const _Define_Alphabetic_ = 1
 
 Namespace Global.Roslyn.StringFormatDiagnostics
+  Public Module CommonExts
+    <Extension>
+    Public Function Are(Of T As IComparable(Of T))(xs As IEnumerable(Of T), ys As IEnumerable(Of T)) As Boolean
+      Return xs.SequenceEqual(ys)
+    End Function
+    <Extension>
+    Public Function Begins(Of T As IComparable(Of T))(xs As IList(Of T), ys As IList(Of T)) As Boolean
+      If xs.Count < ys.Count Then Return False
+      For i = 0 To ys.Count-1
+        If xs(i).CompareTo(ys(i))<>0 Then Return False 
+      Next
+      Return True
+    End Function
+  End Module
+
   Public Module ParsedChar_Exts
     <Extension>
     Public Function IsWhitespace(cp As ParsedChar) As Boolean

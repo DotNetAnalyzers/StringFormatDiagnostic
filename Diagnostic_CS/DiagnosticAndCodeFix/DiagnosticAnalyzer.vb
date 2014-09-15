@@ -4,6 +4,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Roslyn.StringFormatDiagnostics.CSharp.Exts
 Imports Common
+Imports Roslyn.StringFormatDiagnostics.CommonExts
 Imports Roslyn.StringFormatDiagnostics.CSharp
 
 
@@ -47,86 +48,41 @@ Public Class DiagnosticAnalyzer
         If res(0).Any(Function(mn) mn = _MethodName) Then DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
       Else
         ' Try and see if it is one the more complex options
-        Select Case _TypeName
-          Case "System.String"
-            Select Case _MethodName
-              Case "Format"
-                Select Case Args.Arguments.Count
-                  Case 0
-                  Case 1 : DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
-                  Case 2 : DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
-                  'Case 3 When ArgTypeName(0)="System.IFormatProvider"
-                  'Case 3 When ArgTypeName(0)="System.String" :                      DoValidation(x,semanticModel,addDiagnostic,cancellationToken)
-                  Case 3
-                    If ArgTypeNames(0) = "System.IFormatProvider" AndAlso ArgTypeNames(1) = "System.String" Then
-                      DoValidation(x, semanticModel, addDiagnostic, cancellationToken, False)
-                    ElseIf ArgTypeNames(0) = "System.String" AndAlso ArgTypeNames(1) = "System.Object" Then
-                      DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
-                    End If
-                  Case Else
+          Select Case _TypeName
+            Case "System.String"
+              If _MethodName = "Format" Then
+                If (1<=ArgTypes.Count) AndAlso (ArgTypes.Count <= 2) Then
                     DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
-                End Select
+                ElseIf ArgTypes.Count = 3 Then
+                                         If ArgTypeNames.Are({"System.IFormatProvider","System.String"}) Then
+                        DoValidation(x, semanticModel, addDiagnostic, cancellationToken, False)
+                      ElseIf ArgTypeNames.Are({"System.String","System.Object"}) Then
+                        DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
+                      End If
+                ElseIf ArgTypes.Count > 3 Then
+                  DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
+                End If
+              End If
+            Case "System.Text.StringBuilder"
+             If (_MethodName = "AppendFormat") Then
+               If (ArgTypes.Count >= 2) AndAlso (ArgTypeNames(0)="System.String") Then  DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
+             End If
+            Case Else
+              ' Finally let's see if we can validate the .ToString(" ", ) methods
+              Select Case _TypeName
+                Case "System.Int32", "System.Int16", "System.Int64", "System.UInt32", "System.UInt16", "System.UInt64",
+                     "System.Byte", "System.UByte", "System.Double", "System.Single", "System.Decimal"
+                  If (_MethodName = "ToString") AndAlso ((ArgTypes.Count = 1) OrElse (ArgTypes.Count = 2)) Then Check_Numeric_ToString(x, semanticModel, addDiagnostic, cancellationToken)
+                Case "System.DateTime"       : If (_MethodName = "ToString") AndAlso ((ArgTypes.Count = 1) OrElse (ArgTypes.Count = 2)) Then Check_DateTime_ToString(x, semanticModel, addDiagnostic, cancellationToken)
+                Case "System.TimeSpan"       : If (_MethodName = "ToString") AndAlso ((ArgTypes.Count = 1) OrElse (ArgTypes.Count = 2)) Then Check_TimeSpan_ToString(x, semanticModel, addDiagnostic, cancellationToken)
+                Case "System.DateTimeOffset" : If (_MethodName = "ToString") AndAlso ((ArgTypes.Count = 1) OrElse (ArgTypes.Count = 2)) Then Check_DateTimeOffset_ToString(x, semanticModel, addDiagnostic, cancellationToken)
+                Case "System.Enum"           : If (_MethodName = "ToString") AndAlso ((ArgTypes.Count = 1) OrElse (ArgTypes.Count = 2)) Then Check_Enum_ToString(x, semanticModel, addDiagnostic, cancellationToken)
             End Select
-          Case "System.Text.StringBuilder"
-            Select Case _MethodName
-              Case "AppendFormat"
-                Select Case Args.Arguments.Count
-                  Case 0, 1 : Exit Sub
-                  Case 2, 3, 4
-                    If ArgTypeNames(0) = "System.String" Then DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
-                  Case Else
-                    If ArgTypeNames(0) = "System.String" Then DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
-                End Select
-            End Select
-          Case Else
-            ' Finally let's see if we can validate the .ToString(" ", ) methods
-            Select Case _TypeName
-              Case "System.Int32", "System.Int16", "System.Int64", "System.UInt32", "System.UInt16", "System.UInt64",
-                   "System.Byte", "System.UByte",
-                   "System.Double", "System.Single",
-                   "System.Decimal"
-                Select Case _MethodName
-                  Case "ToString"
-                    Select Case Args.Arguments.Count
-                      Case 1 : Check_Numeric_ToString(x, semanticModel, addDiagnostic, cancellationToken)
-                    End Select
-                End Select
-
-              Case "System.DateTime"
-                Select Case _MethodName
-                  Case "ToString"
-                    Select Case Args.Arguments.Count
-                      Case 1 : Check_DateTime_ToString(x, semanticModel, addDiagnostic, cancellationToken)
-                    End Select
-                End Select
-              Case "System.TimeSpan"
-                Select Case _MethodName
-                  Case "ToString"
-                    Select Case Args.Arguments.Count
-                      Case 1 : Check_TimeSpan_ToString(x, semanticModel, addDiagnostic, cancellationToken)
-                    End Select
-                End Select
-              Case "System.DateTimeOffset"
-                Select Case _MethodName
-                  Case "ToString"
-                    Select Case Args.Arguments.Count
-                      Case 1 : Check_DateTimeOffset_ToString(x, semanticModel, addDiagnostic, cancellationToken)
-                    End Select
-                End Select
-              Case "System.Enum"
-                Select Case _MethodName
-                  Case "ToString"
-                    Select Case Args.Arguments.Count
-                      Case 1 : Check_Enum_ToString(x, semanticModel, addDiagnostic, cancellationToken)
-                    End Select
-                End Select
-            End Select
-        End Select
-
-      End If
+          End Select
+        End If
     End If
-
   End Sub
+
   Private Sub _Shared_Checker_(fn As Func(Of CancellationToken, String, IFormatProvider, OutputResult(Of String)), node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
     Dim p = CType(node.Parent, InvocationExpressionSyntax)
     Dim args = p.ArgumentList.Arguments
@@ -141,29 +97,17 @@ Public Class DiagnosticAnalyzer
           Dim ifp = CType(If(args.Count = 1, Nothing, ArgObjects(1)), IFormatProvider)
           Select Case TheFormatString.Expression.CSharpKind
             Case SyntaxKind.StringLiteralExpression
-              Dim ReportedIssues = fn(ct, Common.DeString(fs.ToString), ifp )
+              Dim ReportedIssues = fn(ct, Common.DeString(fs.ToString), ifp)
               For Each ReportedIssue In ReportedIssues.Errors
-                Select Case True
-                  Case TypeOf ReportedIssue Is UnexpectedChar
-                    Dim cex = DirectCast(ReportedIssue, UnexpectedChar)
-                    addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
-                  Case TypeOf ReportedIssue Is IgnoredChar
-                    Dim cex = DirectCast(ReportedIssue, IgnoredChar)
-                    addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
-                  Case TypeOf ReportedIssue Is TooManySections
-                    Dim cex = DirectCast(ReportedIssue, TooManySections)
-                    addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
-                  Case TypeOf ReportedIssue Is UnknownSpecifier
-                    Dim cex = DirectCast(ReportedIssue, UnknownSpecifier)
-                    addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
-                  Case TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText : addDiagnostic(AddWarning(fs, 0, fs.Span.Length, ReportedIssue))
-                  Case TypeOf ReportedIssue Is ValueHasExceedLimit
-                    Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
-                    addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 1 + ((cex.Finish + 1) - cex.Start), ReportedIssue))
-                  Case TypeOf ReportedIssue Is Internal_Information : addDiagnostic(AddInformation(fs, ReportedIssue.Message))
-                  Case TypeOf ReportedIssue Is FinalOutput : addDiagnostic(AddInformation(fs, ReportedIssue.Message))
-                  Case TypeOf ReportedIssue Is Internal_IssueReport : addDiagnostic(AddWarning(node, 0, fs.Span.Length, ReportedIssue))
-                End Select
+                If TypeOf ReportedIssue Is UnexpectedChar   Then Dim cex = DirectCast(ReportedIssue, UnexpectedChar)   : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                If TypeOf ReportedIssue Is IgnoredChar      Then Dim cex = DirectCast(ReportedIssue, IgnoredChar)      : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                If TypeOf ReportedIssue Is TooManySections  Then Dim cex = DirectCast(ReportedIssue, TooManySections)  : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                If TypeOf ReportedIssue Is UnknownSpecifier Then Dim cex = DirectCast(ReportedIssue, UnknownSpecifier) : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                If TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText Then addDiagnostic(AddWarning(fs, 0, fs.Span.Length, ReportedIssue))
+                If TypeOf ReportedIssue Is ValueHasExceedLimit   Then Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit) : addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 1 + ((cex.Finish + 1) - cex.Start), ReportedIssue))
+                If TypeOf ReportedIssue Is Internal_Information  Then addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                If TypeOf ReportedIssue Is FinalOutput           Then addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                If TypeOf ReportedIssue Is Internal_IssueReport  Then addDiagnostic(AddWarning(node, 0, fs.Span.Length, ReportedIssue))
               Next
             Case SyntaxKind.IdentifierName
               Dim ThisIdentifier = CType(TheFormatString.Expression, IdentifierNameSyntax)
@@ -185,12 +129,8 @@ Public Class DiagnosticAnalyzer
                     Case TypeOf ReportedIssue Is IgnoredChar : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
-                    Case TypeOf ReportedIssue Is TooManySections
-                      Dim cex = DirectCast(ReportedIssue, TooManySections)
-                      addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
-                    Case TypeOf ReportedIssue Is ValueHasExceedLimit
-                      Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)
-                      addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 1 + ((cex.Finish + 1) - cex.Start), ReportedIssue))
+                    Case TypeOf ReportedIssue Is TooManySections :          Dim cex = DirectCast(ReportedIssue, TooManySections) : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                    Case TypeOf ReportedIssue Is ValueHasExceedLimit : Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)  : addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 1 + ((cex.Finish + 1) - cex.Start), ReportedIssue))
                     Case TypeOf ReportedIssue Is FinalOutput : addDiagnostic(AddInformation(fs, ReportedIssue.Message))
                     Case TypeOf ReportedIssue Is ContainsNoArgs : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this Is correct?"))
                     Case TypeOf ReportedIssue Is ContainsNoParameters : addDiagnostic(AddInformation(fs, "No parameters! Are you sure this Is correct?"))
