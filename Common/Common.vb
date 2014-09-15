@@ -44,18 +44,7 @@ Public Module Common
                                            defaultSeverity:=DiagnosticSeverity.Error,
                                            isEnabledByDefault:=True)
 
-  Public ReadOnly Property TheSimpleOnes() As DiagMeth()
-    Get
-      Return _TheSimpleOnes
-    End Get
-  End Property
 
-  Private _TheSimpleOnes As DiagMeth() = {New DiagMeth("System.Console", {"Write", "WriteLine"}),
-                New DiagMeth("System.Diagnostics.Debug", {"WriteLine"}),
-                New DiagMeth("System.IO.TextWriter", {"WriteLine"}),
-                New DiagMeth("System.Diagnostics.Trace", {"TraceError", "TraceInformation", "TraceWarning"}),
-                New DiagMeth("System.Diagnostics.TraceSource", {"TraceInformation"})}
-'                New DiagMeth("System.String", {"Format"})}
 
   Public Function AddWarning(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IssueReport) As Diagnostic
     Return Diagnostic.Create(Rule1,
