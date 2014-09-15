@@ -45,6 +45,25 @@ Public Class DiagnosticAnalyzer
       Else
         ' Try and see if it is one the more complex options
         Select Case _TypeName
+          Case "System.String"
+          Select Case _MethodName
+              Case "Format"
+                Select Case Args.Arguments.Count
+                  Case 0
+                  Case 1 :DoValidation(x,semanticModel,addDiagnostic,cancellationToken)
+                  Case 2 : DoValidation(x,semanticModel,addDiagnostic,cancellationToken )
+                  'Case 3 When ArgTypeName(0)="System.IFormatProvider"
+                  'Case 3 When ArgTypeName(0)="System.String" :                      DoValidation(x,semanticModel,addDiagnostic,cancellationToken)
+                  Case 3
+                    If ArgTypeNames(0)="System.IFormatProvider" AndAlso ArgTypeNames(1)="System.String" Then
+                       DoValidation(x,semanticModel,addDiagnostic,cancellationToken,False)
+                    Else If ArgTypeNames(0)="System.String" AndAlso ArgTypeNames(1)="System.Object" Then
+                      DoValidation(x,semanticModel,addDiagnostic,cancellationToken)
+                    End If
+                  Case Else
+                    DoValidation(x,semanticModel,addDiagnostic,cancellationToken)
+                End Select
+          End Select
           Case "System.Text.StringBuilder"
             Select Case _MethodName
               Case "AppendFormat"
@@ -66,7 +85,7 @@ Public Class DiagnosticAnalyzer
                 Select Case _MethodName
                   Case "ToString"
                     Select Case Args.Arguments.Count
-                      Case 1 : Check_Numeric_ToString(x, semanticModel, addDiagnostic, cancellationToken)
+                      Case 1,2 : Check_Numeric_ToString(x, semanticModel, addDiagnostic, cancellationToken)
                     End Select
                 End select
 
@@ -74,28 +93,28 @@ Public Class DiagnosticAnalyzer
                     Select Case _MethodName
                       Case "ToString"
                         Select Case Args.Arguments.Count
-                          Case 1 : Check_DateTime_ToString(x, semanticModel, addDiagnostic, cancellationToken)
+                          Case 1,2 : Check_DateTime_ToString(x, semanticModel, addDiagnostic, cancellationToken)
                         End Select
                     End Select
                   Case "System.TimeSpan"
                     Select Case _MethodName
                       Case "ToString"
                         Select Case Args.Arguments.Count
-                          Case 1 : Check_TimeSpan_ToString(x, semanticModel, addDiagnostic, cancellationToken)
+                          Case 1,2 : Check_TimeSpan_ToString(x, semanticModel, addDiagnostic, cancellationToken)
                         End Select
                     End Select
                   Case "System.DateTimeOffset"
                     Select Case _MethodName
                       Case "ToString"
                         Select Case Args.Arguments.Count
-                          Case 1 : Check_DateTimeOffset_ToString(x, semanticModel, addDiagnostic, cancellationToken)
+                          Case 1,2 : Check_DateTimeOffset_ToString(x, semanticModel, addDiagnostic, cancellationToken)
                         End Select
                     End Select
                   Case "System.Enum"
                     Select Case _MethodName
                       Case "ToString"
                         Select Case Args.Arguments.Count
-                          Case 1 : Check_Enum_ToString(x, semanticModel, addDiagnostic, cancellationToken)
+                          Case 1,2 : Check_Enum_ToString(x, semanticModel, addDiagnostic, cancellationToken)
                         End Select
                     End Select
                 End Select
@@ -105,21 +124,26 @@ Public Class DiagnosticAnalyzer
     End If
   End Sub
 
-  Private Sub _Shared_Checker_(fn As Func(Of CancellationToken,String,IFormatProvider, outputresult(of string )),node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+  Private Sub _Shared_Checker_(fn As Func(Of CancellationToken,String,IFormatProvider, outputresult(of string )),
+                               node As MemberAccessExpressionSyntax,
+                                 sm As SemanticModel,
+                               addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
     Dim p = CType(node.Parent, InvocationExpressionSyntax)
 
 
     Dim args = p.ArgumentList.Arguments
     Select Case args.Count
       Case 0 ' Error
-      Case Else
+      Case 1,2
         Dim fs = args.First
         If TypeOf fs Is OmittedArgumentSyntax Then Exit Sub
         Dim TheFormatString = CType(fs, SimpleArgumentSyntax)
         If TheFormatString IsNot Nothing Then
+          Dim ArgObjects =p.ArgumentList.GetArgumentAsObjects(sm, ct)
+          Dim ifp = CType( If(args.Count=1, Nothing, ArgObjects(1)),IFormatProvider)
           Select Case TheFormatString.Expression.VisualBasicKind
             Case SyntaxKind.StringLiteralExpression
-              Dim ReportedIssues = fn(ct, Common.DeString(fs.ToString),Nothing)
+              Dim ReportedIssues = fn(ct, Common.DeString(fs.ToString),ifp )
               For Each ReportedIssue In ReportedIssues.Errors
                 Select Case True
                   Case TypeOf ReportedIssue Is UnexpectedChar
@@ -155,7 +179,7 @@ Public Class DiagnosticAnalyzer
               'Debugger.Break()
               If FoundSymbol.IsExtern Then
                 ' Use usage site for location of Warings, ignore the yield ranges and use the span of ThisIdentifier.
-                Dim ReportedIssues = fn(ct, ConstValue.Value.ToString,Nothing)
+                Dim ReportedIssues = fn(ct, ConstValue.Value.ToString,ifp )
                 For Each ReportedIssue In ReportedIssues.Errors
                   Select Case True
                     Case TypeOf ReportedIssue Is ArgIndexOutOfRange           : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
@@ -178,7 +202,7 @@ Public Class DiagnosticAnalyzer
                 Next
               Else
                 ' Use the declaration site location ( SpanOfConstantValue ) for the location of the warnings. Also use the yield ranges for the highlighting.              
-                Dim ReportedIssues = fn(ct, ConstValue.Value.ToString,Nothing)
+                Dim ReportedIssues = fn(ct, ConstValue.Value.ToString,ifp )
                 For Each ReportedIssue In ReportedIssues.Errors
                   Select Case True
                     Case TypeOf ReportedIssue Is ArgIndexOutOfRange
@@ -245,19 +269,24 @@ Public Class DiagnosticAnalyzer
     _Shared_Checker_(AddressOf Analyse_Numeric_ToString, node, sm, addDiagnostic, ct)
   End Sub
 
-  Public Sub DoValidation(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+  Public Sub DoValidation(node As MemberAccessExpressionSyntax,
+                          sm As SemanticModel,
+                          addDiagnostic As Action(Of Diagnostic),
+                          ct As CancellationToken,
+                          Optional formatIsFirst As Boolean = True )
     Dim p = CType(node.Parent, InvocationExpressionSyntax)
     Dim args = p.ArgumentList.Arguments
     Select Case args.Count
       Case 0 ' Error
-      Case Else
-        Dim fs = args.First
+      Case ELse
+        Dim fs = If(formatIsFirst, args.First, args(1))
         If TypeOf fs Is OmittedArgumentSyntax Then Exit Sub
         Dim TheFormatString = CType(fs, SimpleArgumentSyntax)
         If TheFormatString IsNot Nothing Then
+          Dim ArgObjects =p.ArgumentList.GetArgumentAsObjects(sm, ct)
           Select Case TheFormatString.Expression.VisualBasicKind
             Case SyntaxKind.StringLiteralExpression
-              Dim ReportedIssues = AnalyseFormatString(ct, fs.ToString, args.Count - 1, p.ArgumentList.GetArgumentAsObjects(sm, ct).Skip(1).ToArray)
+              Dim ReportedIssues = AnalyseFormatString(ct, fs.ToString, args.Count - If(formatIsFirst,1,2),ArgObjects .Skip(If(formatIsFirst,1,2)).ToArray,CType(If(formatIsFirst,Nothing, ArgObjects(0)),IFormatProvider) )
               For Each ReportedIssue In ReportedIssues.Errors 
                 'Select Case ReportedIssue
                 '    Case cex As ArgIndexOutOfRange : addDiagnostic(AddWarning(fs, cex.Start, 1 + cex.Finish, ReportedIssue))
@@ -317,7 +346,7 @@ Public Class DiagnosticAnalyzer
               'Debugger.Break()
               If FoundSymbol.IsExtern Then
                 ' Use usage site for location of Warings, ignore the yield ranges and use the span of ThisIdentifier.
-                Dim ReportedIssues = AnalyseFormatString(ct, ConstValue.Value.ToString, args.Count - 1, p.ArgumentList.GetArgumentAsObjects(sm, ct).Skip(1).ToArray)
+                Dim ReportedIssues = AnalyseFormatString(ct, ConstValue.Value.ToString, args.Count - If(formatIsFirst,1,2),ArgObjects .Skip(If(formatIsFirst,1,2)).ToArray,CType(If(formatIsFirst,Nothing, ArgObjects(0)),IFormatProvider) )
                 For Each ReportedIssue In ReportedIssues.Errors
                   Select Case True
                     Case TypeOf ReportedIssue Is ArgIndexOutOfRange           :   addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
@@ -340,7 +369,7 @@ Public Class DiagnosticAnalyzer
                 Next
               Else
                 ' Use the declaration site location ( SpanOfConstantValue ) for the location of the warnings. Also use the yield ranges for the highlighting.              
-                Dim ReportedIssues = AnalyseFormatString(ct, ConstValue.Value.ToString, args.Count - 1, p.ArgumentList.GetArgumentAsObjects(sm, ct).Skip(1).ToArray)
+                Dim ReportedIssues = AnalyseFormatString(ct, ConstValue.Value.ToString, args.Count - If(formatIsFirst,1,2),ArgObjects .Skip(If(formatIsFirst,1,2)).ToArray,CType(If(formatIsFirst,Nothing, ArgObjects(0)),IFormatProvider) )
                 For Each ReportedIssue In ReportedIssues.Errors
                   Select Case True
                     Case TypeOf ReportedIssue Is ArgIndexOutOfRange
