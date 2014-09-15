@@ -37,7 +37,7 @@ Public Class DiagnosticAnalyzer
       Dim Args = _InvokeExpr.ArgumentList
 
       Dim ArgTypes = Args.GetArgumentTypes(semanticModel, cancellationToken)
-      Dim ArgTypeNames = Args.GetArgumentTypesNames(semanticModel, cancellationToken)
+      Dim ArgTypeNames = Args.GetArgumentTypesNames(semanticModel, cancellationToken).ToArray
       ' Try to see if it is one the simple ones
       Dim res = From tns In Common.TheSimpleOnes
                 Where tns.TypeName = _TypeName
@@ -52,9 +52,9 @@ Public Class DiagnosticAnalyzer
               If (1 <= ArgTypes.Count) AndAlso (ArgTypes.Count <= 2) Then
                 DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
               ElseIf ArgTypes.Count = 3 Then
-                If ArgTypeNames.Are({"System.IFormatProvider", "System.String"}) Then
+                If ArgTypeNames.Begins({"System.IFormatProvider", "System.String"}) Then
                   DoValidation(x, semanticModel, addDiagnostic, cancellationToken, False)
-                ElseIf ArgTypeNames.Are({"System.String", "System.Object"}) Then
+                ElseIf ArgTypeNames.Begins({"System.String", "System.Object"}) Then
                   DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
                 End If
               ElseIf ArgTypes.Count > 3 Then
