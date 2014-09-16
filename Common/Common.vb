@@ -40,14 +40,18 @@ Public Module Common
                                            description:=Description,
                                            messageFormat:=MessageFormat,
                                            category:=Category,
-                                           defaultSeverity:=DiagnosticSeverity.Error, isEnabledByDefault:=True)
+                                           defaultSeverity:=DiagnosticSeverity.Warning , isEnabledByDefault:=True)
   Public Rule2 As New DiagnosticDescriptor(id:=DiagnosticId,
                                            description:=Description,
                                            messageFormat:="This Constant is used as a FormatString" + Environment.NewLine + MessageFormat,
                                            category:=Category,
                                            defaultSeverity:=DiagnosticSeverity.Error,
                                            isEnabledByDefault:=True)
-
+  Public Rule3 As New DiagnosticDescriptor(id:=DiagnosticId,
+                                           description:=Description,
+                                           messageFormat:=MessageFormat,
+                                           category:=Category,
+                                           defaultSeverity:=DiagnosticSeverity.Error , isEnabledByDefault:=True)
 
 
   Public Function AddWarning(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IReportIssue) As Diagnostic
@@ -55,12 +59,19 @@ Public Module Common
                              Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
   End Function
 
+  Public Function AddError(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IReportIssue) As Diagnostic
+    Return Diagnostic.Create(Rule3,
+                             Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
+  End Function
 
   Public Function AddWarningAtSource(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IReportIssue) As Diagnostic
     Return Diagnostic.Create(Rule2,
                              Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
   End Function
-
+  Public Function AddErrorAtSource(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IReportIssue) As Diagnostic
+    Return Diagnostic.Create(Rule2,
+                             Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
+  End Function
 
   Public Function AddInformation(node As SyntaxNode, msg As String) As Diagnostic
     Return Diagnostic.Create(id:=DiagnosticId,
