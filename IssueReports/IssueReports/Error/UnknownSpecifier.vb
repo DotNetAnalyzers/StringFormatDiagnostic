@@ -11,10 +11,6 @@ Namespace Global.AdamSpeight2008
           MyBase.New(String.Format("Unknown Specifier [{0}] at {1}.", c, Start), Start, 1)
         End Sub
 
-        Private Shared ReadOnly _Default_ As ContainsNoArgs = New ContainsNoArgs()
-        Public Shared Function [Default]() As ContainsNoArgs
-          Return _Default_
-        End Function
 
       End Class
 

@@ -3,7 +3,8 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Roslyn.StringFormatDiagnostics.VisualBasic.Exts
 Imports Common
-Imports Roslyn.StringFormatDiagnostics
+'Imports Roslyn.StringFormatDiagnostics
+Imports AdamSpeight2008.StringFormatDiagnostic
 
 <DiagnosticAnalyzer>
 <ExportDiagnosticAnalyzer(Common.Common.DiagnosticId, LanguageNames.VisualBasic)>

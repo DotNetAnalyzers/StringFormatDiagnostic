@@ -6,7 +6,7 @@ Imports Roslyn.StringFormatDiagnostics.CSharp.Exts
 Imports Common
 Imports Roslyn.StringFormatDiagnostics.CommonExts
 Imports Roslyn.StringFormatDiagnostics.CSharp
-
+Imports AdamSpeight2008.StringFormatDiagnostic
 
 <DiagnosticAnalyzer>
 <ExportDiagnosticAnalyzer(DiagnosticId, LanguageNames.CSharp)>
@@ -30,7 +30,7 @@ Public Class DiagnosticAnalyzer
   Private Shared _A As New Dictionary(Of String, Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken))
 
   Sub New()
-    If _a.Count<>0 Then Exit Sub
+    If _A.Count <> 0 Then Exit Sub
     _A.Add("Num", AddressOf Check_Numeric_ToString)
     _A.Add("Date", AddressOf Check_DateTime_ToString)
     _A.Add("Enum", AddressOf Check_Enum_ToString)
@@ -54,12 +54,12 @@ Public Class DiagnosticAnalyzer
       Dim ArgTypes = Args.GetArgumentTypes(semanticModel, cancellationToken)
       Dim ArgTypeNames = Args.GetArgumentTypesNames(semanticModel, cancellationToken).ToArray
       ' Try to see if it is one the simple ones
-      Dim possibles =From a In Common.Analysis
-                    Where a(0) = _TypeName
-                    Where a(1) = _MethodName  
-                    Order By a.Count Descending 
-                    
-      If possibles.Any() = False Then Exit Sub 
+      Dim possibles = From a In Common.Analysis
+                      Where a(0) = _TypeName
+                      Where a(1) = _MethodName
+                      Order By a.Count Descending
+
+      If possibles.Any() = False Then Exit Sub
       For Each possible In possibles
 
         If ArgTypeNames.Begins(possible.Skip(4).ToArray) Then
@@ -67,7 +67,7 @@ Public Class DiagnosticAnalyzer
           DoValidation(x, semanticModel, addDiagnostic, cancellationToken)
           Exit Sub
         End If
-      Next 
+      Next
 
       'Dim res = From tns In Common.TheSimpleOnes
       '          Where tns.TypeName = _TypeName
@@ -127,15 +127,15 @@ Public Class DiagnosticAnalyzer
             Case SyntaxKind.StringLiteralExpression
               Dim ReportedIssues = fn(ct, Common.DeString(fs.ToString), ifp)
               For Each ReportedIssue In ReportedIssues.Errors
-                If TypeOf ReportedIssue Is UnexpectedChar   Then Dim cex = DirectCast(ReportedIssue, UnexpectedChar)   : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
-                If TypeOf ReportedIssue Is IgnoredChar      Then Dim cex = DirectCast(ReportedIssue, IgnoredChar)      : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
-                If TypeOf ReportedIssue Is TooManySections  Then Dim cex = DirectCast(ReportedIssue, TooManySections)  : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                If TypeOf ReportedIssue Is UnexpectedChar Then Dim cex = DirectCast(ReportedIssue, UnexpectedChar) : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                If TypeOf ReportedIssue Is IgnoredChar Then Dim cex = DirectCast(ReportedIssue, IgnoredChar) : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                If TypeOf ReportedIssue Is TooManySections Then Dim cex = DirectCast(ReportedIssue, TooManySections) : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
                 If TypeOf ReportedIssue Is UnknownSpecifier Then Dim cex = DirectCast(ReportedIssue, UnknownSpecifier) : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
                 If TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText Then addDiagnostic(AddWarning(fs, 0, fs.Span.Length, ReportedIssue))
-                If TypeOf ReportedIssue Is ValueHasExceedLimit   Then Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit) : addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 1 + ((cex.Finish + 1) - cex.Start), ReportedIssue))
-                If TypeOf ReportedIssue Is Internal_Information  Then addDiagnostic(AddInformation(fs, ReportedIssue.Message))
-                If TypeOf ReportedIssue Is FinalOutput           Then addDiagnostic(AddInformation(fs, ReportedIssue.Message))
-                If TypeOf ReportedIssue Is Internal_IssueReport  Then addDiagnostic(AddWarning(node, 0, fs.Span.Length, ReportedIssue))
+                If TypeOf ReportedIssue Is ValueHasExceedLimit Then Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit) : addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 1 + ((cex.Finish + 1) - cex.Start), ReportedIssue))
+                If TypeOf ReportedIssue Is Internal_Information Then addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                If TypeOf ReportedIssue Is FinalOutput Then addDiagnostic(AddInformation(fs, ReportedIssue.Message))
+                If TypeOf ReportedIssue Is Internal_IssueReport Then addDiagnostic(AddWarning(node, 0, fs.Span.Length, ReportedIssue))
               Next
             Case SyntaxKind.IdentifierName
               Dim ThisIdentifier = CType(TheFormatString.Expression, IdentifierNameSyntax)
@@ -157,8 +157,8 @@ Public Class DiagnosticAnalyzer
                     Case TypeOf ReportedIssue Is IgnoredChar : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is UnexpectedlyReachedEndOfText : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
                     Case TypeOf ReportedIssue Is ArgIndexHasExceedLimit : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
-                    Case TypeOf ReportedIssue Is TooManySections :          Dim cex = DirectCast(ReportedIssue, TooManySections) : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
-                    Case TypeOf ReportedIssue Is ValueHasExceedLimit : Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit)  : addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 1 + ((cex.Finish + 1) - cex.Start), ReportedIssue))
+                    Case TypeOf ReportedIssue Is TooManySections : Dim cex = DirectCast(ReportedIssue, TooManySections) : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
+                    Case TypeOf ReportedIssue Is ValueHasExceedLimit : Dim cex = DirectCast(ReportedIssue, ValueHasExceedLimit) : addDiagnostic(AddWarningAtSource(fs, cex.Start + 1, 1 + ((cex.Finish + 1) - cex.Start), ReportedIssue))
                     Case TypeOf ReportedIssue Is FinalOutput : addDiagnostic(AddInformation(fs, ReportedIssue.Message))
                     Case TypeOf ReportedIssue Is ContainsNoArgs : addDiagnostic(AddInformation(fs, "Contains no args! Are you sure this Is correct?"))
                     Case TypeOf ReportedIssue Is ContainsNoParameters : addDiagnostic(AddInformation(fs, "No parameters! Are you sure this Is correct?"))
@@ -364,7 +364,7 @@ Public Class DiagnosticAnalyzer
                           sm As SemanticModel,
                           addDiagnostic As Action(Of Diagnostic),
                           ct As CancellationToken,
-                          Optional FormatIsFirst As Boolean =False )
+                          Optional FormatIsFirst As Boolean = False)
     Dim p = CType(node.Parent, InvocationExpressionSyntax)
 
 
@@ -372,7 +372,7 @@ Public Class DiagnosticAnalyzer
     Select Case args.Count
       Case 0 ' Error
       Case Else
-        Dim fs = If(FormatIsFirst, args.First,args(1))
+        Dim fs = If(FormatIsFirst, args.First, args(1))
         If fs.IsMissing Then Exit Sub
         Dim TheFormatString = CType(fs, ArgumentSyntax)
         If TheFormatString IsNot Nothing Then
@@ -440,7 +440,7 @@ Public Class DiagnosticAnalyzer
               'Debugger.Break()
               If FoundSymbol.IsExtern Then
                 ' Use usage site for location of Warings, ignore the yield ranges and use the span of ThisIdentifier.
-                Dim ReportedIssues = AnalyseFormatString(ct, ConstValue.Value.ToString, args.Count - If(formatIsFirst,1,2),ArgObjects .Skip(If(formatIsFirst,1,2)).ToArray,CType(If(formatIsFirst,Nothing, ArgObjects(0)),IFormatProvider) )
+                Dim ReportedIssues = AnalyseFormatString(ct, ConstValue.Value.ToString, args.Count - If(FormatIsFirst, 1, 2), ArgObjects.Skip(If(FormatIsFirst, 1, 2)).ToArray, CType(If(FormatIsFirst, Nothing, ArgObjects(0)), IFormatProvider))
                 For Each ReportedIssue In ReportedIssues.Errors
                   Select Case True
                     Case TypeOf ReportedIssue Is ArgIndexOutOfRange : addDiagnostic(AddWarningAtSource(fs, 0, fs.Span.Length, ReportedIssue))
