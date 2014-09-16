@@ -3,7 +3,7 @@
   <Identifier Id="Diagnostic_CS..4cd38dea-8085-466c-89de-e5909952f8fa">
     <Name>String.Format Diagnostics (CS)</Name>
     <Author>AdamSpeight2008</Author>
-    <Version>1.8</Version>
+    <Version>1.9</Version>
     <Description xml:space="preserve">Validate Format Strings.</Description>
     <Locale>1033</Locale>
     <SupportedProducts>

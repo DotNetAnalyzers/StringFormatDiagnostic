@@ -3,7 +3,7 @@
   <Identifier Id="Diagnostic_VB..1e5e644e-a8fe-4b41-8529-713fcd140b59">
     <Name>String.Format Diagnostics (VB)</Name>
     <Author>AdamSpeight2008</Author>
-    <Version>1.8</Version>
+    <Version>1.9</Version>
     <Description xml:space="preserve">Validate Format Strings.</Description>
     <Locale>1033</Locale>
     <SupportedProducts>

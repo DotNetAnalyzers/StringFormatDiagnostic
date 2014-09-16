@@ -9,7 +9,11 @@ Namespace Global.Roslyn.StringFormatDiagnostics
 
       <Extension>
       Public Function ArgumentType(arg As ArgumentSyntax, sm As SemanticModel, ct As CancellationToken) As ITypeSymbol
+        Try
         Return sm.GetTypeInfo(CType(arg, SimpleArgumentSyntax).Expression, ct).Type
+          Catch
+          End Try
+        Return nothing
       End Function
 
       <Extension>
@@ -20,7 +24,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
 
       <Extension>
       Public Function GetArgumentTypesNames(args As ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of String)
-        Return args.GetArgumentTypes(sm, ct).Select(Function(tsym) tsym.ToFullyQualifiedName)
+        Return args.GetArgumentTypes(sm, ct).Select(Function(tsym) If(tsym Is Nothing,String.Empty,tsym.ToFullyQualifiedName))
       End Function
 
       <Extension>

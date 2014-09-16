@@ -137,7 +137,7 @@ Public Module Common
     Return _res_
   End Function
 
-  Private Function Analyse_Custom_Numeric(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+  Private Function Analyse_Custom_Numeric(ct As CancellationToken, format As String,IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     '_res_.AddError(New Internal_Information("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
     Dim _ExitOnFirst_ = False
@@ -155,7 +155,7 @@ Public Module Common
           Curr = Curr.Next
         Case "."c ' Decimal Point
           If Decimal_Points > 0 Then
-            _res_.AddError(New Warnings.IgnoredChar(Curr.Value, Curr.Index))
+            _res_.AddError(New Warnings.IgnoredChar(Curr.Value, Curr.Index+IndexOffset))
             If _ExitOnFirst_ Then Exit While
           End If
           Decimal_Points += 1
@@ -175,14 +175,14 @@ Public Module Common
             Case "-"c
               Curr = Curr.Next
               If Curr.IsEoT Then _res_.AddError(Errors.UnexpectedlyReachedEndOfText.Default) : Exit Select
-              If Not Curr.IsDigit Then _res_.AddError( New Errors.UnexpectedChar(Curr.Value, Curr.Index)) : Exit Select
+              If Not Curr.IsDigit Then _res_.AddError( New Errors.UnexpectedChar(Curr.Value, IndexOffset+Curr.Index)) : Exit Select
               Dim pr = ExponentValue(Curr)
               _res_.IncludeErrorsFrom(pr)
               Curr = pr.LastParse
             Case "+"c
               Curr = Curr.Next
               If Curr.IsEoT Then _res_.AddError( Errors.UnexpectedlyReachedEndOfText.Default) : Exit Select
-              If Not Curr.IsDigit Then _res_.AddError(New Errors.UnexpectedChar(Curr.Value, Curr.Index)) : Exit Select
+              If Not Curr.IsDigit Then _res_.AddError(New Errors.UnexpectedChar(Curr.Value,IndexOffset+ Curr.Index)) : Exit Select
               Dim pr = ExponentValue(Curr )
               _res_.IncludeErrorsFrom(pr)
               Curr = pr.LastParse
@@ -199,7 +199,7 @@ Public Module Common
           End While
 
         Case ";"c ' Group Separator and Number Scaling
-          If Sections >= 3 Then _res_.AddError(New Warnings.TooManySections(Curr.Index)) ': Exit While
+          If Sections >= 3 Then _res_.AddError(New Warnings.TooManySections(IndexOffset+Curr.Index)) ': Exit While
           Sections += 1
 
           Curr = Curr.Next
@@ -221,7 +221,7 @@ Public Module Common
     Return _res_
   End Function
 
-  Public Function Analyse_Numeric_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+  Public Function Analyse_Numeric_ToString(ct As CancellationToken, format As String,IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("format").ToString)) : Return _res_
     Dim cf As ICustomFormatter = Nothing
@@ -235,7 +235,7 @@ Public Module Common
             If _SNFS_.Contains(format(0)) Then
               ' ' Parsed as a standard format string.
             Else
-              _res_.AddError(New Errors.UnknownSpecifier(format(0), 0))
+              _res_.AddError(New Errors.UnknownSpecifier(format(0),IndexOffset+ 0))
             End If
           Case 2
             If _SNFS_.Contains(format(0)) Then
@@ -243,10 +243,10 @@ Public Module Common
                 ' Parsed as a standard format string.
               Else
                 ' Parse as a Custom Numeric format string
-                _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, Provider))
+                _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format,IndexOffset, Provider))
               End If
             Else
-              _res_.AddError(New Errors.UnknownSpecifier(format(0), 0))
+              _res_.AddError(New Errors.UnknownSpecifier(format(0), IndexOffset+0))
             End If
           Case 3
             If _SNFS_.Contains(format(0)) Then
@@ -255,35 +255,35 @@ Public Module Common
                   ' Parsed as a standard format string.
                 Else
                   ' Parse as a Custom Numeric format string
-                  _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, Provider))
+                  _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format,IndexOffset, Provider))
                 End If
               Else
                 ' Parse as a Custom Numeric format string
-                _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, Provider))
+                _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format,IndexOffset, Provider))
               End If
             Else
-              _res_.AddError(New Errors.UnknownSpecifier(format(0), 0))
+              _res_.AddError(New Errors.UnknownSpecifier(format(0), IndexOffset+0))
             End If
           Case Else
             ' Parse as a Custom Numeric format string
-            _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, Provider))
+            _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format,IndexOffset, Provider))
         End Select
 
       Else
         ' parse custon numeric string.
-        _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, Provider))
+        _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format,IndexOffset, Provider))
       End If
     End If
     '   _res_.LastParse = ??
     Return _res_
   End Function
 
-  Private Function Analyse_Custom_DateTime(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+  Private Function Analyse_Custom_DateTime(ct As CancellationToken, format As String,IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     '_res_.AddError(New Internal_Information("(DateTime) CustomFormatString Diagnostic Not yet Implemented."))
     Dim _ExitOnFirst_ = False
     Dim s As New TheSourceText(format)
-    Dim Curr As  IParsedChar = New ParsedChar(s, 0)
+    Dim Curr As  IParsedChar = New ParsedChar(s, IndexOffset+0)
 
     While Curr.IsNotEoT
       Select Case Curr.Value
@@ -348,7 +348,7 @@ Public Module Common
               Case 2
               Case Else
                 ' Add an error unknown specifier
-                _res_.AddError(New Errors.SpecifierUnknown(New String("g"c, reps.Output), Curr.Index))', reps.LastParse.Index))
+                _res_.AddError(New Errors.SpecifierUnknown(New String("g"c, reps.Output),IndexOffset+ Curr.Index))', reps.LastParse.Index))
             End Select
             Curr = _res_.LastParse
           End If
@@ -375,7 +375,7 @@ Public Module Common
               Case 2
               Case Else
                 ' Add an error unknown specifier
-                _res_.AddError(New Errors.SpecifierUnknown(New String("H"c, reps.Output), Curr.Index))', reps.LastParse.Index))
+                _res_.AddError(New Errors.SpecifierUnknown(New String("H"c, reps.Output), IndexOffset+Curr.Index))', reps.LastParse.Index))
             End Select
             Curr = _res_.LastParse
           End If
@@ -389,7 +389,7 @@ Public Module Common
               Case 2
               Case Else
                 ' Add an error unknown specifier
-                _res_.AddError(New Errors.SpecifierUnknown(New String("K"c, reps.Output), Curr.Index))', reps.LastParse.Index))
+                _res_.AddError(New Errors.SpecifierUnknown(New String("K"c, reps.Output),IndexOffset+ Curr.Index))', reps.LastParse.Index))
             End Select
             Curr = _res_.LastParse
           End If
@@ -403,7 +403,7 @@ Public Module Common
               Case 2
               Case Else
                 ' Add an error unknown specifier
-                _res_.AddError(New Errors.SpecifierUnknown(New String("m"c, reps.Output), Curr.Index))', reps.LastParse.Index))
+                _res_.AddError(New Errors.SpecifierUnknown(New String("m"c, reps.Output), IndexOffset+Curr.Index))', reps.LastParse.Index))
             End Select
             Curr = _res_.LastParse
           End If
@@ -417,7 +417,7 @@ Public Module Common
               Case 2
               Case Else
                 ' Add an error unknown specifier
-                _res_.AddError(New Errors.SpecifierUnknown(New String("M"c, reps.Output), Curr.Index))', reps.LastParse.Index))
+                _res_.AddError(New Errors.SpecifierUnknown(New String("M"c, reps.Output), IndexOffset+Curr.Index))', reps.LastParse.Index))
             End Select
             Curr = _res_.LastParse
           End If
@@ -431,7 +431,7 @@ Public Module Common
               Case 2
               Case Else
                 ' Add an error unknown specifier
-                _res_.AddError(New Errors.SpecifierUnknown(New String("s"c, reps.Output), Curr.Index))', reps.LastParse.Index))
+                _res_.AddError(New Errors.SpecifierUnknown(New String("s"c, reps.Output), IndexOffset+Curr.Index))', reps.LastParse.Index))
             End Select
             Curr = _res_.LastParse
           End If
@@ -445,7 +445,7 @@ Public Module Common
               Case 2
               Case Else
                 ' Add an error unknown specifier
-                _res_.AddError(New Errors.SpecifierUnknown(New String("t"c, reps.Output), Curr.Index))', reps.LastParse.Index))
+                _res_.AddError(New Errors.SpecifierUnknown(New String("t"c, reps.Output), IndexOffset+Curr.Index))', reps.LastParse.Index))
             End Select
             Curr = _res_.LastParse
           End If
@@ -462,7 +462,7 @@ Public Module Common
               Case 5
               Case Else
                 ' Add an error unknown specifier
-                _res_.AddError(New Errors.SpecifierUnknown(New String("y"c, reps.Output), Curr.Index))', reps.LastParse.Index))
+                _res_.AddError(New Errors.SpecifierUnknown(New String("y"c, reps.Output), IndexOffset+Curr.Index))', reps.LastParse.Index))
             End Select
             Curr = _res_.LastParse
           End If
@@ -477,7 +477,7 @@ Public Module Common
               Case 3
               Case Else
                 ' Add an error unknown specifier
-                _res_.AddError(New Errors.SpecifierUnknown(New String("z"c, reps.Output), Curr.Index))', reps.LastParse.Index))
+                _res_.AddError(New Errors.SpecifierUnknown(New String("z"c, reps.Output), IndexOffset+Curr.Index))', reps.LastParse.Index))
             End Select
             Curr = _res_.LastParse
           End If
@@ -485,14 +485,14 @@ Public Module Common
           Dim reps = Curr.RepCount(":"c)
           _res_.IncludeErrorsFrom(reps)
           If reps.IsValid = False Then
-            If reps.Output <> 1 Then _res_.AddError(New Errors.SpecifierUnknown(New String(":"c, reps.Output), Curr.Index))', reps.LastParse.Index))
+            If reps.Output <> 1 Then _res_.AddError(New Errors.SpecifierUnknown(New String(":"c, reps.Output), IndexOffset+Curr.Index))', reps.LastParse.Index))
             Curr = _res_.LastParse
           End If
         Case "/"c
           Dim reps = Curr.RepCount("/"c)
           _res_.IncludeErrorsFrom(reps)
           If reps.IsValid = False Then
-            If reps.Output <> 1 Then _res_.AddError(New Errors.SpecifierUnknown(New String("/"c, reps.Output), Curr.Index))', reps.LastParse.Index))
+            If reps.Output <> 1 Then _res_.AddError(New Errors.SpecifierUnknown(New String("/"c, reps.Output), IndexOffset+Curr.Index))', reps.LastParse.Index))
             Curr = _res_.LastParse
           End If
         Case "\"c
@@ -512,7 +512,7 @@ Public Module Common
             If "dfFghHKmMstyz:/".Contains(nc.Value) Then
               Curr = nc
             Else
-              _res_.AddError(New Errors. UnexpectedChar(nc.Value, nc.Index))
+              _res_.AddError(New Errors. UnexpectedChar(nc.Value, IndexOffset+nc.Index))
             End If
           End If
         Case Else
@@ -523,7 +523,7 @@ Public Module Common
     Return _res_
   End Function
 
-  Public Function Analyse_DateTime_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+  Public Function Analyse_DateTime_ToString(ct As CancellationToken, format As String,IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("format").ToString)) : Return _res_
     Dim cf As ICustomFormatter = Nothing
@@ -535,17 +535,17 @@ Public Module Common
       If "dDfFgGmMoOrRstTuUyY".Contains(format(0)) Then
         ' Valid specifier
       Else
-        _res_.AddError(New Errors.UnknownSpecifier(format(0), 0))
+        _res_.AddError(New Errors.UnknownSpecifier(format(0),IndexOffset+ 0))
       End If
     Else
       ' Custom format string
-      _res_.IncludeErrorsFrom(Analyse_Custom_DateTime(ct, format, Provider))
+      _res_.IncludeErrorsFrom(Analyse_Custom_DateTime(ct, format,IndexOffset, Provider))
     End If
     ''    _res_.LastParse = ??
     Return _res_
   End Function
 
-  Private Function Analyse_Custom_TimeSpan(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+  Private Function Analyse_Custom_TimeSpan(ct As CancellationToken, format As String,IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     '_res_.AddError(New Internal_Information("(TimeSpan) CustomFormatString Diagnostic Not yet Implemented."))
     Dim Curr As IParsedChar = Nothing
@@ -553,7 +553,7 @@ Public Module Common
     Select Case format.Length
       Case 0
       Case 1
-        If _TS_.Contains(format(0)) = False Then _res_.AddError(New Errors.UnknownSpecifier(format(0), 0))
+        If _TS_.Contains(format(0)) = False Then _res_.AddError(New Errors.UnknownSpecifier(format(0),IndexOffset+ 0))
       Case 2
         If Not ((format(0) = "%"c) AndAlso _TS_.Contains(format(1))) Then
           _res_.AddError(New Errors.UnknownSpecifier(format(1), 1))
@@ -577,7 +577,7 @@ Public Module Common
                   Case 1 '
                   Case 2 To 8
                   Case Else
-                    _res_.AddError(New Errors.SpecifierUnknown(New String("d"c, reps.Output), Curr.Index)) ', reps.LastParse.Index))
+                    _res_.AddError(New Errors.SpecifierUnknown(New String("d"c, reps.Output),IndexOffset+ Curr.Index)) ', reps.LastParse.Index))
                 End Select
               End If
               Curr = reps.LastParse
@@ -590,7 +590,7 @@ Public Module Common
                   Case 1
                   Case 2
                   Case Else
-                    _res_.AddError(New Errors.SpecifierUnknown(New String("h"c, reps.Output), Curr.Index)) ', reps.LastParse.Index))
+                    _res_.AddError(New Errors.SpecifierUnknown(New String("h"c, reps.Output),IndexOffset+ Curr.Index)) ', reps.LastParse.Index))
                 End Select
               End If
               Curr = reps.LastParse
@@ -603,7 +603,7 @@ Public Module Common
                   Case 1
                   Case 2
                   Case Else
-                    _res_.AddError(New Errors.SpecifierUnknown(New String("m"c, reps.Output), Curr.Index)) ', reps.LastParse.Index))
+                    _res_.AddError(New Errors.SpecifierUnknown(New String("m"c, reps.Output),IndexOffset+ Curr.Index)) ', reps.LastParse.Index))
                 End Select
               End If
               Curr = reps.LastParse
@@ -616,7 +616,7 @@ Public Module Common
                   Case 1
                   Case 2
                   Case Else
-                    _res_.AddError(New Errors.SpecifierUnknown(New String("s"c, reps.Output), Curr.Index)) ', reps.LastParse.Index))
+                    _res_.AddError(New Errors.SpecifierUnknown(New String("s"c, reps.Output),IndexOffset+ Curr.Index)) ', reps.LastParse.Index))
                 End Select
               End If
               Curr = reps.LastParse
@@ -629,7 +629,7 @@ Public Module Common
                   Case 1
                   Case 2 To 7
                   Case Else
-                    _res_.AddError(New Errors.SpecifierUnknown(New String("f"c, reps.Output), Curr.Index)) ', reps.LastParse.Index))
+                    _res_.AddError(New Errors.SpecifierUnknown(New String("f"c, reps.Output),IndexOffset+ Curr.Index)) ', reps.LastParse.Index))
                 End Select
               End If
               Curr = reps.LastParse
@@ -642,7 +642,7 @@ Public Module Common
                   Case 1
                   Case 2
                   Case Else
-                    _res_.AddError(New Errors.SpecifierUnknown(New String("F"c, reps.Output), Curr.Index)) ', reps.LastParse.Index))
+                    _res_.AddError(New Errors.SpecifierUnknown(New String("F"c, reps.Output),IndexOffset+ Curr.Index)) ', reps.LastParse.Index))
                 End Select
               End If
               Curr = reps.LastParse
@@ -656,7 +656,7 @@ Public Module Common
               Curr = Curr.Next.Next
             Case Else
               ' NOTE: There is potential for this to be incorrect 
-              _res_.AddError(New Errors.UnexpectedChar(Curr.Value, Curr.Index))
+              _res_.AddError(New Errors.UnexpectedChar(Curr.Value,IndexOffset+ Curr.Index))
               Exit While
           End Select
 
@@ -666,7 +666,7 @@ Public Module Common
     Return _res_
   End Function
 
-  Public Function Analyse_TimeSpan_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+  Public Function Analyse_TimeSpan_ToString(ct As CancellationToken, format As String,IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("fs").ToString)) : Return _res_
 
@@ -678,17 +678,17 @@ Public Module Common
       If "cgG".Contains(format(0)) Then
         ' Valid specifier
       Else
-        _res_.AddError(New Errors.UnknownSpecifier(format(0), 0))
+        _res_.AddError(New Errors.UnknownSpecifier(format(0), 0 + IndexOffset ))
       End If
     Else
       ' Custom format string
-      _res_.IncludeErrorsFrom(Analyse_Custom_TimeSpan(ct, format, Provider))
+      _res_.IncludeErrorsFrom(Analyse_Custom_TimeSpan(ct, format,IndexOffset, Provider))
     End If
     '    _res_.LastParse = ??
     Return _res_
   End Function
 
-  Public Function Analyse_DateTimeOffset_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+  Public Function Analyse_DateTimeOffset_ToString(ct As CancellationToken, format As String,IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("fs").ToString)) : Return _res_
     Dim cf As ICustomFormatter = Nothing
@@ -699,7 +699,7 @@ Public Module Common
       If "cgGKUru".Contains(format(0)) Then
         ' Valid specifier
       Else
-        _res_.AddError(New Errors.UnknownSpecifier(format(0), 0))
+        _res_.AddError(New Errors.UnknownSpecifier(format(0), IndexOffset+0))
       End If
     Else
       ' Custom format string
@@ -709,7 +709,7 @@ Public Module Common
     Return _res_
   End Function
 
-  Public Function Analyse_Enum_ToString(ct As CancellationToken, format As String, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+  Public Function Analyse_Enum_ToString(ct As CancellationToken, format As String,IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("fs").ToString)) : Return _res_
     Dim cf As ICustomFormatter = Nothing
@@ -723,7 +723,7 @@ Public Module Common
         '    _res_.LastParse = ??
         Return _res_
       Else
-        _res_.AddError(New Errors.UnknownSpecifier(format(0), 0))
+        _res_.AddError(New Errors.UnknownSpecifier(format(0),IndexOffset+ 0))
       End If
     Else
       ' Custom format string
