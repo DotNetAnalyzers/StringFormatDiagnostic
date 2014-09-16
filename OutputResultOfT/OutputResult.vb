@@ -1,9 +1,13 @@
-﻿Public Class OutputResult(Of T)
+﻿Imports AdamSpeight2008.StringFormatDiagnostic.Interfaces
+
+Namespace Global.AdamSpeight2008.StringFormatDiagnostic
+
+Public Class OutputResult(Of T)
   Public Property Output As T
-  Private _Errors_ As New List(Of IssueReport)
+  Private _Errors_ As New List(Of IReportIssue)
   Private _valid_ As Boolean = True
 
-  Public Property LastParse As ParsedChar
+  Public Property LastParse As IParsedChar
 
   Public ReadOnly Property IsValid() As Boolean
     Get
@@ -11,13 +15,13 @@
     End Get
   End Property
   
-  Public ReadOnly Property Errors As IReadOnlyCollection(Of IssueReport)
+  Public ReadOnly Property Errors As IReadOnlyCollection(Of IReportIssue)
   Get
       Return _Errors_ 
   End Get
   End Property
 
-  Public Sub AddError(err As IssueReport)
+  Public Sub AddError(err As IReportIssue)
     _valid_ = False
     _Errors_.Add(err)
   End Sub
@@ -28,3 +32,5 @@
   End Function
 
 End Class
+
+End Namespace

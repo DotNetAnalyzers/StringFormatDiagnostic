@@ -1,4 +1,6 @@
-﻿Public Class TheSourceText
+﻿Imports AdamSpeight2008.StringFormatDiagnostic.Interfaces
+
+Public Class TheSourceText
   Implements ISourceText
 
   Private _Source As String

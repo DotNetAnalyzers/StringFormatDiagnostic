@@ -4,7 +4,11 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.StringFormatDiagnostics
+'Imports Roslyn.StringFormatDiagnostics
+Imports AdamSpeight2008.StringFormatDiagnostic
+Imports AdamSpeight2008.StringFormatDiagnostic.Interfaces
+Imports AdamSpeight2008.StringFormatDiagnostic.IssueReports
+
 
 Public Module Common
   Private _Analysis As New List(Of String())
@@ -46,13 +50,13 @@ Public Module Common
 
 
 
-  Public Function AddWarning(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IssueReport) As Diagnostic
+  Public Function AddWarning(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IReportIssue) As Diagnostic
     Return Diagnostic.Create(Rule1,
                              Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
   End Function
 
 
-  Public Function AddWarningAtSource(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IssueReport) As Diagnostic
+  Public Function AddWarningAtSource(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IReportIssue) As Diagnostic
     Return Diagnostic.Create(Rule2,
                              Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
   End Function
@@ -85,10 +89,10 @@ Public Module Common
     Dim res As New OutputResult(Of Boolean)
     Dim curr = pc.Next
     While curr.IsEoT AndAlso res.Output = False
-      If curr = q Then res.Output = True : Exit While
+      If curr.Value  = q Then res.Output = True : Exit While
       curr = curr.Next
     End While
-    If Not res.Output Then res.AddError(New UnexpectedlyReachedEndOfText)
+    If Not res.Output Then res.AddError(Errors.UnexpectedlyReachedEndOfText.Default )
     res.LastParse = curr
     Return res
   End Function
@@ -102,7 +106,7 @@ Public Module Common
     Return s
   End Function
 
-  Private Function ExponentValue(pc As ParsedChar) As OutputResult(Of Integer)
+  Private Function ExponentValue(pc As IParsedChar) As OutputResult(Of Integer)
     Dim _res_ As New OutputResult(Of Integer)
     Dim sp = pc
     Dim pr = ParseDigits(sp)
@@ -111,7 +115,7 @@ Public Module Common
       If Integer.TryParse(pr.Output, value) Then
         If value < 0 Then
         ElseIf value > 99 Then
-          _res_.AddError(New ValueHasExceedLimit("Exponent", pr.Output, 99, sp.Index, pr.LastParse.Index))
+          _res_.AddError(New Errors.ValueHasExceedLimit("Exponent",value, 99, sp.Index, pr.LastParse.Index))
         Else
           _res_.Output = value
         End If
@@ -127,7 +131,7 @@ Public Module Common
     '_res_.AddError(New Internal_Information("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
     Dim _ExitOnFirst_ = False
     Dim s As New TheSourceText(format)
-    Dim Curr As New ParsedChar(s, 0)
+    Dim Curr As IParsedChar = New ParsedChar(s, 0)
     Dim Decimal_Points = 0
     Dim Sections = 1
 
@@ -140,7 +144,7 @@ Public Module Common
           Curr = Curr.Next
         Case "."c ' Decimal Point
           If Decimal_Points > 0 Then
-            _res_.AddError(New IgnoredChar(Curr.Value, Curr.Index))
+            _res_.AddError(New Warnings.IgnoredChar(Curr.Value, Curr.Index))
             If _ExitOnFirst_ Then Exit While
           End If
           Decimal_Points += 1
@@ -151,47 +155,47 @@ Public Module Common
           Curr = Curr.Next
         Case "E"c, "e"c ' Expotential Holder
           Curr = Curr.Next
-          If Curr.IsEoT Then _res_.AddError(New UnexpectedlyReachedEndOfText()) : Exit Select
-          Select Case Curr
+          If Curr.IsEoT Then _res_.AddError(Errors.UnexpectedlyReachedEndOfText.Default) : Exit Select
+          Select Case Curr.Value
             Case "0"c To "9"c
               Dim pr = ExponentValue(Curr)
               _res_.IncludeErrorsFrom(pr)
               Curr = pr.LastParse
             Case "-"c
               Curr = Curr.Next
-              If Curr.IsEoT Then _res_.AddError(New UnexpectedlyReachedEndOfText()) : Exit Select
-              If Not Curr.IsDigit Then _res_.AddError(New UnexpectedChar(Curr.Value, Curr.Index)) : Exit Select
+              If Curr.IsEoT Then _res_.AddError(Errors.UnexpectedlyReachedEndOfText.Default) : Exit Select
+              If Not Curr.IsDigit Then _res_.AddError( New Errors.UnexpectedChar(Curr.Value, Curr.Index)) : Exit Select
               Dim pr = ExponentValue(Curr)
               _res_.IncludeErrorsFrom(pr)
               Curr = pr.LastParse
             Case "+"c
               Curr = Curr.Next
-              If Curr.IsEoT Then _res_.AddError(New UnexpectedlyReachedEndOfText()) : Exit Select
-              If Not Curr.IsDigit Then _res_.AddError(New UnexpectedChar(Curr.Value, Curr.Index)) : Exit Select
-              Dim pr = ExponentValue(Curr)
+              If Curr.IsEoT Then _res_.AddError( Errors.UnexpectedlyReachedEndOfText.Default) : Exit Select
+              If Not Curr.IsDigit Then _res_.AddError(New Errors.UnexpectedChar(Curr.Value, Curr.Index)) : Exit Select
+              Dim pr = ExponentValue(Curr )
               _res_.IncludeErrorsFrom(pr)
               Curr = pr.LastParse
             Case Else
-              _res_.AddError(New UnexpectedChar(Curr.Value, Curr.Index))
+              _res_.AddError(New Errors.UnexpectedChar(Curr.Value, Curr.Index))
           End Select
 
         Case "'"c, _QUOTE_ ' Literal String Delimiter 
           ' The same character terminates parsing of the literal string eg 'abc'  || "abc"
           Curr = Curr.Next
           While Curr.IsEoT
-            If (Curr = "'"c) OrElse (Curr = _QUOTE_) Then Curr = Curr.Next : Exit While
+            If (Curr.Value  = "'"c) OrElse (Curr.Value  = _QUOTE_) Then Curr = Curr.Next : Exit While
             Curr = Curr.Next
           End While
 
         Case ";"c ' Group Separator and Number Scaling
-          If Sections >= 3 Then _res_.AddError(New TooManySections(Curr.Index)) ': Exit While
+          If Sections >= 3 Then _res_.AddError(New Warnings.TooManySections(Curr.Index)) ': Exit While
           Sections += 1
 
           Curr = Curr.Next
         Case "\"c ' Escape Character
           Curr = Curr.Next
-          If Curr.IsEoT Then _res_.AddError(New UnexpectedlyReachedEndOfText) : Exit While
-          Select Case Curr
+          If Curr.IsEoT Then _res_.AddError(Errors.UnexpectedlyReachedEndOfText.Default) : Exit While
+          Select Case Curr.Value 
             Case "\"c, "0"c, "#"c, "."c, "'"c, _QUOTE_, ";"c, "%"c, "‰"c
               Curr = Curr.Next
             Case Else

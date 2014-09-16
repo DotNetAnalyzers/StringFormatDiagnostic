@@ -97,6 +97,7 @@ Public Class DiagnosticAnalyzer
             Case SyntaxKind.StringLiteralExpression
               Dim ReportedIssues = fn(ct, Common.DeString(fs.ToString), ifp)
               For Each ReportedIssue In ReportedIssues.Errors
+                'addDiagnostic(ReportedIssue. )
                 If TypeOf ReportedIssue Is UnexpectedChar Then Dim cex = DirectCast(ReportedIssue, UnexpectedChar) : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
                 If TypeOf ReportedIssue Is IgnoredChar Then Dim cex = DirectCast(ReportedIssue, IgnoredChar) : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))
                 If TypeOf ReportedIssue Is TooManySections Then Dim cex = DirectCast(ReportedIssue, TooManySections) : addDiagnostic(AddWarning(fs, cex.Start + 1, cex.Start + 2, ReportedIssue))

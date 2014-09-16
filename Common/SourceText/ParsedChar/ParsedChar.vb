@@ -1,47 +1,38 @@
-﻿<System.ComponentModel.ImmutableObject(True)>
+﻿Imports AdamSpeight2008.StringFormatDiagnostic.Interfaces
+
+<System.ComponentModel.ImmutableObject(True)>
 Public Class ParsedChar
-  Public ReadOnly Property Index As Integer
-  Property _Source As ISourceText
+  Implements IParsedChar
+
+  Public ReadOnly Property Index As Integer Implements IParsedChar.Index 
+  Public ReadOnly Property Source As ISourceText Implements IParsedChar.SourceText 
   Dim _NC As ParsedChar = Nothing
   Dim _NS As Boolean = False
   Dim _BC As ParsedChar = Nothing
   Dim _BS As Boolean = False
 
   Public Sub New(Source As ISourceText, Index As Integer)
-    _Index = Index : _Source = Source
+    _Index = Index : Me._Source = Source
   End Sub
 
-  'Public Function IsEoT() As Boolean
-  '  Return   _Index > _Source.EndIndex 
-  'End Function
-  'Public Function IsNotEoT() As Boolean
-  '  Return _Index <= _Source.EndIndex  
-  'End Function
-  'Public Function IsBoT() As Boolean
-  '  Return _Index < 0
-  'End Function
-  'Public Function IsNotBoT() As Boolean
-  '  Return _Index >= 0
-  'End Function
-
-  Public Function [Next]() As ParsedChar
+  Public Function [Next]() As IParsedChar  Implements IParsedChar.[Next]
     ' If already set then return cached verison
     If _NS Then Return _NC
 
-    _NC = If(Index < _Source.EndIndex, New ParsedChar(_Source, Index + 1),Nothing) ' New ParsedChar(_Source,Index))
+    _NC = If(Index < _Source.EndIndex, New ParsedChar(_Source, Index + 1), Nothing) ' New ParsedChar(_Source,Index))
     _NS = True
     Return _NC
   End Function
 
-  Public Function Back() As ParsedChar
+  Public Function Back() As IParsedChar Implements IParsedChar.Back
     ' If already set then return cached verison
     If _BS Then Return _BC
-    _BC = If(Index >= 0, New ParsedChar(_Source, Index - 1), New ParsedChar(_Source,-1))
+    _BC = If(Index >= 0, New ParsedChar(_Source, Index - 1), New ParsedChar(_Source, -1))
     _BS = True
     Return _BC
   End Function
 
-  Public ReadOnly Property Value As Char
+  Public ReadOnly Property Value As Char  Implements IParsedChar.Value  
     Get
       Return _Source(Index)
     End Get
