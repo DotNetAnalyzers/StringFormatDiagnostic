@@ -15,12 +15,15 @@ Public Module Common
   Private _IsInitialised AS Boolean = False
 
   Sub Initialise
-    If _IsInitialised Then Exit Sub 
-    Using CSV As New Microsoft.VisualBasic.FileIO.TextFieldParser("AnalyserList.csv") With {.TrimWhiteSpace=true,.Delimiters={","}, .TextFieldType = FileIO.FieldType.Delimited}
+    If _IsInitialised Then Exit Sub
+    Dim the_file = Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Common.AnalyserList.csv")
+    
+    Using CSV As New Microsoft.VisualBasic.FileIO.TextFieldParser(the_file) With {.TrimWhiteSpace=true,.Delimiters={","}, .TextFieldType = FileIO.FieldType.Delimited}
     CSV.CommentTokens = {"//"}
     While CSV.EndOfData = False
     
       Dim fields = CSV.ReadFields 
+        If fields.Count< 5 Then Continue While 
       _Analysis.Add( fields )
     End While
       End Using
