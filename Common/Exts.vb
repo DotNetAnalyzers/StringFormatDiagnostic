@@ -12,10 +12,14 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic
   Public Module CommonExts
     <Extension>
     Public Function Are(Of T As IComparable(Of T))(xs As IEnumerable(Of T), ys As IEnumerable(Of T)) As Boolean
+      If xs Is Nothing Then Return False
+      If ys Is Nothing Then Return False 
       Return xs.SequenceEqual(ys)
     End Function
     <Extension>
     Public Function Begins(Of T As IComparable(Of T))(xs As IList(Of T), ys As IList(Of T)) As Boolean
+      If xs Is Nothing Then Return False 
+      If ys Is Nothing Then Return False 
       If xs.Count < ys.Count Then Return False
       For i = 0 To ys.Count - 1
         If xs(i).CompareTo(ys(i)) <> 0 Then Return False
@@ -81,7 +85,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic
 
     <Extension>
     Public Function IsDigit(pc As IParsedChar) As Boolean
-      Return (pc.Value >= "0"c) AndAlso (pc.Value <= "9"c)
+      Return (pc IsNot Nothing) AndAlso  ((pc.Value >= "0"c) AndAlso (pc.Value <= "9"c))
     End Function
 
     <Extension>
@@ -91,6 +95,8 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic
 
     <Extension>
     Public Function ContainsMoreThan(fs As String, NoMoreThan As Integer, pred As Func(Of Char, Boolean)) As Boolean
+      If fs Is Nothing Then Return False
+      If pred Is Nothing Then Return False 
       Dim count = 0
       Dim index = 0
       While index < fs.Count

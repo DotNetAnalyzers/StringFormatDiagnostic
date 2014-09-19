@@ -149,7 +149,7 @@
       <CustomToolNamespace>My</CustomToolNamespace>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
-    <None Include="packages.config" />
+    <None Include="IssueReports\packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StringFormatDiagnostic_Interfaces\StringFormatDiagnostic_Interfaces.vbproj">

@@ -11,24 +11,27 @@ Namespace Global.Roslyn.StringFormatDiagnostics
       Public Function ArgumentType(arg As ArgumentSyntax, sm As SemanticModel, ct As CancellationToken) As ITypeSymbol
         Try
         Return sm.GetTypeInfo(CType(arg, SimpleArgumentSyntax).Expression, ct).Type
-          Catch
+          Catch ex As Exception 
           End Try
         Return nothing
       End Function
 
       <Extension>
       Public Function GetArgumentTypes(args As ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of ITypeSymbol)
-        If args Is Nothing Then Return Enumerable.Empty(Of ITypeSymbol)
+        If (args Is Nothing) OrElse (sm Is Nothing) Then Return Enumerable.Empty(Of ITypeSymbol)
+       
         Return args.Arguments.Select(Function(arg) arg.ArgumentType(sm, ct))
       End Function
 
       <Extension>
       Public Function GetArgumentTypesNames(args As ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of String)
+        If (args Is Nothing) OrElse (sm Is Nothing) Then Return Enumerable.Empty(Of string)
         Return args.GetArgumentTypes(sm, ct).Select(Function(tsym) If(tsym Is Nothing,String.Empty,tsym.ToFullyQualifiedName))
       End Function
 
       <Extension>
       Public Iterator Function GetArgumentAsObjects(args As ArgumentListSyntax, sm As SemanticModel, ct As CancellationToken) As IEnumerable(Of Object)
+        If (args Is Nothing) OrElse (sm Is Nothing ) Then Exit Function 
         Dim ArgTypes = args.GetArgumentTypes(sm, ct)
         For i = 0 To args.Arguments.Count - 1
           Dim ov As Object
@@ -48,12 +51,14 @@ Namespace Global.Roslyn.StringFormatDiagnostics
 
       <Extension>
       Function IsExternal(sn As SyntaxNode, sm As SemanticModel, ct As CancellationToken) As Boolean
+        If (sn Is Nothing) OrElse (sm Is Nothing) Then Return True
         Return sm.GetSymbolInfo(sn, ct).Symbol.IsExtern
       End Function
 
       <Extension>
       Function IdentifierValue(ThisIdentifier As IdentifierNameSyntax, sm As SemanticModel, ct As CancellationToken) As Object
         If ThisIdentifier Is Nothing Then Return Nothing
+        If sm Is Nothing Then Return nothing
         Dim FoundSymbol = sm.LookupSymbols(ThisIdentifier.Span.Start, name:=ThisIdentifier.Identifier.Text)(0)
         Dim VariableDeclarationSite = TryCast(FoundSymbol.DeclaringSyntaxReferences(0).GetSyntax.Parent, CodeAnalysis.VisualBasic.Syntax.VariableDeclaratorSyntax)
         If VariableDeclarationSite Is Nothing Then Return Nothing
@@ -63,6 +68,7 @@ Namespace Global.Roslyn.StringFormatDiagnostics
 
       <Extension>
       Public Function CalledOnType(n As MemberAccessExpressionSyntax, sm As SemanticModel, ct As CancellationToken) As INamedTypeSymbol
+        If (n Is Nothing) orelse (sm Is nothing) Then Return nothing
         Dim s = sm.GetSymbolInfo(n, ct).Symbol
         Return If(s Is Nothing, Nothing, s.ContainingType)
       End Function

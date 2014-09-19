@@ -7,7 +7,7 @@ Namespace Global.AdamSpeight2008
       Public Class ContainsNoParameters
         Inherits Information
         Public Sub New()
-          MyBase.New("Contains No Parameters")
+          MyBase.New("Format String contains args holes but no arg parameters where supplied. Is this correct?")
         End Sub
         Private Shared ReadOnly _Default_ As ContainsNoParameters = New ContainsNoParameters()
         Public Shared Function [Default]() As ContainsNoParameters

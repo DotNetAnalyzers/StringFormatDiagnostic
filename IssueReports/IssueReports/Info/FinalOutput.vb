@@ -8,7 +8,7 @@ Namespace Global.AdamSpeight2008
       Public Class FinalOutput
         Inherits Information
         Public Sub New(output As String)
-          MyBase.New(String.Format("Output:= {0}", If(output, String.Empty)))
+          MyBase.New(String.Format("Output?= ""{0}""", If(output, String.Empty)))
         End Sub
       End Class
 

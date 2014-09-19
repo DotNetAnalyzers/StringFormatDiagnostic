@@ -17,7 +17,7 @@ Public Module Common
   Sub Initialise
     If _IsInitialised Then Exit Sub
     Dim the_file = Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Common.AnalyserList.csv")
-    
+    If the_file Is Nothing Then Exit Sub 
     Using CSV As New Microsoft.VisualBasic.FileIO.TextFieldParser(the_file) With {.TrimWhiteSpace=true,.Delimiters={","}, .TextFieldType = FileIO.FieldType.Delimited}
     CSV.CommentTokens = {"//"}
     While CSV.EndOfData = False
@@ -101,6 +101,7 @@ Public Module Common
 
   Public Function LiteralString(pc As IParsedChar, q As Char) As OutputResult(Of Boolean)
     Dim res As New OutputResult(Of Boolean)
+        If  pc Is Nothing Then res.AddError(New _Internal.Warning(New ArgumentNullException("pc").ToString)) : Return res
     Dim curr = pc.Next
     While curr.IsEoT AndAlso res.Output = False
       If curr.Value = q Then res.Output = True : Exit While
@@ -122,6 +123,7 @@ Public Module Common
 
   Private Function ExponentValue(pc As IParsedChar) As OutputResult(Of Integer)
     Dim _res_ As New OutputResult(Of Integer)
+        If pc Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("pc").ToString)) : Return _res_
     Dim sp = pc
     Dim pr = ParseDigits(sp)
     If pr.Output.Length > 0 Then
@@ -143,6 +145,7 @@ Public Module Common
   Private Function Analyse_Custom_Numeric(ct As CancellationToken, format As String,IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     '_res_.AddError(New Internal_Information("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
+       If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("format").ToString)) : Return _res_
     Dim _ExitOnFirst_ = False
     Dim s As New TheSourceText(format)
     Dim Curr As IParsedChar = New ParsedChar(s, 0)
@@ -284,6 +287,7 @@ Public Module Common
   Private Function Analyse_Custom_DateTime(ct As CancellationToken, format As String,IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     '_res_.AddError(New Internal_Information("(DateTime) CustomFormatString Diagnostic Not yet Implemented."))
+      If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("format").ToString)) : Return _res_
     Dim _ExitOnFirst_ = False
     Dim s As New TheSourceText(format)
     Dim Curr As  IParsedChar = New ParsedChar(s, IndexOffset+0)
@@ -551,6 +555,7 @@ Public Module Common
   Private Function Analyse_Custom_TimeSpan(ct As CancellationToken, format As String,IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
     Dim _res_ As New OutputResult(Of String)
     '_res_.AddError(New Internal_Information("(TimeSpan) CustomFormatString Diagnostic Not yet Implemented."))
+    If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("format").ToString)) : Return _res_
     Dim Curr As IParsedChar = Nothing
     Const _TS_ = "dhmsfF"
     Select Case format.Length
@@ -741,7 +746,7 @@ Public Module Common
   Public Function AnalyseFormatString(ct As CancellationToken, format As String, NumOfArgs As Integer,
                                          Args As IEnumerable(Of Object),
                                         Optional Provider As IFormatProvider = Nothing) As OutputResult(Of System.Text.StringBuilder)
-    If format Is Nothing Then Throw New ArgumentNullException("fs")
+    'If format Is Nothing Then Throw New ArgumentNullException("fs")
     'If Args Is Nothing Then Throw New ArgumentNullException("Args")
     '
     ' This is based on the .net framework implementation of String.Format.
@@ -758,8 +763,10 @@ Public Module Common
     '
     Dim _res_ As New OutputResult(Of System.Text.StringBuilder)
     _res_.Output = New System.Text.StringBuilder()
-
-
+    If format Is Nothing Then
+        Return _res_ 
+    End If
+    
 
     Dim curr As IParsedChar = New ParsedChar(New TheSourceText(format), 0)
     Dim ArgsSupplied = NumOfArgs > 0
@@ -975,7 +982,9 @@ Exit_Function:
 
 
   Private Function ParseValue(ByRef pc As IParsedChar, ct As CancellationToken, Limit As Integer, ByRef ParsingIsInAnErrorState As Boolean) As OutputResult(Of Integer)
+    
     Dim _res_ As New OutputResult(Of Integer)
+    If pc Is Nothing Then Return _res_ 
     Do
       If ct.IsCancellationRequested Then Exit Do
       If Not ParsingIsInAnErrorState Then _res_.Output = (10 * _res_.Output) + DigitValue(pc.Value)

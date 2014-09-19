@@ -27,7 +27,9 @@ Public Class OutputResult(Of T)
   End Sub
 
   Public Function IncludeErrorsFrom(Of Tx)(o As OutputResult(Of Tx)) As OutputResult(Of T)
-    _Errors_.AddRange(o._Errors_)
+      If o Is Nothing then Return Me
+   _Errors_.AddRange(o._Errors_)
+
     Return Me
   End Function
 

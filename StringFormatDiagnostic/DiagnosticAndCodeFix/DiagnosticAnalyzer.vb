@@ -26,7 +26,8 @@ Public Class DiagnosticAnalyzer
 
   Shared Sub New()
     Common.Initialise 
-    End Sub
+  End Sub
+
   Sub New()
     If _A.Count <> 0 Then Exit Sub
     _A.Add("Num", AddressOf Check_Numeric_ToString)
@@ -41,6 +42,11 @@ Public Class DiagnosticAnalyzer
                          addDiagnostic As Action(Of Diagnostic),
                          options As AnalyzerOptions,
                          cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of Microsoft.CodeAnalysis.VisualBasic.SyntaxKind).AnalyzeNode
+    If node Is Nothing Then Exit Sub 
+    If semanticModel Is Nothing Then Exit Sub
+    If options Is Nothing Then Exit Sub
+    If addDiagnostic Is Nothing Then Exit Sub
+ 
     Dim x = CType(node, MemberAccessExpressionSyntax)
     If x Is Nothing Then Exit Sub
     If x.OperatorToken.ValueText = "." Then
@@ -81,6 +87,11 @@ Public Class DiagnosticAnalyzer
                                node As MemberAccessExpressionSyntax,
                                  sm As SemanticModel,
                                addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+    If fn Is Nothing Then Exit Sub
+    If node Is Nothing Then Exit Sub
+    If sm Is Nothing Then Exit sub
+    If addDiagnostic Is Nothing Then Exit Sub
+
     Dim p = CType(node.Parent, InvocationExpressionSyntax)
 
 
@@ -169,22 +180,37 @@ Public Class DiagnosticAnalyzer
 
 
   Public Sub Check_TimeSpan_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+    If node Is Nothing Then Exit Sub
+    If sm Is Nothing Then Exit Sub
+    If addDiagnostic Is Nothing Then Exit Sub
     _Shared_Checker_(AddressOf Analyse_TimeSpan_ToString, node, sm, addDiagnostic, ct)
   End Sub
 
   Public Sub Check_Enum_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+    If node Is Nothing Then Exit Sub
+    If sm Is Nothing Then Exit Sub
+    If addDiagnostic Is Nothing Then Exit Sub
     _Shared_Checker_(AddressOf Analyse_Enum_ToString, node, sm, addDiagnostic, ct)
   End Sub
 
   Public Sub Check_DateTimeOffset_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+    If node Is Nothing Then Exit Sub
+    If sm Is Nothing Then Exit Sub
+    If addDiagnostic Is Nothing Then Exit Sub
     _Shared_Checker_(AddressOf Analyse_DateTimeOffset_ToString, node, sm, addDiagnostic, ct)
   End Sub
 
   Public Sub Check_DateTime_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+    If node Is Nothing Then Exit Sub
+    If sm Is Nothing Then Exit Sub
+    If addDiagnostic Is Nothing Then Exit Sub
     _Shared_Checker_(AddressOf Analyse_DateTime_ToString, node, sm, addDiagnostic, ct)
   End Sub
 
   Public Sub Check_Numeric_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+    If node Is Nothing Then Exit Sub
+    If sm Is Nothing Then Exit Sub
+    If addDiagnostic Is Nothing Then Exit Sub
     _Shared_Checker_(AddressOf Analyse_Numeric_ToString, node, sm, addDiagnostic, ct)
   End Sub
 
@@ -193,6 +219,10 @@ Public Class DiagnosticAnalyzer
                           addDiagnostic As Action(Of Diagnostic),
                           ct As CancellationToken,
                           Optional formatIsFirst As Boolean = True)
+      If node Is Nothing Then Exit Sub
+    If sm Is Nothing Then Exit Sub
+    If addDiagnostic Is Nothing Then Exit Sub
+
     Dim p = CType(node.Parent, InvocationExpressionSyntax)
     Dim args = p.ArgumentList.Arguments
     Select Case args.Count

@@ -8,7 +8,7 @@ Namespace Global.AdamSpeight2008
       Public Class ContainsNoArgs
         Inherits Information
         Public Sub New()
-          MyBase.New("Contains No Args")
+          MyBase.New("No Args Holes were found in format string but parameter args where supplied. Is this correct?")
         End Sub
 
         Shared Private ReadOnly  _Default_ As ContainsNoArgs = New ContainsNoArgs()

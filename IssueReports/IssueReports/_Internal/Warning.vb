@@ -8,7 +8,7 @@ Namespace Global.AdamSpeight2008
       Public Class Warning
         Inherits IssueReports.Warning
         Sub New(Msg As String)
-          MyBase.New(Msg)
+          MyBase.New("(Internal Warning) " & Msg)
         End Sub
       End Class
 

@@ -6,8 +6,8 @@ Namespace Global.AdamSpeight2008
         Public Class Information
           Inherits IssueReports.Information 
           Sub New(Msg As String)
-            MyBase.New(Msg)
-          End Sub
+          MyBase.New("(Internal Info) " & Msg)
+        End Sub
         End Class
 
 
