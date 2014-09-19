@@ -2,30 +2,29 @@ Option Strict On
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.CSharp.Syntax
-Imports Roslyn.StringFormatDiagnostics.CSharp.Exts
-Imports Common
-'Imports Roslyn.StringFormatDiagnostics.CommonExts
-Imports Roslyn.StringFormatDiagnostics.CSharp
+Imports AdamSpeight2008.StringFormatDiagnostic.CSharp
 Imports AdamSpeight2008.StringFormatDiagnostic
+Imports AdamSpeight2008.StringFormatDiagnostic.Common
+Imports AdamSpeight2008.StringFormatDiagnostic.CommonExts
 
 <DiagnosticAnalyzer>
 <ExportDiagnosticAnalyzer(DiagnosticId, LanguageNames.CSharp)>
 Public Class DiagnosticAnalyzer
-  Implements ISyntaxNodeAnalyzer(Of Microsoft.CodeAnalysis.CSharp.SyntaxKind)
+  Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
 
   Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
     Get
       Return ImmutableArray.Create(Rule1, Rule2)
     End Get
   End Property
-  Private ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of CSharp.SyntaxKind) Implements ISyntaxNodeAnalyzer(Of CSharp.SyntaxKind).SyntaxKindsOfInterest
+  Private ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
     Get
-      Return ImmutableArray.Create(CSharp.SyntaxKind.SimpleMemberAccessExpression)
+      Return ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression)
     End Get
   End Property
 
   Shared Sub New()
-    Common.Initialise()
+    Initialise()
   End Sub
   Private Shared _A As New Dictionary(Of String, Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken))
 
@@ -38,7 +37,7 @@ Public Class DiagnosticAnalyzer
     _A.Add("TS", AddressOf Check_TimeSpan_ToString)
   End Sub
 
-  Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of CSharp.SyntaxKind).AnalyzeNode
+  Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
     Dim x = CType(node, MemberAccessExpressionSyntax)
     If x Is Nothing Then Exit Sub
     If x.OperatorToken.ValueText = "." Then
@@ -54,7 +53,7 @@ Public Class DiagnosticAnalyzer
       Dim ArgTypes = Args.GetArgumentTypes(semanticModel, cancellationToken)
       Dim ArgTypeNames = Args.GetArgumentTypesNames(semanticModel, cancellationToken).ToArray
       ' Try to see if it is one the simple ones
-      Dim possibles = From a In Common.Analysis
+      Dim possibles = From a In Analysis
                       Where a(0) = _TypeName
                       Where a(1) = _MethodName
                       Order By a.Count Descending
@@ -71,7 +70,7 @@ Public Class DiagnosticAnalyzer
     End If
   End Sub
 
-  Private Sub _Shared_Checker_(fn As Func(Of CancellationToken, String,Integer, IFormatProvider, OutputResult(Of String)), node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+  Private Sub _Shared_Checker_(fn As Func(Of CancellationToken, String, Integer, IFormatProvider, OutputResult(Of String)), node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
     Dim p = CType(node.Parent, InvocationExpressionSyntax)
     Dim args = p.ArgumentList.Arguments
     Select Case args.Count
@@ -85,7 +84,7 @@ Public Class DiagnosticAnalyzer
           Dim ifp = CType(If(args.Count = 1, Nothing, ArgObjects(1)), IFormatProvider)
           Select Case TheFormatString.Expression.CSharpKind
             Case SyntaxKind.StringLiteralExpression
-              Dim ReportedIssues = fn(ct, Common.DeString(fs.ToString),1, ifp)
+              Dim ReportedIssues = fn(ct, DeString(fs.ToString), 1, ifp)
               For Each ReportedIssue In ReportedIssues.Errors
                 If TypeOf ReportedIssue Is Interfaces.IReportIssueWithPositionAndLength Then
                   Dim ir = DirectCast(ReportedIssue, Interfaces.IReportIssueWithPositionAndLength)
@@ -114,7 +113,7 @@ Public Class DiagnosticAnalyzer
               'Debugger.Break()
               If FoundSymbol.IsExtern Then
                 ' Use usage site for location of Warings, ignore the yield ranges and use the span of ThisIdentifier.
-                Dim ReportedIssues = fn(ct, ConstValue.Value.ToString,1, ifp)
+                Dim ReportedIssues = fn(ct, ConstValue.Value.ToString, 1, ifp)
                 For Each ReportedIssue In ReportedIssues.Errors
                   If TypeOf ReportedIssue Is Interfaces.IReportIssueWithPositionAndLength Then
                     Dim ir = DirectCast(ReportedIssue, Interfaces.IReportIssueWithPositionAndLength)
@@ -122,7 +121,7 @@ Public Class DiagnosticAnalyzer
                       Case DiagnosticSeverity.Info
                         addDiagnostic(AddInformation(TheValueOfTheVariable, ReportedIssue.Message))
                       Case DiagnosticSeverity.Warning
-                        addDiagnostic(AddWarningAtSource (TheValueOfTheVariable, ir.Index, ir.Index + ir.Length, ReportedIssue))
+                        addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, ir.Index, ir.Index + ir.Length, ReportedIssue))
                       Case DiagnosticSeverity.Error
                         addDiagnostic(AddErrorAtSource(TheValueOfTheVariable, ir.Index, ir.Index + ir.Length, ReportedIssue))
                       Case DiagnosticSeverity.Hidden
@@ -143,7 +142,7 @@ Public Class DiagnosticAnalyzer
                       Case DiagnosticSeverity.Warning
                         addDiagnostic(AddWarningAtSource(TheValueOfTheVariable, ir.Index + 1, ir.Index + ir.Length + 1, ReportedIssue))
                       Case DiagnosticSeverity.Error
-                        addDiagnostic(AddErrorAtSource(TheValueOfTheVariable, ir.Index+1 , ir.Index+ir.Length+1, ReportedIssue))
+                        addDiagnostic(AddErrorAtSource(TheValueOfTheVariable, ir.Index + 1, ir.Index + ir.Length + 1, ReportedIssue))
                       Case DiagnosticSeverity.Hidden
                     End Select
                   ElseIf TypeOf ReportedIssue Is Interfaces.IReportIssue Then
@@ -218,7 +217,7 @@ Public Class DiagnosticAnalyzer
                 ElseIf TypeOf ReportedIssue Is Interfaces.IReportIssue Then
                   addDiagnostic(AddInformation(fs, ReportedIssue.Message))
                 End If
-             Next
+              Next
             Case SyntaxKind.IdentifierName
               Dim ThisIdentifier = CType(TheFormatString.Expression, IdentifierNameSyntax)
               If ThisIdentifier Is Nothing Then Exit Sub
@@ -247,7 +246,7 @@ Public Class DiagnosticAnalyzer
                   ElseIf TypeOf ReportedIssue Is Interfaces.IReportIssue Then
                     addDiagnostic(AddInformation(TheValueOfTheVariable, ReportedIssue.Message))
                   End If
-                 Next
+                Next
               Else
                 ' Use the declaration site location ( SpanOfConstantValue ) for the location of the warnings. Also use the yield ranges for the highlighting.              
                 Dim ReportedIssues = AnalyseFormatString(ct, ConstValue.Value.ToString, args.Count - If(FormatIsFirst, 1, 2), ArgObjects.Skip(If(FormatIsFirst, 1, 2)).ToArray, CType(If(FormatIsFirst, Nothing, ArgObjects(0)), IFormatProvider))

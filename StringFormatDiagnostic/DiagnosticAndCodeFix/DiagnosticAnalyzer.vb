@@ -1,13 +1,13 @@
 Option Strict On
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Roslyn.StringFormatDiagnostics.VisualBasic.Exts
-Imports Common
+Imports AdamSpeight2008.StringFormatDiagnostic.VisualBasic
+Imports AdamSpeight2008.StringFormatDiagnostic.Common
 'Imports Roslyn.StringFormatDiagnostics
 Imports AdamSpeight2008.StringFormatDiagnostic
 
 <DiagnosticAnalyzer>
-<ExportDiagnosticAnalyzer(Common.Common.DiagnosticId, LanguageNames.VisualBasic)>
+<ExportDiagnosticAnalyzer(DiagnosticId, LanguageNames.VisualBasic)>
 Public Class DiagnosticAnalyzer
   Implements ISyntaxNodeAnalyzer(Of Microsoft.CodeAnalysis.VisualBasic.SyntaxKind)
   Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
@@ -25,7 +25,7 @@ Public Class DiagnosticAnalyzer
   Private Shared _A As New Dictionary(Of String, Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic),CancellationToken))
 
   Shared Sub New()
-    Common.Initialise 
+    Initialise 
   End Sub
 
   Sub New()
@@ -62,7 +62,7 @@ Public Class DiagnosticAnalyzer
       Dim ArgTypes = Args.GetArgumentTypes(semanticModel, cancellationToken)
       Dim ArgTypeNames = Args.GetArgumentTypesNames(semanticModel, cancellationToken).ToArray
       ' Try to see if it is one the simple ones
-      Dim possibles = From a In Common.Analysis
+      Dim possibles = From a In Analysis
                       Where a(0) = _TypeName
                       Order By a.Count Descending
 
@@ -107,7 +107,7 @@ Public Class DiagnosticAnalyzer
           Dim ifp = CType(If(args.Count = 1, Nothing, ArgObjects(1)), IFormatProvider)
           Select Case TheFormatString.Expression.VisualBasicKind
             Case SyntaxKind.StringLiteralExpression
-              Dim ReportedIssues = fn(ct, Common.DeString(fs.ToString),1, ifp)
+              Dim ReportedIssues = fn(ct, DeString(fs.ToString),1, ifp)
               For Each ReportedIssue In ReportedIssues.Errors
                 If TypeOf ReportedIssue Is Interfaces.IReportIssueWithPositionAndLength Then
                   Dim ir = DirectCast(ReportedIssue, Interfaces.IReportIssueWithPositionAndLength)
