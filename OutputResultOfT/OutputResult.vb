@@ -22,7 +22,7 @@ Public Class OutputResult(Of T)
   End Property
 
   Public Sub AddError(err As IReportIssue)
-    _valid_ = False
+    If TypeOf err IsNot IssueReports.Information Then _valid_ = False
     _Errors_.Add(err)
   End Sub
 
@@ -33,6 +33,10 @@ Public Class OutputResult(Of T)
     Return Me
   End Function
 
-End Class
+    Public Overrides Function ToString() As String
+      Return If(_valid_,"(•)", "( )  = ") & Output.ToString  
+    End Function
+
+  End Class
 
 End Namespace

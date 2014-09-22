@@ -25,6 +25,8 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
 
           Dim fields = CSV.ReadFields
           If fields.Count < 5 Then Continue While
+          Dim indexOfFormatSTring = 0
+          If (Integer.TryParse(fields(2),indexOfFormatSTring ) = False) OrElse (indexOfFormatSTring < 0) Then Continue While 
           _Analysis.Add(fields)
         End While
       End Using
@@ -72,6 +74,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
       Return Diagnostic.Create(Rule2,
                                Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
     End Function
+
     Public Function AddErrorAtSource(node As SyntaxNode, offset As Integer, endoffset As Integer, ri As IReportIssue) As Diagnostic
       Return Diagnostic.Create(Rule2,
                                Location.Create(node.SyntaxTree, TextSpan.FromBounds(node.SpanStart + offset, node.SpanStart + endoffset)), ri.Message)
@@ -97,6 +100,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
     Const _MINUS_ As Char = "-"c
     Const _QUOTE_ As Char = """"c
 #End Region
+
     Const _LIMIT_ As Integer = 1000000  ' This limit is found inside the .net implementation of String.Format.
     Const ExitOnFirst = False
 
@@ -143,7 +147,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
       Return _res_
     End Function
 
-    Private Function Analyse_Custom_Numeric(ct As CancellationToken, format As String, IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Private Function Analyse_Custom_Numeric(ct As CancellationToken, format As String, IndexOffset As Integer, Provider As IFormatProvider, Args As IEnumerable(Of Object)) As OutputResult(Of String)
       Dim _res_ As New OutputResult(Of String)
       '_res_.AddError(New Internal_Information("(Numeric) CustomFormatString Diagnostic Not yet Implemented."))
       If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("format").ToString)) : Return _res_
@@ -228,7 +232,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
       Return _res_
     End Function
 
-    Public Function Analyse_Numeric_ToString(ct As CancellationToken, format As String, IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Public Function Analyse_Numeric_ToString(ct As CancellationToken, format As String, IndexOffset As Integer, Provider As IFormatProvider,Args As IEnumerable(Of Object )) As OutputResult(Of String)
       Dim _res_ As New OutputResult(Of String)
       If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("format").ToString)) : Return _res_
       Dim cf As ICustomFormatter = Nothing
@@ -250,7 +254,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
                   ' Parsed as a standard format string.
                 Else
                   ' Parse as a Custom Numeric format string
-                  _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, IndexOffset, Provider))
+                  _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, IndexOffset, Provider,Args))
                 End If
               Else
                 _res_.AddError(New Errors.UnknownSpecifier(format(0), IndexOffset + 0))
@@ -262,30 +266,30 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
                     ' Parsed as a standard format string.
                   Else
                     ' Parse as a Custom Numeric format string
-                    _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, IndexOffset, Provider))
+                    _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, IndexOffset, Provider,Args))
                   End If
                 Else
                   ' Parse as a Custom Numeric format string
-                  _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, IndexOffset, Provider))
+                  _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, IndexOffset, Provider,Args))
                 End If
               Else
                 _res_.AddError(New Errors.UnknownSpecifier(format(0), IndexOffset + 0))
               End If
             Case Else
               ' Parse as a Custom Numeric format string
-              _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, IndexOffset, Provider))
+              _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, IndexOffset, Provider,Args))
           End Select
 
         Else
           ' parse custon numeric string.
-          _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, IndexOffset, Provider))
+          _res_.IncludeErrorsFrom(Analyse_Custom_Numeric(ct, format, IndexOffset, Provider,Args))
         End If
       End If
       '   _res_.LastParse = ??
       Return _res_
     End Function
 
-    Private Function Analyse_Custom_DateTime(ct As CancellationToken, format As String, IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Private Function Analyse_Custom_DateTime(ct As CancellationToken, format As String, IndexOffset As Integer, Provider As IFormatProvider,Args As IEnumerable(Of Object )) As OutputResult(Of String)
       Dim _res_ As New OutputResult(Of String)
       '_res_.AddError(New Internal_Information("(DateTime) CustomFormatString Diagnostic Not yet Implemented."))
       If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("format").ToString)) : Return _res_
@@ -531,7 +535,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
       Return _res_
     End Function
 
-    Public Function Analyse_DateTime_ToString(ct As CancellationToken, format As String, IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Public Function Analyse_DateTime_ToString(ct As CancellationToken, format As String, IndexOffset As Integer, Provider As IFormatProvider,Args As IEnumerable(Of Object )) As OutputResult(Of String)
       Dim _res_ As New OutputResult(Of String)
       If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("format").ToString)) : Return _res_
       Dim cf As ICustomFormatter = Nothing
@@ -547,13 +551,13 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
         End If
       Else
         ' Custom format string
-        _res_.IncludeErrorsFrom(Analyse_Custom_DateTime(ct, format, IndexOffset, Provider))
+        _res_.IncludeErrorsFrom(Analyse_Custom_DateTime(ct, format, IndexOffset, Provider,args))
       End If
       ''    _res_.LastParse = ??
       Return _res_
     End Function
 
-    Private Function Analyse_Custom_TimeSpan(ct As CancellationToken, format As String, IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Private Function Analyse_Custom_TimeSpan(ct As CancellationToken, format As String, IndexOffset As Integer, Provider As IFormatProvider,Args As IEnumerable(Of Object )) As OutputResult(Of String)
       Dim _res_ As New OutputResult(Of String)
       '_res_.AddError(New Internal_Information("(TimeSpan) CustomFormatString Diagnostic Not yet Implemented."))
       If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("format").ToString)) : Return _res_
@@ -675,7 +679,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
       Return _res_
     End Function
 
-    Public Function Analyse_TimeSpan_ToString(ct As CancellationToken, format As String, IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Public Function Analyse_TimeSpan_ToString(ct As CancellationToken, format As String, IndexOffset As Integer, Provider As IFormatProvider,Args As IEnumerable(Of Object )) As OutputResult(Of String)
       Dim _res_ As New OutputResult(Of String)
       If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("fs").ToString)) : Return _res_
 
@@ -691,13 +695,13 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
         End If
       Else
         ' Custom format string
-        _res_.IncludeErrorsFrom(Analyse_Custom_TimeSpan(ct, format, IndexOffset, Provider))
+        _res_.IncludeErrorsFrom(Analyse_Custom_TimeSpan(ct, format, IndexOffset, Provider,Args))
       End If
       '    _res_.LastParse = ??
       Return _res_
     End Function
 
-    Public Function Analyse_DateTimeOffset_ToString(ct As CancellationToken, format As String, IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Public Function Analyse_DateTimeOffset_ToString(ct As CancellationToken, format As String, IndexOffset As Integer, Provider As IFormatProvider,Args As IEnumerable(Of Object )) As OutputResult(Of String)
       Dim _res_ As New OutputResult(Of String)
       If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("fs").ToString)) : Return _res_
       Dim cf As ICustomFormatter = Nothing
@@ -718,7 +722,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
       Return _res_
     End Function
 
-    Public Function Analyse_Enum_ToString(ct As CancellationToken, format As String, IndexOffset As Integer, Optional Provider As IFormatProvider = Nothing) As OutputResult(Of String)
+    Public Function Analyse_Enum_ToString(ct As CancellationToken, format As String, IndexOffset As Integer, Provider As IFormatProvider, Args As IEnumerable(Of Object)) As OutputResult(Of String)
       Dim _res_ As New OutputResult(Of String)
       If format Is Nothing Then _res_.AddError(New _Internal.Warning(New ArgumentNullException("fs").ToString)) : Return _res_
       Dim cf As ICustomFormatter = Nothing
@@ -744,9 +748,11 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
 
 
 
-    Public Function AnalyseFormatString(ct As CancellationToken, format As String, NumOfArgs As Integer,
-                                           Args As IEnumerable(Of Object),
-                                          Optional Provider As IFormatProvider = Nothing) As OutputResult(Of System.Text.StringBuilder)
+    Public Function AnalyseFormatString(ct As CancellationToken,
+                                        format As String,
+                                        IndexOffset As Integer,
+                                        Provider As IFormatProvider,
+                                        Args As IEnumerable(Of Object)) As OutputResult(Of String) ' System.Text.StringBuilder)
       'If format Is Nothing Then Throw New ArgumentNullException("fs")
       'If Args Is Nothing Then Throw New ArgumentNullException("Args")
       '
@@ -762,11 +768,14 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
       '  FormatString ::= Opening_Brace IndexPart AlignmentPart? FormatPart? Closing_Brace 
       '
       '
+      Dim _out_ As New OutputResult(Of String)
       Dim _res_ As New OutputResult(Of System.Text.StringBuilder)
       _res_.Output = New System.Text.StringBuilder()
       If format Is Nothing Then
-        Return _res_
+        _out_.Output=""
+        Return _out_.IncludeErrorsFrom( _res_)
       End If
+      Dim NumOfArgs = If(Args Is Nothing, 0, Args.Count)
 
 
       Dim curr As IParsedChar = New ParsedChar(New TheSourceText(format), 0)
@@ -817,7 +826,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
           'CurrentCharacter = fr.Curr.Value
           If ArgsSupplied AndAlso Not IsDigit(curr) Then
             ParsingIsInAnErrorState = True
-            _res_.AddError(New Errors.UnexpectedChar(curr.Value, curr.Index))
+            _res_.AddError(New Errors.UnexpectedChar(curr.Value, IndexOffset + curr.Index))
             If ExitOnFirst Then GoTo Exit_Function
           End If
           '
@@ -836,13 +845,13 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
           EndPositionForThisPart = curr.Index - 1
           If ArgsSupplied AndAlso ArgIndex.Output >= _LIMIT_ Then
             ' Index Value is greater or equal to limit.
-            _res_.AddError(New Errors.ArgIndexHasExceedLimit("ArgIndex", ArgIndex.Output, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart)) ' NOTE: Check API
+            _res_.AddError(New Errors.ArgIndexHasExceedLimit("ArgIndex", ArgIndex.Output, _LIMIT_, IndexOffset + StartPositionForThisPart, IndexOffset + EndPositionForThisPart)) ' NOTE: Check API
             InvalidIndex = True
             If ExitOnFirst Then GoTo Exit_Function
           End If
           If ArgsSupplied AndAlso Not ParsingIsInAnErrorState AndAlso (ArgIndex.Output >= NumOfArgs) Then
             ' Index is out of the bounds of the supplied args.
-            _res_.AddError(New Errors.ArgIndexOutOfRange("ArgIndex", ArgIndex.Output, NumOfArgs, StartPositionForThisPart, EndPositionForThisPart))
+            _res_.AddError(New Errors.ArgIndexOutOfRange("ArgIndex", ArgIndex.Output, NumOfArgs, IndexOffset + StartPositionForThisPart, IndexOffset + EndPositionForThisPart))
             ' ToDo: Get the Start and End positions of opening and closing braces.
             InvalidIndex = True
             If ExitOnFirst Then GoTo Exit_Function
@@ -886,7 +895,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
             If ArgsSupplied AndAlso Width.Output >= _LIMIT_ Then
               ' Index Value is greater or equal to limit.
               Dim WidthText = format.Substring(StartPositionForThisPart, (EndPositionForThisPart - StartPositionForThisPart) + 1)
-              _res_.AddError(New Errors.ArgIndexHasExceedLimit("Value when limit was exceeded. ", Width.Output, _LIMIT_, StartPositionForThisPart, EndPositionForThisPart))
+              _res_.AddError(New Errors.ArgIndexHasExceedLimit("Value when limit was exceeded. ", Width.Output, _LIMIT_, IndexOffset + StartPositionForThisPart, IndexOffset + EndPositionForThisPart))
               If ExitOnFirst Then GoTo Exit_Function
             End If
           End If
@@ -935,7 +944,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
           If curr.Value <> Closing_Brace Then
             If ArgsSupplied Then
               ParsingIsInAnErrorState = True
-              _res_.AddError(New Errors.UnexpectedChar(curr.Value, curr.Index))
+              _res_.AddError(New Errors.UnexpectedChar(curr.Value, IndexOffset + curr.Index))
             End If
             If ExitOnFirst Then GoTo Exit_Function
           End If
@@ -978,7 +987,9 @@ Exit_Function:
       If internalError IsNot Nothing Then _res_.AddError(internalError)
       _res_.AddError(New Info.FinalOutput(_res_.Output.ToString))
       _res_.LastParse = curr
-      Return _res_
+      _out_.IncludeErrorsFrom(_res_)
+      _out_.LastParse =_res_.LastParse 
+      Return _out_
     End Function
 
 
