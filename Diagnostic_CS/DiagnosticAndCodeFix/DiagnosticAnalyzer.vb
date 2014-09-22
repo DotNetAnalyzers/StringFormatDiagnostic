@@ -27,7 +27,7 @@ Public Class DiagnosticAnalyzer
     Initialise()
   End Sub
   Private Shared _DictOfAnalysers As New Dictionary(Of String,
-    Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken))
+    Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken,Integer))
 
   Sub New()
     If _DictOfAnalysers.Count <> 0 Then Exit Sub
@@ -67,7 +67,7 @@ Public Class DiagnosticAnalyzer
           ' What is the name of the analyser to use
           If _DictOfAnalysers.ContainsKey(possible(3)) Then
             Dim Validator = _DictOfAnalysers(possible(3))
-            Validator(x, semanticModel, addDiagnostic, cancellationToken)
+            Validator(x, semanticModel, addDiagnostic, cancellationToken, Integer.Parse(possible(2)))
             Exit Sub
           End If
 
@@ -77,13 +77,13 @@ Public Class DiagnosticAnalyzer
   End Sub
 
   Private Sub _Shared_Checker_(fn As Func(Of CancellationToken, String, Integer, IFormatProvider, IEnumerable(Of Object), OutputResult(Of String)),
-                                node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+                                node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken,fsi as Integer)
     Dim p = CType(node.Parent, InvocationExpressionSyntax)
     Dim args = p.ArgumentList.Arguments
     Select Case args.Count
       Case 0 ' Error
-      Case Else
-        Dim fs = args.First
+      Case Is > 0
+        Dim fs = args(fsi)' args.First
         If fs.IsMissing Then Exit Sub
         Dim TheFormatString = CType(fs, ArgumentSyntax)
         If TheFormatString IsNot Nothing Then
@@ -167,47 +167,47 @@ Public Class DiagnosticAnalyzer
 
 
 
-  Public Sub Check_FormatString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+  Public Sub Check_FormatString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken,fsi AS Integer)
     If node Is Nothing Then Exit Sub
     If sm Is Nothing Then Exit Sub
     If addDiagnostic Is Nothing Then Exit Sub
     'DoValidation(node, sm, addDiagnostic, ct)
-    _Shared_Checker_(AddressOf AnalyseFormatString, node, sm, addDiagnostic, ct)
+    _Shared_Checker_(AddressOf AnalyseFormatString, node, sm, addDiagnostic, ct,fsi)
   End Sub
 
-  Public Sub Check_TimeSpan_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+  Public Sub Check_TimeSpan_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken,fsi AS Integer)
     If node Is Nothing Then Exit Sub
     If sm Is Nothing Then Exit Sub
     If addDiagnostic Is Nothing Then Exit Sub
-    _Shared_Checker_(AddressOf Analyse_TimeSpan_ToString, node, sm, addDiagnostic, ct)
+    _Shared_Checker_(AddressOf Analyse_TimeSpan_ToString, node, sm, addDiagnostic, ct,fsi)
   End Sub
 
-  Public Sub Check_Enum_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+  Public Sub Check_Enum_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken,fsi AS Integer)
     If node Is Nothing Then Exit Sub
     If sm Is Nothing Then Exit Sub
     If addDiagnostic Is Nothing Then Exit Sub
-    _Shared_Checker_(AddressOf Analyse_Enum_ToString, node, sm, addDiagnostic, ct)
+    _Shared_Checker_(AddressOf Analyse_Enum_ToString, node, sm, addDiagnostic, ct,fsi)
   End Sub
 
-  Public Sub Check_DateTimeOffset_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+  Public Sub Check_DateTimeOffset_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken,fsi AS Integer)
     If node Is Nothing Then Exit Sub
     If sm Is Nothing Then Exit Sub
     If addDiagnostic Is Nothing Then Exit Sub
-    _Shared_Checker_(AddressOf Analyse_DateTimeOffset_ToString, node, sm, addDiagnostic, ct)
+    _Shared_Checker_(AddressOf Analyse_DateTimeOffset_ToString, node, sm, addDiagnostic, ct,fsi)
   End Sub
 
-  Public Sub Check_DateTime_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+  Public Sub Check_DateTime_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken,fsi AS Integer)
     If node Is Nothing Then Exit Sub
     If sm Is Nothing Then Exit Sub
     If addDiagnostic Is Nothing Then Exit Sub
-    _Shared_Checker_(AddressOf Analyse_DateTime_ToString, node, sm, addDiagnostic, ct)
+    _Shared_Checker_(AddressOf Analyse_DateTime_ToString, node, sm, addDiagnostic, ct,fsi)
   End Sub
 
-  Public Sub Check_Numeric_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken)
+  Public Sub Check_Numeric_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken,fsi AS Integer)
     If node Is Nothing Then Exit Sub
     If sm Is Nothing Then Exit Sub
     If addDiagnostic Is Nothing Then Exit Sub
-    _Shared_Checker_(AddressOf Analyse_Numeric_ToString, node, sm, addDiagnostic, ct)
+    _Shared_Checker_(AddressOf Analyse_Numeric_ToString, node, sm, addDiagnostic, ct,fsi)
   End Sub
 
 

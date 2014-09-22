@@ -64,12 +64,12 @@ Namespace My.Resources
         '''  Looks up a localized string similar to // TypeName , MethodName , UseAnalyser  FormatStringArgIndex, ArgTypes()
         '''&quot;System.String&quot;, &quot;Format&quot;, 1,&quot;SF&quot;, &quot;System.String&quot;
         '''&quot;System.String&quot;, &quot;Format&quot;, 1,&quot;SF&quot;, &quot;System.IFormatProvider&quot;,&quot;System.String&quot;
-        '''&quot;System.String&quot;, &quot;Format&quot;, 1,&quot;SF&quot;, &quot;System.String&quot;,&quot;System.Object&quot;
-        '''&quot;System.String&quot;, &quot;Format&quot;, 1,&quot;SF&quot;, &quot;System.String&quot;
+        '''//&quot;System.String&quot;, &quot;Format&quot;, 1,&quot;SF&quot;, &quot;System.String&quot;,&quot;System.Object&quot;
+        '''//&quot;System.String&quot;, &quot;Format&quot;, 1,&quot;SF&quot;, &quot;System.String&quot;,&quot;System.Object()&quot;
+        '''//&quot;System.String&quot;, &quot;Format&quot;, 1,&quot;SF&quot;, &quot;System.String&quot;
         '''&quot;System.Console&quot;, &quot;Write&quot;, 1,&quot;SF&quot;, &quot;System.String&quot;
         '''&quot;System.Console&quot;, &quot;WriteLine&quot;, 1,&quot;SF&quot;, &quot;System.String&quot;
-        '''&quot;System.Diagnostics.Debug&quot;, &quot;WriteLine&quot;, 1,&quot;SF&quot;, &quot;System.String&quot;
-        '''&quot;System.IO.Text [rest of string was truncated]&quot;;.
+        '''&quot;Syst [rest of string was truncated]&quot;;.
         '''</summary>
         Friend ReadOnly Property AnalyserList() As String
             Get
