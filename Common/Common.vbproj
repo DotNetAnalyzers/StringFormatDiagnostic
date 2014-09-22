@@ -118,6 +118,7 @@
   <ItemGroup>
     <Compile Include="Common.vb" />
     <Compile Include="%28CS%29\Exts - %28CS%29.vb" />
+    <Compile Include="Common_StringFormat.vb" />
     <Compile Include="Exts.vb" />
     <Compile Include="%28VB%29\Exts - %28VB%29.vb" />
     <Compile Include="My Project\Application.Designer.vb">
