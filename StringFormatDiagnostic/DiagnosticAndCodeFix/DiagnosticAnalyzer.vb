@@ -9,111 +9,113 @@ Imports AdamSpeight2008.StringFormatDiagnostic
 <DiagnosticAnalyzer>
 <ExportDiagnosticAnalyzer(DiagnosticId, LanguageNames.VisualBasic)>
 Public Class DiagnosticAnalyzer
-  Implements ISyntaxNodeAnalyzer(Of Microsoft.CodeAnalysis.VisualBasic.SyntaxKind)
-  Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
-    Get
-      Return ImmutableArray.Create(Rule1, Rule2)
-    End Get
-  End Property
+    Implements ISyntaxNodeAnalyzer(Of Microsoft.CodeAnalysis.VisualBasic.SyntaxKind)
+    Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
+        Get
+            Return ImmutableArray.Create(Rule1, Rule2)
+        End Get
+    End Property
 
-  Private ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-    Get
-      Return ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression)
-    End Get
-  End Property
+    Private ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
+        Get
+            Return ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression)
+        End Get
+    End Property
 
-  Private Shared _DictOfAnalysers As New Dictionary(Of String,
-    Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken,integer))
+    Private Shared _DictOfAnalysers As New Dictionary(Of String,
+      Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer,IEnumerable(Of Object )))
 
-  Shared Sub New()
-    Initialise()
-  End Sub
+    Shared Sub New()
+        Initialise()
+    End Sub
 
-  Sub New()
-    If _DictOfAnalysers.Count <> 0 Then Exit Sub
+    Sub New()
+        If _DictOfAnalysers.Count <> 0 Then Exit Sub
 
-    _DictOfAnalysers.Add("SF",AddressOf  Check_FormatString)
-    _DictOfAnalysers.Add("Num", AddressOf Check_Numeric_ToString)
-    _DictOfAnalysers.Add("Date", AddressOf Check_DateTime_ToString)
-    _DictOfAnalysers.Add("Enum", AddressOf Check_Enum_ToString)
-    _DictOfAnalysers.Add("DateOff", AddressOf Check_DateTimeOffset_ToString)
-    _DictOfAnalysers.Add("TS", AddressOf Check_TimeSpan_ToString)
-  End Sub
+        _DictOfAnalysers.Add("SF", AddressOf Check_FormatString)
+        _DictOfAnalysers.Add("Num", AddressOf Check_Numeric_ToString)
+        _DictOfAnalysers.Add("Date", AddressOf Check_DateTime_ToString)
+        _DictOfAnalysers.Add("Enum", AddressOf Check_Enum_ToString)
+        _DictOfAnalysers.Add("DateOff", AddressOf Check_DateTimeOffset_ToString)
+        _DictOfAnalysers.Add("TS", AddressOf Check_TimeSpan_ToString)
+    End Sub
 
-  Public Sub AnalyzeNode(node As SyntaxNode,
-                         semanticModel As SemanticModel,
-                         addDiagnostic As Action(Of Diagnostic),
-                         options As AnalyzerOptions,
-                         cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of Microsoft.CodeAnalysis.VisualBasic.SyntaxKind).AnalyzeNode
-    If node Is Nothing Then Exit Sub
-    If semanticModel Is Nothing Then Exit Sub
-    If options Is Nothing Then Exit Sub
-    If addDiagnostic Is Nothing Then Exit Sub
+    Public Sub AnalyzeNode(node As SyntaxNode,
+                           semanticModel As SemanticModel,
+                           addDiagnostic As Action(Of Diagnostic),
+                           options As AnalyzerOptions,
+                           cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of Microsoft.CodeAnalysis.VisualBasic.SyntaxKind).AnalyzeNode
+        If node Is Nothing Then Exit Sub
+        If semanticModel Is Nothing Then Exit Sub
+        If options Is Nothing Then Exit Sub
+        If addDiagnostic Is Nothing Then Exit Sub
 
-    Dim x = CType(node, MemberAccessExpressionSyntax)
-    If x Is Nothing Then Exit Sub
-    If x.OperatorToken.ValueText = "." Then
-      Dim _MethodName = x.Name.ToString
-      If _MethodName = "" Then Exit Sub
-      Dim _CalledOnObjOfType = x.CalledOnType(semanticModel, cancellationToken)
-      Dim _TypeName = If(_CalledOnObjOfType Is Nothing, "", _CalledOnObjOfType.ToFullyQualifiedName)
-      Dim _TypeNameA() = _TypeName.Split("."c)
-      Dim _InvokeExpr = TryCast(x.Parent, InvocationExpressionSyntax)
-      If _InvokeExpr Is Nothing Then Exit Sub
-      Dim Args = _InvokeExpr.ArgumentList
+        Dim x = CType(node, MemberAccessExpressionSyntax)
+        If x Is Nothing Then Exit Sub
+        If x.OperatorToken.ValueText = "." Then
+            Dim _MethodName = x.Name.ToString
+            If _MethodName = "" Then Exit Sub
+            Dim _CalledOnObjOfType = x.CalledOnType(semanticModel, cancellationToken)
+            Dim _TypeName = If(_CalledOnObjOfType Is Nothing, "", _CalledOnObjOfType.ToFullyQualifiedName)
+            Dim _TypeNameA() = _TypeName.Split("."c)
+            Dim _InvokeExpr = TryCast(x.Parent, InvocationExpressionSyntax)
+            If _InvokeExpr Is Nothing Then Exit Sub
+            Dim Args = _InvokeExpr.ArgumentList
+      Dim ArgObjs = Args.GetArgumentAsObjects(semanticModel,cancellationToken)
 
-      Dim ArgTypes = Args.GetArgumentTypes(semanticModel, cancellationToken)
-      Dim ArgTypeNames = Args.GetArgumentTypesNames(semanticModel, cancellationToken).ToArray
-      ' Try to see if it is one the simple ones
-      Dim possibles = From a In Analysis
-                      Where a(0) = _TypeName
-                      Order By a.Count Descending
+            Dim ArgTypes = Args.GetArgumentTypes(semanticModel, cancellationToken)
+            Dim ArgTypeNames = Args.GetArgumentTypesNames(semanticModel, cancellationToken).ToArray
+            ' Try to see if it is one the simple ones
+            Dim possibles = From a In Analysis
+                            Where a(0) = _TypeName
+                            Order By a.Count Descending
 
-      If possibles.Any() = False Then Exit Sub
-      For Each possible In possibles
-        ' See if method arg params begin the same.
-        If ArgTypeNames.Begins(possible.Skip(4).ToArray) Then
-          ' What is the name of the analyser to use
-          If _DictOfAnalysers.ContainsKey(possible(3)) Then
-            Dim Validator = _DictOfAnalysers(possible(3))
-            Validator(x, semanticModel,addDiagnostic, cancellationToken,Integer.Parse(possible(2)))
-            Exit Sub
-          End If
-       
+            If possibles.Any() = False Then Exit Sub
+            For Each possible In possibles
+                ' See if method arg params begin the same.
+                If ArgTypeNames.Begins(possible.Skip(4).ToArray) Then
+                    ' What is the name of the analyser to use
+                    If _DictOfAnalysers.ContainsKey(possible(3)) Then
+                        Dim Validator = _DictOfAnalysers(possible(3))
+                        Validator(x, semanticModel, addDiagnostic, cancellationToken, Integer.Parse(possible(2)),ArgObjs)
+                        Exit Sub
+                    End If
+
+                End If
+            Next
         End If
-      Next
-    End If
-  End Sub
+    End Sub
 
-  Private Sub _Shared_Checker_(fn As Func(Of CancellationToken, String, Integer, IFormatProvider,IEnumerable(Of Object), OutputResult(Of String)),
-                               node As MemberAccessExpressionSyntax,
-                                 sm As SemanticModel,
-                               addDiagnostic As Action(Of Diagnostic), ct As CancellationToken,FSIndex AS INteger)
+  Private Sub _Shared_Checker_(fn As Func(Of CancellationToken, String, Integer, IFormatProvider, IEnumerable(Of Object), OutputResult(Of String)),
+                                 node As MemberAccessExpressionSyntax,
+                                   sm As SemanticModel,
+                                 addDiagnostic As Action(Of Diagnostic), ct As CancellationToken, FSIndex As Integer,
+                                        Args As IEnumerable(Of Object))
     If fn Is Nothing Then Exit Sub
     If node Is Nothing Then Exit Sub
-    If sm Is Nothing Then Exit sub
+    If sm Is Nothing Then Exit Sub
     If addDiagnostic Is Nothing Then Exit Sub
     If FSIndex < 0 Then Exit Sub
 
     Dim p = CType(node.Parent, InvocationExpressionSyntax)
 
 
-    Dim args = p.ArgumentList.Arguments
+    'Dim args = p.ArgumentList.Arguments
     Select Case args.Count
       Case 0 ' Error
-      Case Is >0
-        Dim fs =args(FSIndex) 'args.First
+      Case Is > 0
+        Dim fs = p.ArgumentList.Arguments(FSIndex) 'args.First
         If TypeOf fs Is OmittedArgumentSyntax Then Exit Sub
         Dim TheFormatString = CType(fs, SimpleArgumentSyntax)
         If TheFormatString IsNot Nothing Then
-          Dim ArgObjects = p.ArgumentList.GetArgumentAsObjects(sm, ct)
-          Dim fp = ArgObjects.TakeWhile(Function(a) TypeOf a IsNot IFormatProvider)
-          Dim sk = fp.Count-1
-          Dim ifp = CType(If(sk < 0, Nothing, ArgObjects(sk + 1)), IFormatProvider) ' CType(If(args.Count = 1, Nothing, ArgObjects(1)), IFormatProvider)
-          ArgObjects = If(sk<0,{},ArgObjects.Skip(sk))
+          'Dim ArgObjects = p.ArgumentList.GetArgumentAsObjects(sm, ct)
+          Dim fp = args.TakeWhile(Function(a) TypeOf a IsNot IFormatProvider)
+          Dim sk = (Args.Count - fp.Count) - 1
+          Dim ifp = CType(If(sk < 0, Nothing, Args(sk + 1)), IFormatProvider) ' CType(If(args.Count = 1, Nothing, ArgObjects(1)), IFormatProvider)
+          args = If(sk < 0, args.Skip(FSIndex+1), args.Skip(sk))
           Select Case TheFormatString.Expression.VisualBasicKind
             Case SyntaxKind.StringLiteralExpression
-              Dim ReportedIssues = fn(ct, DeString(fs.ToString), 1, ifp, ArgObjects)
+              Dim ReportedIssues = fn(ct, DeString(fs.ToString), 1, ifp, args)
               For Each ReportedIssue In ReportedIssues.Errors
                 If TypeOf ReportedIssue Is Interfaces.IReportIssueWithPositionAndLength Then
                   Dim ir = DirectCast(ReportedIssue, Interfaces.IReportIssueWithPositionAndLength)
@@ -142,7 +144,7 @@ Public Class DiagnosticAnalyzer
               'Debugger.Break()
               If FoundSymbol.IsExtern Then
                 ' Use usage site for location of Warings, ignore the yield ranges and use the span of ThisIdentifier.
-                Dim ReportedIssues = fn(ct, ConstValue.Value.ToString, 0, ifp, ArgObjects)
+                Dim ReportedIssues = fn(ct, ConstValue.Value.ToString, 0, ifp, args)
                 For Each ReportedIssue In ReportedIssues.Errors
                   If TypeOf ReportedIssue Is Interfaces.IReportIssueWithPositionAndLength Then
                     Dim ir = DirectCast(ReportedIssue, Interfaces.IReportIssueWithPositionAndLength)
@@ -161,7 +163,7 @@ Public Class DiagnosticAnalyzer
                 Next
               Else
                 ' Use the declaration site location ( SpanOfConstantValue ) for the location of the warnings. Also use the yield ranges for the highlighting.              
-                Dim ReportedIssues = fn(ct, ConstValue.Value.ToString, 0, ifp, ArgObjects)
+                Dim ReportedIssues = fn(ct, ConstValue.Value.ToString, 0, ifp, args)
                 For Each ReportedIssue In ReportedIssues.Errors
                   If TypeOf ReportedIssue Is Interfaces.IReportIssueWithPositionAndLength Then
                     Dim ir = DirectCast(ReportedIssue, Interfaces.IReportIssueWithPositionAndLength)
@@ -184,47 +186,47 @@ Public Class DiagnosticAnalyzer
     End Select
   End Sub
 
-  Public Sub Check_FormatString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken,fsi AS Integer)
-    'If node Is Nothing Then Exit Sub
-    'If sm Is Nothing Then Exit Sub
-    'If addDiagnostic Is Nothing Then Exit Sub
-    'DoValidation(node, sm, addDiagnostic, ct)
-     _Shared_Checker_(AddressOf AnalyseFormatString, node, sm, addDiagnostic, ct,fsi)
-  End Sub
+  Public Sub Check_FormatString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken, fsi As Integer,ArgObjs As IEnumerable(Of Object))
+        'If node Is Nothing Then Exit Sub
+        'If sm Is Nothing Then Exit Sub
+        'If addDiagnostic Is Nothing Then Exit Sub
+        'DoValidation(node, sm, addDiagnostic, ct)
+        _Shared_Checker_(AddressOf AnalyseFormatString, node, sm, addDiagnostic, ct, fsi,ArgObjs )
+    End Sub
 
-  Public Sub Check_TimeSpan_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken,fsi AS Integer)
+    Public Sub Check_TimeSpan_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken, fsi As Integer,ArgObjs As IEnumerable(Of Object))
+        If node Is Nothing Then Exit Sub
+        If sm Is Nothing Then Exit Sub
+        If addDiagnostic Is Nothing Then Exit Sub
+        _Shared_Checker_(AddressOf Analyse_TimeSpan_ToString, node, sm, addDiagnostic, ct, fsi,ArgObjs)
+    End Sub
+
+    Public Sub Check_Enum_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken, fsi As Integer,ArgObjs As IEnumerable(Of Object))
+        If node Is Nothing Then Exit Sub
+        If sm Is Nothing Then Exit Sub
+        If addDiagnostic Is Nothing Then Exit Sub
+        _Shared_Checker_(AddressOf Analyse_Enum_ToString, node, sm, addDiagnostic, ct, fsi,ArgObjs)
+    End Sub
+
+    Public Sub Check_DateTimeOffset_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken, fsi As Integer,ArgObjs As IEnumerable(Of Object))
+        If node Is Nothing Then Exit Sub
+        If sm Is Nothing Then Exit Sub
+        If addDiagnostic Is Nothing Then Exit Sub
+        _Shared_Checker_(AddressOf Analyse_DateTimeOffset_ToString, node, sm, addDiagnostic, ct, fsi,ArgObjs)
+    End Sub
+
+    Public Sub Check_DateTime_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken, fsi As Integer,ArgObjs As IEnumerable(Of Object))
+        If node Is Nothing Then Exit Sub
+        If sm Is Nothing Then Exit Sub
+        If addDiagnostic Is Nothing Then Exit Sub
+        _Shared_Checker_(AddressOf Analyse_DateTime_ToString, node, sm, addDiagnostic, ct, fsi,ArgObjs )
+    End Sub
+
+  Public Sub Check_Numeric_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken, fsi As Integer, ArgObjs As IEnumerable(Of Object))
     If node Is Nothing Then Exit Sub
     If sm Is Nothing Then Exit Sub
     If addDiagnostic Is Nothing Then Exit Sub
-    _Shared_Checker_(AddressOf Analyse_TimeSpan_ToString, node, sm, addDiagnostic, ct,fsi)
-  End Sub
-
-  Public Sub Check_Enum_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken,fsi AS Integer)
-    If node Is Nothing Then Exit Sub
-    If sm Is Nothing Then Exit Sub
-    If addDiagnostic Is Nothing Then Exit Sub
-    _Shared_Checker_(AddressOf Analyse_Enum_ToString, node, sm, addDiagnostic, ct,fsi)
-  End Sub
-
-  Public Sub Check_DateTimeOffset_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken,fsi AS Integer)
-    If node Is Nothing Then Exit Sub
-    If sm Is Nothing Then Exit Sub
-    If addDiagnostic Is Nothing Then Exit Sub
-    _Shared_Checker_(AddressOf Analyse_DateTimeOffset_ToString, node, sm, addDiagnostic, ct,fsi)
-  End Sub
-
-  Public Sub Check_DateTime_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken,fsi AS Integer)
-    If node Is Nothing Then Exit Sub
-    If sm Is Nothing Then Exit Sub
-    If addDiagnostic Is Nothing Then Exit Sub
-    _Shared_Checker_(AddressOf Analyse_DateTime_ToString, node, sm, addDiagnostic, ct,fsi)
-  End Sub
-
-  Public Sub Check_Numeric_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken, fsi As Integer)
-    If node Is Nothing Then Exit Sub
-    If sm Is Nothing Then Exit Sub
-    If addDiagnostic Is Nothing Then Exit Sub
-    _Shared_Checker_(AddressOf Analyse_Numeric_ToString, node, sm, addDiagnostic, ct, fsi)
+    _Shared_Checker_(AddressOf Analyse_Numeric_ToString, node, sm, addDiagnostic, ct, fsi, ArgObjs)
   End Sub
 
 
