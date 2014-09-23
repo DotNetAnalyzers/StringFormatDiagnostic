@@ -11,7 +11,9 @@ Imports AdamSpeight2008.StringFormatDiagnostic.IssueReports
 Imports AdamSpeight2008.StringFormatDiagnostic.Common
 Imports Common
 
-Namespace AdamSpeight2008.StringFormatDiagnostics.Analysers
+Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Analysers
+
+  <HideModuleName>
   Public Module [Enum]
 
     Public Function Analyse_Enum_ToString(ct As CancellationToken, format As String, IndexOffset As Integer, Provider As IFormatProvider, Args As IEnumerable(Of Object)) As OutputResult(Of String)

@@ -6,7 +6,7 @@ Imports AdamSpeight2008.StringFormatDiagnostic.CSharp
 Imports AdamSpeight2008.StringFormatDiagnostic
 Imports AdamSpeight2008.StringFormatDiagnostic.Common
 Imports AdamSpeight2008.StringFormatDiagnostic.CommonExts
-
+Imports AdamSpeight2008.StringFormatDiagnostic.Analysers
 <DiagnosticAnalyzer>
 <ExportDiagnosticAnalyzer(DiagnosticId, LanguageNames.CSharp)>
 Public Class DiagnosticAnalyzer

@@ -11,7 +11,9 @@ Imports AdamSpeight2008.StringFormatDiagnostic.IssueReports
 Imports AdamSpeight2008.StringFormatDiagnostic.Common
 Imports Common
 
-Namespace AdamSpeight2008.StringFormatDiagnostics.Analysers
+Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Analysers
+
+  <HideModuleName>
   Public Module DateTimeSpan
     Private Function Analyse_Custom_TimeSpan(ct As CancellationToken, format As String, IndexOffset As Integer, Provider As IFormatProvider, Args As IEnumerable(Of Object)) As OutputResult(Of String)
       Dim _res_ As New OutputResult(Of String)

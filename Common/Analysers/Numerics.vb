@@ -11,7 +11,9 @@ Imports AdamSpeight2008.StringFormatDiagnostic.IssueReports
 Imports AdamSpeight2008.StringFormatDiagnostic.Common
 Imports Common
 
-Namespace AdamSpeight2008.StringFormatDiagnostics.Analysers
+Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Analysers
+
+  <HideModuleName>
   Public Module Numerics
 
     Private Function ExponentValue(pc As IParsedChar) As OutputResult(Of Integer)
@@ -70,14 +72,14 @@ Namespace AdamSpeight2008.StringFormatDiagnostics.Analysers
               Case "-"c
                 Curr = Curr.Next
                 If Curr.IsEoT Then Return _res_.AddError(Errors.UnexpectedlyReachedEndOfText.Default).LastParse(Curr)
-                If Not Curr.IsDigit Then _res_.AddError(New Errors.UnexpectedChar(Curr.Value, IndexOffset + Curr.Index)) : Exit Select
+                If Not Curr.IsDigit Then Return _res_.AddError(New Errors.UnexpectedChar(Curr.Value, IndexOffset + Curr.Index)).LastParse(Curr)
                 Dim pr = ExponentValue(Curr)
                 _res_.IncludeErrorsFrom(pr)
                 Curr = pr.Last
               Case "+"c
                 Curr = Curr.Next
                 If Curr.IsEoT Then Return _res_.AddError(Errors.UnexpectedlyReachedEndOfText.Default).LastParse(Curr)
-                If Not Curr.IsDigit Then _res_.AddError(New Errors.UnexpectedChar(Curr.Value, IndexOffset + Curr.Index)) : Exit Select
+                If Not Curr.IsDigit Then Return _res_.AddError(New Errors.UnexpectedChar(Curr.Value, IndexOffset + Curr.Index)).LastParse(Curr)
                 Dim pr = ExponentValue(Curr)
                 _res_.IncludeErrorsFrom(pr)
                 Curr = pr.Last

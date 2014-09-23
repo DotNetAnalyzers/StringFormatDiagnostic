@@ -5,6 +5,7 @@ Imports AdamSpeight2008.StringFormatDiagnostic.VisualBasic
 Imports AdamSpeight2008.StringFormatDiagnostic.Common
 'Imports Roslyn.StringFormatDiagnostics
 Imports AdamSpeight2008.StringFormatDiagnostic
+Imports  AdamSpeight2008.StringFormatDiagnostic.Analysers
 
 <DiagnosticAnalyzer>
 <ExportDiagnosticAnalyzer(DiagnosticId, LanguageNames.VisualBasic)>
@@ -192,10 +193,6 @@ Public Class DiagnosticAnalyzer
   End Sub
 
   Public Sub Check_FormatString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken, fsi As Integer, ArgObjs As IEnumerable(Of Object))
-    'If node Is Nothing Then Exit Sub
-    'If sm Is Nothing Then Exit Sub
-    'If addDiagnostic Is Nothing Then Exit Sub
-    'DoValidation(node, sm, addDiagnostic, ct)
     _Shared_Checker_(AddressOf Common_StringFormat.AnalyseFormatString, node, sm, addDiagnostic, ct, fsi, ArgObjs)
   End Sub
 
