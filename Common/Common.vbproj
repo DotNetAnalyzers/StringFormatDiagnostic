@@ -116,6 +116,11 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analysers\DateTime.vb" />
+    <Compile Include="Analysers\DateTimeOffset.vb" />
+    <Compile Include="Analysers\DateTimeSpan.vb" />
+    <Compile Include="Analysers\Enum.vb" />
+    <Compile Include="Analysers\Numerics.vb" />
     <Compile Include="Common.vb" />
     <Compile Include="%28CS%29\Exts - %28CS%29.vb" />
     <Compile Include="Common_StringFormat.vb" />
