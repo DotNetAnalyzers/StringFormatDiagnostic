@@ -104,6 +104,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
 
           Dim ArgIndex = ParseValue(curr, ct, _LIMIT_, ParsingIsInAnErrorState)
           _res_.IncludeErrorsFrom(ArgIndex)
+          curr = ArgIndex.Last
           ' Why did we exit?
           ArgsCounted += 1
           EndPositionForThisPart = curr.Index - 1
@@ -154,6 +155,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
             EndPositionForThisPart = curr.Index
             Width = ParseValue(curr, ct, _LIMIT_, ParsingIsInAnErrorState)
             _res_.IncludeErrorsFrom(Width)
+            curr = Width.Last
             ' Why did we exit?
             EndPositionForThisPart = curr.Index - 1
             If ArgsSupplied AndAlso Width.Output >= _LIMIT_ Then
@@ -167,7 +169,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
           If ArgsSupplied AndAlso Not ParsingIsInAnErrorState AndAlso (curr Is Nothing) Then _res_.AddError(Errors.UnexpectedlyReachedEndOfText.Default) : GoTo Exit_Function
           Dim _ResultOfParsingFormatString = Parse_Format(curr, ct, ArgsSupplied)
           _res_.IncludeErrorsFrom(_ResultOfParsingFormatString)
-          curr = _ResultOfParsingFormatString.LastParse
+          curr = _ResultOfParsingFormatString.Last
 
           Dim fmt = _ResultOfParsingFormatString.Output
 
@@ -224,11 +226,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
       End Try
 Exit_Function:
       If internalError IsNot Nothing Then _res_.AddError(internalError)
-      _res_.AddError(New Info.FinalOutput(_res_.Output.ToString))
-      _res_.LastParse = curr
-      _out_.IncludeErrorsFrom(_res_)
-      _out_.LastParse = _res_.LastParse
-      Return _out_
+      Return _out_.IncludeErrorsFrom( _res_.AddError(New Info.FinalOutput(_res_.Output.ToString)).LastParse(curr)).LastParse(_res_.Last )
     End Function
 
     Private Function Valid_Format_For_Type(fs As String, obj As Object) As OutputResult(Of String)
@@ -283,10 +281,9 @@ Exit_Function:
       End If
 Exit_Function:
       _res_.Output = fmt
-      _res_.LastParse = curr
-      Return _res_
+      Return _res_.LastParse(curr)
     End Function
 
   End Module
 
-  End Namespace
+End Namespace

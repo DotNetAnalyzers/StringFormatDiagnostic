@@ -11,21 +11,45 @@ Imports AdamSpeight2008.StringFormatDiagnostic
 Namespace Global.AdamSpeight2008.StringFormatDiagnostic
   Public Module CommonExts
     <Extension>
+    Public Function AnyIsNull(Of T As Class)(a() As T) As Boolean
+      If a Is Nothing Then Return True
+      For i = 0 To a.Count - 1
+        If a(i) Is Nothing Then Return True
+      Next
+      Return False
+    End Function
+
+    <Extension>
     Public Function Are(Of T As IComparable(Of T))(xs As IEnumerable(Of T), ys As IEnumerable(Of T)) As Boolean
-      If xs Is Nothing Then Return False
-      If ys Is Nothing Then Return False 
+      If {xs, ys}.AnyIsNull Then Return False
       Return xs.SequenceEqual(ys)
     End Function
+
     <Extension>
-    Public Function Begins(Of T As IComparable(Of T))(xs As IList(Of T), ys As IList(Of T)) As Boolean
-      If xs Is Nothing Then Return False 
-      If ys Is Nothing Then Return False 
+    Public Function BeginsWith(Of T As IComparable(Of T))(xs As IList(Of T), ys As IList(Of T)) As Boolean
+      If {xs, ys}.AnyIsNull Then Return False
       If xs.Count < ys.Count Then Return False
       For i = 0 To ys.Count - 1
         If xs(i).CompareTo(ys(i)) <> 0 Then Return False
       Next
       Return True
     End Function
+
+    Public Enum lusive As Integer
+      Inc = 1
+      Exc = 0
+    End Enum
+
+    <Extension>
+    Function IsBetween(Of T As IComparable(Of T))(value As T,
+                                                   lowerValue As T,
+                                                   upperValue As T,
+                                                   Optional lclus As lusive = lusive.Inc,
+                                                   Optional uclus As lusive = lusive.Exc
+                                                   ) As Boolean
+      Return (lowerValue.CompareTo(value) <= lclus) AndAlso (value.CompareTo(upperValue) <= uclus)
+    End Function
+
   End Module
 
   <HideModuleName()>
@@ -35,7 +59,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic
       Return (cp IsNot Nothing) AndAlso Char.IsWhiteSpace(cp.Value)
     End Function
 
-#If _Define_Alphabetic_ = 0
+#If _Define_Alphabetic_ = 0 Then
     <Extension()>
     Public Function IsLetter(pc As ParsedChar) As Boolean
       Return (pc IsNot Nothing) AndAlso Char.IsLetter(pc.Value)
@@ -63,8 +87,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic
         res.Output &= curr.Value
         curr = curr.Next
       End While
-      res.LastParse = curr
-      Return res
+      Return res.LastParse(curr)
     End Function
 
     <Extension>
@@ -74,8 +97,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic
       While curr.IsNotEoT AndAlso (curr.Value = c)
         res.Output += 1
       End While
-      res.LastParse = curr
-      Return res
+      Return res.LastParse(curr)
     End Function
 
     <Extension>
@@ -85,7 +107,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic
 
     <Extension>
     Public Function IsDigit(pc As IParsedChar) As Boolean
-      Return (pc IsNot Nothing) AndAlso  ((pc.Value >= "0"c) AndAlso (pc.Value <= "9"c))
+      Return (pc IsNot Nothing) AndAlso ((pc.Value >= "0"c) AndAlso (pc.Value <= "9"c))
     End Function
 
     <Extension>
@@ -95,10 +117,8 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic
 
     <Extension>
     Public Function ContainsMoreThan(fs As String, NoMoreThan As Integer, pred As Func(Of Char, Boolean)) As Boolean
-      If fs Is Nothing Then Return False
-      If pred Is Nothing Then Return False 
-      Dim count = 0
-      Dim index = 0
+      If AnyIsNull(Of Object)({fs, pred}) Then Return False 
+      Dim count,index As Integer
       While index < fs.Count
         If pred(fs(index)) Then
           count += 1

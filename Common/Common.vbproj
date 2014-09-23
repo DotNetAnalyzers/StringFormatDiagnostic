@@ -136,6 +136,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="SFD_Diag.vb" />
     <Compile Include="SourceText\ParsedChar\ParsedChar.vb" />
     <Compile Include="SourceText\TheSourceText.vb" />
   </ItemGroup>
