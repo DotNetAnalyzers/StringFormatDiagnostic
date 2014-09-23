@@ -34,6 +34,22 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
       End Using
 
     End Sub
+    Dim _ToStringAnalysers As New Dictionary(Of String, Func(Of CancellationToken, String, Integer, IFormatProvider, IEnumerable(Of Object), OutputResult(Of String))) From
+      {
+        {"System.Int16", AddressOf Analysers.Analyse_Numeric_ToString}, {"System.Int32", AddressOf Analysers.Analyse_Numeric_ToString}, {"System.Int64", AddressOf Analysers.Analyse_Numeric_ToString},
+        {"System.UInt16", AddressOf Analysers.Analyse_Numeric_ToString}, {"System.UInt32", AddressOf Analysers.Analyse_Numeric_ToString}, {"System.UInt64", AddressOf Analysers.Analyse_Numeric_ToString},
+        {"System.Single", AddressOf Analysers.Analyse_Numeric_ToString}, {"System.Double", AddressOf Analysers.Analyse_Numeric_ToString}, {"System.Decimal", AddressOf Analysers.Analyse_Numeric_ToString},
+        {"System.Byte", AddressOf Analysers.Analyse_Numeric_ToString}, {"System.UByte", AddressOf Analysers.Analyse_Numeric_ToString},
+        {"System.DateTime", AddressOf Analysers.Analyse_DateTime_ToString}, {"System.TimeSpan", AddressOf Analysers.Analyse_TimeSpan_ToString},
+        {"System.DateTimeOffset", AddressOf Analysers.Analyse_DateTimeOffset_ToString}, {"System.Enum", AddressOf Analysers.Analyse_Enum_ToString}
+    }
+
+
+    Public ReadOnly Property ToStringAnalysers As IDictionary(Of String, Func(Of CancellationToken, String, Integer,  IFormatProvider,IEnumerable(Of Object), OutputResult(Of String)))
+    Get
+        Return _ToStringAnalysers
+    End Get
+    End Property
 
     Public ReadOnly Property Analysis() As IEnumerable(Of SFD_Diag)
       Get
@@ -41,9 +57,28 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
       End Get
     End Property
 
+    Public Enum Lang
+      VB = 0
+      CS = 1
+    End Enum
+
+    Private _LangAnalysers As New Dictionary(Of Lang, Concurrent.ConcurrentDictionary(Of String, Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object)))
+)
+    Public Sub AddLanguageAnalysers(l As Lang, cd As Concurrent.ConcurrentDictionary(Of String, Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object))))
+      If _LangAnalysers.ContainsKey(l) Then Exit Sub
+      _LangAnalysers.Add(l, cd)
+    End Sub
+
+    Private Function GetLangAnalyser(l As Lang, a As String) As  Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object))
+      Dim act As  Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object)) = nothing
+      Dim r  = _LangAnalysers(l).TryGetValue(a,act )
+      Return If(r,act,nothing)
+    End Function
+
+
 #Region "Constants"
 
-    Public Const DiagnosticId = "String.Format Diagnostic"
+      Public Const DiagnosticId = "String.Format Diagnostic"
     Public Const Description = "Is the formatstring valid?"
     Public Const MessageFormat = "Invalid FormatString (Reason: {0})"
     Public Const Category = "Validation"

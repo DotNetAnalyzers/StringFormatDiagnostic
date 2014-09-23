@@ -17,7 +17,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
                                             format As String,
                                             IndexOffset As Integer,
                                             Provider As IFormatProvider,
-                                            Args As IEnumerable(Of Object)) As OutputResult(Of String) ' System.Text.StringBuilder)
+                                            Args As IEnumerable(Of Object)) As OutputResult(Of String)
       'If format Is Nothing Then Throw New ArgumentNullException("fs")
       'If Args Is Nothing Then Throw New ArgumentNullException("Args")
       '
@@ -94,6 +94,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
             _res_.AddError(New Errors.UnexpectedChar(curr.Value, IndexOffset + curr.Index))
             If ExitOnFirst Then GoTo Exit_Function
           End If
+          Dim StartIndexOFHole = curr.Index 
           ' #######################################################################
           ' +---------------------------------------------------
           ' | Start Parsing for the Index value
@@ -170,7 +171,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
           Dim _ResultOfParsingFormatString = Parse_Format(curr, ct, ArgsSupplied)
           _res_.IncludeErrorsFrom(_ResultOfParsingFormatString)
           curr = _ResultOfParsingFormatString.Last
-
+          Dim IndexOfFormat = curr.Index 
           Dim fmt = _ResultOfParsingFormatString.Output
 
 
@@ -201,11 +202,18 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
               '
               ' Check Validity of this parsed format string for the TypeOF args[ ArgIndex ] 
               '
-              Dim result = Valid_Format_For_Type(sFmt, arg)
+              Dim result = Valid_Format_For_Type(ct,sFmt, arg,(IndexOfFormat-StartIndexOFHole)+1 )
+              _res_.IncludeErrorsFrom(result)
+              Dim rc = result.Errors.Where(Function(xx) xx.Level=DiagnosticSeverity.Error OrElse xx.Level=DiagnosticSeverity.Warning ).Count
+              If rc > 0 Then
+                s = ""
+              Else
+                s = formattableArg.ToString(sFmt, Provider)
+              End If
               '
               '
               '
-              s = formattableArg.ToString(sFmt, Provider)
+'              s = formattableArg.ToString(sFmt, Provider)
             ElseIf arg IsNot Nothing Then
               s = arg.ToString
             End If
@@ -226,13 +234,24 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
       End Try
 Exit_Function:
       If internalError IsNot Nothing Then _res_.AddError(internalError)
-      Return _out_.IncludeErrorsFrom( _res_.AddError(New Info.FinalOutput(_res_.Output.ToString)).LastParse(curr)).LastParse(_res_.Last )
+      Return _out_.IncludeErrorsFrom(_res_.AddError(New Info.FinalOutput(_res_.Output.ToString)).LastParse(curr)).LastParse(_res_.Last)
     End Function
 
-    Private Function Valid_Format_For_Type(fs As String, obj As Object) As OutputResult(Of String)
+    Private Function Valid_Format_For_Type(ct As CancellationToken,
+                                          fs As String, obj As Object,i As Integer ) As OutputResult(Of String)
       Dim Result As New OutputResult(Of String)
       Result.Output = ""
-      Return Result
+      Dim objTN = obj.GetType.ToString
+      Dim toStringMehods = From a In ToStringAnalysers  
+                           Where a.Key =objTN
+                           Select a.Value 
+     If toStringMehods.Any Then
+            Dim _Res_ = toStringMehods(0)(ct,fs,i,Nothing,{})
+        Result.IncludeErrorsFrom(_Res_)
+      End If
+
+
+          Return Result
     End Function
 
 

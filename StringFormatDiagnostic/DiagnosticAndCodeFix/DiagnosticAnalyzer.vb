@@ -6,6 +6,7 @@ Imports AdamSpeight2008.StringFormatDiagnostic.Common
 'Imports Roslyn.StringFormatDiagnostics
 Imports AdamSpeight2008.StringFormatDiagnostic
 Imports  AdamSpeight2008.StringFormatDiagnostic.Analysers
+'Imports  MyT = System.Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object))
 
 <DiagnosticAnalyzer>
 <ExportDiagnosticAnalyzer(DiagnosticId, LanguageNames.VisualBasic)>
@@ -22,6 +23,7 @@ Public Class DiagnosticAnalyzer
       Return ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression)
     End Get
   End Property
+
 
   Private Shared _DictOfAnalysers As New Concurrent.ConcurrentDictionary(Of String,
     Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object)))
