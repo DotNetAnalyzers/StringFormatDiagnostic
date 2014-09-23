@@ -61,11 +61,11 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic
 
         Dim FoundSymbol = sm.LookupSymbols(ThisIdentifier.Span.Start, name:=ThisIdentifier.Identifier.Text)(0)
         Dim VariableDeclarationSite = TryCast(FoundSymbol.DeclaringSyntaxReferences(0).GetSyntax.Parent, CodeAnalysis.VisualBasic.Syntax.VariableDeclaratorSyntax)
-        'If VariableDeclarationSite Is Nothing Then Return Nothing
-        'If VariableDeclarationSite.Initializer Is Nothing Then Return Nothing
-        'If VariableDeclarationSite.Initializer.Value Is Nothing Then Return Nothing
+        If VariableDeclarationSite Is Nothing Then Return Nothing
+        If VariableDeclarationSite.Initializer Is Nothing Then Return Nothing
+        If VariableDeclarationSite.Initializer.Value Is Nothing Then Return Nothing
 
-        If AnyIsNull(Of Object)( {VariableDeclarationSite,VariableDeclarationSite.Initializer,VariableDeclarationSite.Initializer.Value }) THen Return nothing
+        'If AnyIsNull(Of Object)( {VariableDeclarationSite,VariableDeclarationSite.Initializer,VariableDeclarationSite.Initializer.Value }) THen Return nothing
        Dim f= VariableDeclarationSite.Initializer.Value.DescendantTokens.First 
           'If f Is Nothing Then Return nothing 
         Dim TheValueOfTheVariable = f.Value

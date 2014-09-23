@@ -26,17 +26,13 @@ Public Class DiagnosticAnalyzer
   Shared Sub New()
     Initialise()
   End Sub
- Private Shared _DictOfAnalysers As New Dictionary(Of String,
-    Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object)))
+ Private Shared _DictOfAnalysers As New Concurrent.ConcurrentDictionary(Of String, Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object)))
 
   Sub New()
     If _DictOfAnalysers.Count <> 0 Then Exit Sub
-        _DictOfAnalysers.Add("",AddressOf  Check_FormatString)
-    _DictOfAnalysers.Add("Num", AddressOf Check_Numeric_ToString)
-    _DictOfAnalysers.Add("Date", AddressOf Check_DateTime_ToString)
-    _DictOfAnalysers.Add("Enum", AddressOf Check_Enum_ToString)
-    _DictOfAnalysers.Add("DateOff", AddressOf Check_DateTimeOffset_ToString)
-    _DictOfAnalysers.Add("TS", AddressOf Check_TimeSpan_ToString)
+    _DictOfAnalysers = New Concurrent.ConcurrentDictionary(Of String, Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object))) From
+     {{"SF", AddressOf Check_FormatString}, {"Num", AddressOf Check_Numeric_ToString}, {"Date", AddressOf Check_DateTime_ToString},
+      {"Enum", AddressOf Check_Enum_ToString}, {"DateOff", AddressOf Check_DateTimeOffset_ToString}, {"TS", AddressOf Check_TimeSpan_ToString}}
   End Sub
 
   Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
@@ -56,17 +52,14 @@ Public Class DiagnosticAnalyzer
       'Dim ArgTypes = Args.GetArgumentTypes(semanticModel, cancellationToken)
       Dim ArgTypeNames = Args.GetArgumentTypesNames(semanticModel, cancellationToken).ToArray
       ' Try to see if it is one the simple ones
-      Dim possibles = From a In Analysis.AsParallel.AsOrdered
-                      Where a.TypeName = _TypeName
-                      Order By a.ParamTypes.Count Descending
-
-      If possibles.Any() = False Then Exit Sub
-      Dim q = From p In possibles.AsParallel.AsOrdered
-              Where ArgTypeNames.BeginsWith(p.ParamTypes)
-              Where _DictOfAnalysers.ContainsKey(p.Analyser)
-              Select New With {.a = _DictOfAnalysers(p.Analyser), .p = p}
-
-      If q.Any Then q(0).a.Invoke(x, semanticModel, addDiagnostic, cancellationToken, q(0).p.FIndex, ArgObjs)
+      Dim possibles = From a In Analysis.AsParallel.AsOrdered Where a.TypeName = _TypeName Order By a.ParamTypes.Count Descending
+      possibles.IfAnyThenDo(Sub(ps)
+                              ps.AsParallel.
+                                  AsOrdered.
+                                  Where(Function(p) ArgTypeNames.BeginsWith(p.ParamTypes) AndAlso _DictOfAnalysers.ContainsKey(p.Analyser)).
+                                  Select(Function(p) New With {.a = _DictOfAnalysers(p.Analyser), .p = p}).
+                                  IfAnyThenDo(Sub(q) q(0).a.Invoke(x, semanticModel, addDiagnostic, cancellationToken, q(0).p.FIndex, ArgObjs))
+                            End Sub)
     End If
   End Sub
 

@@ -20,6 +20,17 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic
     End Function
 
     <Extension>
+   Public Function IfAnyThenDo(Of T)( xs As IEnumerable(Of T), act As Action(Of IEnumerable(Of T) )) As IEnumerable(Of T)
+      If xs.Any Then act(xs)
+      Return xs
+    End Function
+
+    <Extension>
+    public Sub Add(OF K,V)( cd As Concurrent.ConcurrentDictionary(Of K,v), key As K,value As V)
+      cd.AddOrUpdate(Key,Function(kv) value,Function(kv,va) value)
+    End Sub
+
+    <Extension>
     Public Function Are(Of T As IComparable(Of T))(xs As IEnumerable(Of T), ys As IEnumerable(Of T)) As Boolean
       If {xs, ys}.AnyIsNull Then Return False
       Return xs.SequenceEqual(ys)
