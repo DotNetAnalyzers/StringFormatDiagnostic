@@ -12,9 +12,11 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
 
     Sub Initialise()
       If _IsInitialised Then Exit Sub
-      Dim the_file = Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("VSCommon.analyserlist.csv")
+      Dim res = Reflection.Assembly.GetExecutingAssembly.GetManifestResourceNames
+      Dim m = res.Where(Function(r) r.EndsWith("analyserlist.csv"))
+      Dim the_file = Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(m(0))
       If the_file Is Nothing Then Exit Sub
-      Using CSV As New Microsoft.VisualBasic.FileIO.TextFieldParser(the_file) With {.TrimWhiteSpace = True, .Delimiters = {","}, .TextFieldType = FileIO.FieldType.Delimited}
+     Using CSV As New Microsoft.VisualBasic.FileIO.TextFieldParser(the_file) With {.TrimWhiteSpace = True, .Delimiters = {","}, .TextFieldType = FileIO.FieldType.Delimited}
         CSV.CommentTokens = {"//"}
         While CSV.EndOfData = False
 
@@ -25,7 +27,10 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
           Dim sfd As New SFD_Diag(fields(0), fields(1), indexOfFormatSTring, fields(3), fields.Skip(4).ToArray)
           _Analysis.Add(sfd)
         End While
+ 
       End Using
+        _IsInitialised = True
+
 
     End Sub
     Dim _ToStringAnalysers As New Dictionary(Of String, Func(Of CancellationToken, String, Integer, IFormatProvider, IEnumerable(Of Object), OutputResult(Of String))) From

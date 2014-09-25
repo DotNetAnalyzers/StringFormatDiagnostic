@@ -4,7 +4,7 @@
     <Name>Diagnostic_VB</Name>
     <Author>Roslyn ()</Author>
     <Version>1.0</Version>
-    <Description xml:space="preserve">This is a sample diagnostic extension for the .NET Compiler Platform ("Roslyn").</Description>
+    <Description xml:space="preserve">Is that format string valid?</Description>
     <Locale>1033</Locale>
     <SupportedProducts>
       <VisualStudio Version="12.0">

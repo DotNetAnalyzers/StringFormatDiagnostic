@@ -7,10 +7,10 @@ Imports System.Runtime.InteropServices
 
 ' Review the values of the assembly attributes
 
-<Assembly: AssemblyTitle("_VSCommon")>
-<Assembly: AssemblyDescription("")>
-<Assembly: AssemblyCompany("")>
-<Assembly: AssemblyProduct("_VSCommon")>
+<Assembly: AssemblyTitle("String Format Diagnost VS2013 VSCommon")>
+<Assembly: AssemblyDescription("Roslyn Code Diagnostic")>
+<Assembly: AssemblyCompany("AdamSpeight2008")>
+<Assembly: AssemblyProduct("String Format Diagnost VS2013 VSCommon")>
 <Assembly: AssemblyCopyright("Copyright ©  2014")>
 <Assembly: AssemblyTrademark("")>
 
@@ -27,5 +27,5 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("1.0.0.0")>
-<Assembly: AssemblyFileVersion("1.0.0.0")>
+<Assembly: AssemblyVersion("1.12.0.0")>
+<Assembly: AssemblyFileVersion("1.12.0.0")>

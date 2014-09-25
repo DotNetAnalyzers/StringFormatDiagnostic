@@ -10,7 +10,7 @@ Imports AdamSpeight2008.StringFormatDiagnostic.Common.Common_StringFormat
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 <DiagnosticAnalyzer>
-<ExportDiagnosticAnalyzer(DiagnosticId, "Visual Basic")>
+<ExportDiagnosticAnalyzer(DiagnosticId,LanguageNames.VisualBasic)>
 Public Class DiagnosticAnalyzer
   Implements ISyntaxNodeAnalyzer(Of Microsoft.CodeAnalysis.VisualBasic.SyntaxKind)
 

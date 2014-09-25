@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -38,6 +38,8 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -48,7 +50,7 @@
     <DefineTrace>true</DefineTrace>
     <ErrorReport>prompt</ErrorReport>
     <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42353,42354,42355</NoWarn>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -58,6 +60,7 @@
     <DefineTrace>true</DefineTrace>
     <ErrorReport>prompt</ErrorReport>
     <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42353,42354,42355</NoWarn>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup>
     <OptionExplicit>On</OptionExplicit>
@@ -77,22 +80,30 @@
     <StartArguments>/rootsuffix Roslyn</StartArguments>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CodeAnalysis">
+    <Reference Include="Microsoft.CodeAnalysis, Version=0.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\ConsoleApplication1\bin\Debug\Microsoft.CodeAnalysis.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Features">
+    <Reference Include="Microsoft.CodeAnalysis.CSharp, Version=0.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.0.6.4033103-beta\lib\net45\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp.Workspaces, Version=0.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.Workspaces.0.6.4033103-beta\lib\net45\Microsoft.CodeAnalysis.CSharp.Workspaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.Features, Version=0.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.CodeActions.0.6.4033103-beta\lib\net45\Microsoft.CodeAnalysis.Features.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.VisualBasic">
+    <Reference Include="Microsoft.CodeAnalysis.VisualBasic, Version=0.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.VisualBasic.0.6.4033103-beta\lib\net45\Microsoft.CodeAnalysis.VisualBasic.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces">
+    <Reference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces, Version=0.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.VisualBasic.Workspaces.0.6.4033103-beta\lib\net45\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Workspaces">
+    <Reference Include="Microsoft.CodeAnalysis.Workspaces, Version=0.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.Workspaces.Common.0.6.4033103-beta\lib\net45\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="Microsoft.VisualBasic, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable">
       <HintPath>..\packages\Microsoft.Bcl.Immutable.1.1.20-beta\lib\portable-net45+win8\System.Collections.Immutable.dll</HintPath>
@@ -127,14 +138,60 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="_Common\%28CS%29\Exts - %28CS%29.vb" />
+    <Compile Include="_Common\%28VB%29\Exts - %28VB%29.vb" />
+    <Compile Include="_Common\Common.vb" />
     <Compile Include="DiagnosticAnalyzer.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="_Interfaces\IFormatDiagnostic.vb" />
+    <Compile Include="_Interfaces\IParsedChar.vb" />
+    <Compile Include="_Interfaces\IReportIssue.vb" />
+    <Compile Include="_Interfaces\ISourceText.vb" />
+    <Compile Include="_IssueReports\%28Base%29\IssueReport.vb" />
+    <Compile Include="_IssueReports\IssueReports\Error\ArgIndexHasExceedLimit.vb" />
+    <Compile Include="_IssueReports\IssueReports\Error\ArgIndexOutOfRange.vb" />
+    <Compile Include="_IssueReports\IssueReports\Error\SpecifierUnknown.vb" />
+    <Compile Include="_IssueReports\IssueReports\Error\UnexpectedChar.vb" />
+    <Compile Include="_IssueReports\IssueReports\Error\UnexpectedlyReachedEndOfText.vb" />
+    <Compile Include="_IssueReports\IssueReports\Error\UnknownSpecifier.vb" />
+    <Compile Include="_IssueReports\IssueReports\Error\ValueHasExceedLimit.vb" />
+    <Compile Include="_IssueReports\IssueReports\Error\ValueOutOfBoundsLimit.vb" />
+    <Compile Include="_IssueReports\IssueReports\Info\ContainsNoArgs.vb" />
+    <Compile Include="_IssueReports\IssueReports\Info\ContainsNoParameters.vb" />
+    <Compile Include="_IssueReports\IssueReports\Info\FinalOutput.vb" />
+    <Compile Include="_IssueReports\IssueReports\Warning\IgnoredChar.vb" />
+    <Compile Include="_IssueReports\IssueReports\Warning\TooManySections.vb" />
+    <Compile Include="_IssueReports\IssueReports\_Internal\Information.vb" />
+    <Compile Include="_IssueReports\IssueReports\_Internal\Warning.vb" />
+    <Compile Include="_OutputResultOfT\OutputResult.vb" />
+    <Compile Include="_VSCommon\Analysers\DateTime.vb" />
+    <Compile Include="_VSCommon\Analysers\DateTimeOffset.vb" />
+    <Compile Include="_VSCommon\Analysers\DateTimeSpan.vb" />
+    <Compile Include="_VSCommon\Analysers\Enum.vb" />
+    <Compile Include="_VSCommon\Analysers\FormatString.vb" />
+    <Compile Include="_VSCommon\Analysers\Numerics.vb" />
+    <Compile Include="_VSCommon\Common.vb" />
+    <Compile Include="_VSCommon\Exts\Exts.vb" />
+    <Compile Include="_VSCommon\SFD_Diag.vb" />
+    <Compile Include="_VSCommon\SourceText\ParsedChar.vb" />
+    <Compile Include="_VSCommon\SourceText\TheSourceText.vb" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="_VSCommon\analyserlist.csv" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
@@ -153,35 +210,25 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\_Common\_Common.vbproj">
-      <Project>{9a53af48-e197-4c87-9081-18c6ab5a712c}</Project>
-      <Name>_Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\_Interfaces\_Interfaces.vbproj">
-      <Project>{3dd06f37-241b-4857-84d0-9d5db8f426d6}</Project>
-      <Name>_Interfaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\_IssueReports\_IssueReports.vbproj">
-      <Project>{b1ebe056-85b0-4f49-877c-f7b26c45e1e5}</Project>
-      <Name>_IssueReports</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\_OutputResultOfT\_OutputResultOfT.vbproj">
-      <Project>{96d02ccc-9087-42c1-bfd0-7a1cc0c5645d}</Project>
-      <Name>_OutputResultOfT</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\_VSCommon\_VSCommon.vbproj">
-      <Project>{3f4f7f55-1dfc-464d-8b06-4fe7e6832c74}</Project>
-      <Name>_VSCommon</Name>
-    </ProjectReference>
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Any_C|AnyCPU'">
+    <OutputPath>bin\Any_C\</OutputPath>
+    <NoWarn>42353,42354,42355</NoWarn>
+  </PropertyGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\VSSDK\Microsoft.VsSDK.targets" Condition="false" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -26,6 +26,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
           _Analysis.Add(sfd)
         End While
       End Using
+      _IsInitialised = True 
 
     End Sub
     Dim _ToStringAnalysers As New Dictionary(Of String, Func(Of CancellationToken, String, Integer, IFormatProvider, IEnumerable(Of Object), OutputResult(Of String))) From
