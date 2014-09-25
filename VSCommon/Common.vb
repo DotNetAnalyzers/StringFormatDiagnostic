@@ -12,7 +12,7 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
 
     Sub Initialise()
       If _IsInitialised Then Exit Sub
-      Dim the_file = Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Common.AnalyserList.csv")
+      Dim the_file = Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("VSCommon.analyserlist.csv")
       If the_file Is Nothing Then Exit Sub
       Using CSV As New Microsoft.VisualBasic.FileIO.TextFieldParser(the_file) With {.TrimWhiteSpace = True, .Delimiters = {","}, .TextFieldType = FileIO.FieldType.Delimited}
         CSV.CommentTokens = {"//"}

@@ -59,7 +59,8 @@ Public Class DiagnosticAnalyzer
       Dim ArgObjs = Args.GetArgumentAsObjects(semanticModel, cancellationToken)
       Dim ArgTypeNames = Args.GetArgumentTypesNames(semanticModel, cancellationToken).ToArray
       ' Try to see if it is one the simple ones
-      Dim possibles = From a In Analysis.AsParallel.AsOrdered Where a.TypeName = _TypeName Order By a.ParamTypes.Count Descending
+      Dim possibles = From a In Analysis.AsParallel.AsOrdered
+                      Where a.TypeName = _TypeName Order By a.ParamTypes.Count Descending ').ToArray
       possibles.IfAnyThenDo(Sub(ps)
                               ps.AsParallel.
                                   AsOrdered.

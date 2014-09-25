@@ -2,7 +2,6 @@
 Imports System.Linq.ImmutableArrayExtensions
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-'Imports Roslyn.StringFormatDiagnostics
 Imports AdamSpeight2008.StringFormatDiagnostic.Interfaces
 Imports AdamSpeight2008.StringFormatDiagnostic.IssueReports
 Imports AdamSpeight2008.StringFormatDiagnostic.Common.Common

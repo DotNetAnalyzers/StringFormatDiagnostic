@@ -11,6 +11,7 @@
 Option Strict On
 Option Explicit On
 
+Imports System
 
 Namespace My.Resources
     
@@ -21,20 +22,20 @@ Namespace My.Resources
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0"), _
-     Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
-     Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(), _
-     Global.Microsoft.VisualBasic.HideModuleNameAttribute()> _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0"),  _
+     Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+     Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
+     Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
     Friend Module Resources
-
+        
         Private resourceMan As Global.System.Resources.ResourceManager
-
+        
         Private resourceCulture As Global.System.Globalization.CultureInfo
-
+        
         '''<summary>
         '''  Returns the cached ResourceManager instance used by this class.
         '''</summary>
-        <Global.System.ComponentModel.EditorBrowsableAttribute(Global.System.ComponentModel.EditorBrowsableState.Advanced)> _
+        <Global.System.ComponentModel.EditorBrowsableAttribute(Global.System.ComponentModel.EditorBrowsableState.Advanced)>  _
         Friend ReadOnly Property ResourceManager() As Global.System.Resources.ResourceManager
             Get
                 If Object.ReferenceEquals(resourceMan, Nothing) Then
@@ -44,19 +45,36 @@ Namespace My.Resources
                 Return resourceMan
             End Get
         End Property
-
+        
         '''<summary>
         '''  Overrides the current thread's CurrentUICulture property for all
         '''  resource lookups using this strongly typed resource class.
         '''</summary>
-        <Global.System.ComponentModel.EditorBrowsableAttribute(Global.System.ComponentModel.EditorBrowsableState.Advanced)> _
+        <Global.System.ComponentModel.EditorBrowsableAttribute(Global.System.ComponentModel.EditorBrowsableState.Advanced)>  _
         Friend Property Culture() As Global.System.Globalization.CultureInfo
             Get
                 Return resourceCulture
             End Get
-            Set(ByVal value As Global.System.Globalization.CultureInfo)
+            Set
                 resourceCulture = value
             End Set
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to // TypeName , MethodName , UseAnalyser  FormatStringArgIndex, ArgTypes()
+        '''&quot;System.String&quot;, &quot;Format&quot;, 0,&quot;SF&quot;, &quot;System.String&quot;
+        '''&quot;System.String&quot;, &quot;Format&quot;, 0,&quot;SF&quot;, &quot;System.IFormatProvider&quot;,&quot;System.String&quot;
+        '''//&quot;System.String&quot;, &quot;Format&quot;, 0,&quot;SF&quot;, &quot;System.String&quot;,&quot;System.Object&quot;
+        '''//&quot;System.String&quot;, &quot;Format&quot;, 0,&quot;SF&quot;, &quot;System.String&quot;,&quot;System.Object()&quot;
+        '''//&quot;System.String&quot;, &quot;Format&quot;, 0,&quot;SF&quot;, &quot;System.String&quot;
+        '''&quot;System.Console&quot;, &quot;Write&quot;, 0,&quot;SF&quot;, &quot;System.String&quot;
+        '''&quot;System.Console&quot;, &quot;WriteLine&quot;, 0,&quot;SF&quot;, &quot;System.String&quot;
+        '''&quot;Syst [rest of string was truncated]&quot;;.
+        '''</summary>
+        Friend ReadOnly Property analyserlist() As String
+            Get
+                Return ResourceManager.GetString("analyserlist", resourceCulture)
+            End Get
         End Property
     End Module
 End Namespace
