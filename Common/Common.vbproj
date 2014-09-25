@@ -171,6 +171,10 @@
       <Project>{e148ea45-b7f4-4c0f-8d51-6dd72e9dc1f8}</Project>
       <Name>StringFormatDiagnostic_Interfaces</Name>
     </ProjectReference>
+    <ProjectReference Include="..\VSCommon\VSCommon.vbproj">
+      <Project>{b613593b-04f7-4a04-8ffa-79cecb3bb42e}</Project>
+      <Name>VSCommon</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

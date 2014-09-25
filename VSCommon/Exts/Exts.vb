@@ -1,11 +1,7 @@
 ﻿Imports System.Runtime.CompilerServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft
-Imports Common
 Imports AdamSpeight2008.StringFormatDiagnostic.Interfaces
 Imports AdamSpeight2008.StringFormatDiagnostic
-Imports System.Collections.
 
 #Const _Define_Alphabetic_ = 1
 

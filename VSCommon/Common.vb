@@ -1,6 +1,5 @@
 ﻿Option Strict On
 Imports System.Threading
-'Imports Roslyn.StringFormatDiagnostics
 Imports AdamSpeight2008.StringFormatDiagnostic
 Imports AdamSpeight2008.StringFormatDiagnostic.Interfaces
 Imports AdamSpeight2008.StringFormatDiagnostic.IssueReports
@@ -52,23 +51,23 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
       End Get
     End Property
 
-    Public Enum Lang
-      VB = 0
-      CS = 1
-    End Enum
+'    Public Enum Lang
+'      VB = 0
+'      CS = 1
+'    End Enum
 
-    Private _LangAnalysers As New Dictionary(Of Lang, Concurrent.ConcurrentDictionary(Of String, Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object)))
-)
-    Public Sub AddLanguageAnalysers(l As Lang, cd As Concurrent.ConcurrentDictionary(Of String, Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object))))
-      If _LangAnalysers.ContainsKey(l) Then Exit Sub
-      _LangAnalysers.Add(l, cd)
-    End Sub
+'    Private _LangAnalysers As New Dictionary(Of Lang, Concurrent.ConcurrentDictionary(Of String, Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object)))
+')
+'    Public Sub AddLanguageAnalysers(l As Lang, cd As Concurrent.ConcurrentDictionary(Of String, Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object))))
+'      If _LangAnalysers.ContainsKey(l) Then Exit Sub
+'      _LangAnalysers.Add(l, cd)
+'    End Sub
 
-    Private Function GetLangAnalyser(l As Lang, a As String) As  Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object))
-      Dim act As  Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object)) = nothing
-      Dim r  = _LangAnalysers(l).TryGetValue(a,act )
-      Return If(r,act,nothing)
-    End Function
+'    Private Function GetLangAnalyser(l As Lang, a As String) As  Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object))
+'      Dim act As  Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object)) = nothing
+'      Dim r  = _LangAnalysers(l).TryGetValue(a,act )
+'      Return If(r,act,nothing)
+'    End Function
 
 
 

@@ -35,8 +35,9 @@ Namespace Global.AdamSpeight2008
         Inherits IssueReport
         Implements IReportIssueWithPositionAndLength
 
-        Friend _Index = 0
-        Friend _Length = 0
+        Friend _Index  As Integer = 0
+        Friend _Length As Integer = 0
+
 
         Public ReadOnly Property Index As Integer Implements IReportIssueWithPositionAndLength.Index
           Get

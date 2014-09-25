@@ -1,17 +1,11 @@
 ﻿Option Strict On
-Imports System.Collections.Immutable
 Imports System.Linq.ImmutableArrayExtensions
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Text
 'Imports Roslyn.StringFormatDiagnostics
-Imports AdamSpeight2008.StringFormatDiagnostic
 Imports AdamSpeight2008.StringFormatDiagnostic.Interfaces
 Imports AdamSpeight2008.StringFormatDiagnostic.IssueReports
 Imports AdamSpeight2008.StringFormatDiagnostic.Common.Common
-Imports Common
-Imports VSCommon
 
 Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
   Public Module Common_StringFormat

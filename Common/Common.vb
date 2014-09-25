@@ -1,20 +1,12 @@
 ﻿Option Strict On
-Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Text
-'Imports Roslyn.StringFormatDiagnostics
-Imports AdamSpeight2008.StringFormatDiagnostic
 Imports AdamSpeight2008.StringFormatDiagnostic.Interfaces
-Imports AdamSpeight2008.StringFormatDiagnostic.IssueReports
-Imports Common
-Imports System.Runtime.CompilerServices
 
 Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
+  <HideModuleName>
   Public Module Common
-  
-    Public Enum Lang
+
+    Public Enum Lang As integer
       VB = 0
       CS = 1
     End Enum
@@ -26,16 +18,16 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic.Common
       _LangAnalysers.Add(l, cd)
     End Sub
 
-    Private Function GetLangAnalyser(l As Lang, a As String) As  Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object))
-      Dim act As  Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object)) = nothing
-      Dim r  = _LangAnalysers(l).TryGetValue(a,act )
-      Return If(r,act,nothing)
+    Private Function GetLangAnalyser(l As Lang, a As String) As Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object))
+      Dim act As Action(Of MemberAccessExpressionSyntax, SemanticModel, Action(Of Diagnostic), CancellationToken, Integer, IEnumerable(Of Object)) = nothing
+      Dim r = _LangAnalysers(l).TryGetValue(a, act)
+      Return If(r, act, nothing)
     End Function
 
 
 #Region "Constants"
 
-      Public Const DiagnosticId = "String.Format Diagnostic"
+    Public Const DiagnosticId = "String.Format Diagnostic"
     Public Const Description = "Is the formatstring valid?"
     Public Const MessageFormat = "Invalid FormatString (Reason: {0})"
     Public Const Category = "Validation"
