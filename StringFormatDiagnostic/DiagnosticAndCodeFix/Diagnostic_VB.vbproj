@@ -205,6 +205,10 @@
       <Project>{E148EA45-B7F4-4C0F-8D51-6DD72E9DC1F8}</Project>
       <Name>StringFormatDiagnostic_Interfaces</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\VSCommon\VSCommon.vbproj">
+      <Project>{b613593b-04f7-4a04-8ffa-79cecb3bb42e}</Project>
+      <Name>VSCommon</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

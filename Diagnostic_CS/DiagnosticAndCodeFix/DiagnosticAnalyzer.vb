@@ -66,7 +66,12 @@ Public Class DiagnosticAnalyzer
   End Sub
 
 
-  Private Sub _Shared_Checker_(fn As Func(Of CancellationToken, String, Integer, IFormatProvider, IEnumerable(Of Object), OutputResult(Of String)),
+  Private Sub _Shared_Checker_(fn As Func(Of CancellationToken,
+                                             String,
+                                             Integer,
+                                             IFormatProvider,
+                                             IEnumerable(Of Object),
+                                             OutputResult),
                                  node As MemberAccessExpressionSyntax,
                                    sm As SemanticModel,
                                  diag As Action(Of Diagnostic), ct As CancellationToken, FSIndex As Integer,
@@ -168,7 +173,7 @@ Public Class DiagnosticAnalyzer
     'If sm Is Nothing Then Exit Sub
     'If addDiagnostic Is Nothing Then Exit Sub
     'DoValidation(node, sm, addDiagnostic, ct)
-    _Shared_Checker_(AddressOf Common_StringFormat.AnalyseFormatString, node, sm, addDiagnostic, ct, fsi, ArgObjs)
+    _Shared_Checker_(AddressOf AnalyseFormatString, node, sm, addDiagnostic, ct, fsi, ArgObjs)
   End Sub
 
   Public Sub Check_TimeSpan_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken, fsi As Integer, ArgObjs As IEnumerable(Of Object))
