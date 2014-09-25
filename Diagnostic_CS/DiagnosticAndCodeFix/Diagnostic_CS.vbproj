@@ -181,6 +181,10 @@
       <Name>Common</Name>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </ProjectReference>
+    <ProjectReference Include="..\..\IssueReports\IssueReports.vbproj">
+      <Project>{e8621942-db9c-44e1-8a50-fbb0da1b9cdb}</Project>
+      <Name>IssueReports</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\OutputResultOfT\OutputResultOfT.vbproj">
       <Project>{ea6db9c2-47ff-46fa-9400-edcf342a361b}</Project>
       <Name>OutputResultOfT</Name>
@@ -188,6 +192,10 @@
     <ProjectReference Include="..\..\StringFormatDiagnostic_Interfaces\StringFormatDiagnostic_Interfaces.vbproj">
       <Project>{E148EA45-B7F4-4C0F-8D51-6DD72E9DC1F8}</Project>
       <Name>StringFormatDiagnostic_Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VSCommon\VSCommon.vbproj">
+      <Project>{b613593b-04f7-4a04-8ffa-79cecb3bb42e}</Project>
+      <Name>VSCommon</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

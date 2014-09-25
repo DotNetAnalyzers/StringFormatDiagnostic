@@ -5,10 +5,12 @@ Imports Microsoft
 Imports Common
 Imports AdamSpeight2008.StringFormatDiagnostic.Interfaces
 Imports AdamSpeight2008.StringFormatDiagnostic
+Imports System.Collections.
 
 #Const _Define_Alphabetic_ = 1
 
 Namespace Global.AdamSpeight2008.StringFormatDiagnostic
+  <HideModuleName>
   Public Module CommonExts
     <Extension>
     Public Function AnyIsNull(Of T As Class)(a() As T) As Boolean
@@ -20,14 +22,14 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic
     End Function
 
     <Extension>
-   Public Function IfAnyThenDo(Of T)( xs As IEnumerable(Of T), act As Action(Of IEnumerable(Of T) )) As IEnumerable(Of T)
+    Public Function IfAnyThenDo(Of T)(xs As IEnumerable(Of T), act As Action(Of IEnumerable(Of T))) As IEnumerable(Of T)
       If xs.Any Then act(xs)
       Return xs
     End Function
 
     <Extension>
-    public Sub Add(OF K,V)( cd As Concurrent.ConcurrentDictionary(Of K,v), key As K,value As V)
-      cd.AddOrUpdate(Key,Function(kv) value,Function(kv,va) value)
+    Public Sub Add(Of K, V)(cd As Concurrent.ConcurrentDictionary(Of K, V), key As K, value As V)
+      cd.AddOrUpdate(key, Function(kv) value, Function(kv, va) value)
     End Sub
 
     <Extension>
@@ -128,8 +130,8 @@ Namespace Global.AdamSpeight2008.StringFormatDiagnostic
 
     <Extension>
     Public Function ContainsMoreThan(fs As String, NoMoreThan As Integer, pred As Func(Of Char, Boolean)) As Boolean
-      If AnyIsNull(Of Object)({fs, pred}) Then Return False 
-      Dim count,index As Integer
+      If AnyIsNull(Of Object)({fs, pred}) Then Return False
+      Dim count, index As Integer
       While index < fs.Count
         If pred(fs(index)) Then
           count += 1

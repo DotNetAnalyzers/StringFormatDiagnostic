@@ -7,6 +7,8 @@ Imports AdamSpeight2008.StringFormatDiagnostic
 Imports AdamSpeight2008.StringFormatDiagnostic.Common
 Imports AdamSpeight2008.StringFormatDiagnostic.CommonExts
 Imports AdamSpeight2008.StringFormatDiagnostic.Analysers
+
+
 <DiagnosticAnalyzer>
 <ExportDiagnosticAnalyzer(DiagnosticId, LanguageNames.CSharp)>
 Public Class DiagnosticAnalyzer
@@ -173,7 +175,7 @@ Public Class DiagnosticAnalyzer
     If node Is Nothing Then Exit Sub
     If sm Is Nothing Then Exit Sub
     If addDiagnostic Is Nothing Then Exit Sub
-    _Shared_Checker_(AddressOf Analyse_TimeSpan_ToString, node, sm, addDiagnostic, ct, fsi, ArgObjs)
+    _Shared_Checker_(AddressOf Analysers.Analyse_TimeSpan_ToString, node, sm, addDiagnostic, ct, fsi, ArgObjs)
   End Sub
 
   Public Sub Check_Enum_ToString(node As MemberAccessExpressionSyntax, sm As SemanticModel, addDiagnostic As Action(Of Diagnostic), ct As CancellationToken, fsi As Integer, ArgObjs As IEnumerable(Of Object))

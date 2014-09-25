@@ -116,15 +116,8 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analysers\DateTime.vb" />
-    <Compile Include="Analysers\DateTimeOffset.vb" />
-    <Compile Include="Analysers\DateTimeSpan.vb" />
-    <Compile Include="Analysers\Enum.vb" />
-    <Compile Include="Analysers\Numerics.vb" />
     <Compile Include="Common.vb" />
     <Compile Include="%28CS%29\Exts - %28CS%29.vb" />
-    <Compile Include="Common_StringFormat.vb" />
-    <Compile Include="Exts.vb" />
     <Compile Include="%28VB%29\Exts - %28VB%29.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -141,9 +134,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="SFD_Diag.vb" />
-    <Compile Include="SourceText\ParsedChar\ParsedChar.vb" />
-    <Compile Include="SourceText\TheSourceText.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">
