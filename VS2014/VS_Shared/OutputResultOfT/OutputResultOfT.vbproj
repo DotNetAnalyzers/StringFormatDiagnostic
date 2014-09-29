@@ -62,9 +62,7 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\New folder\AssemblyInfo.vb">
-      <Link>My Project\AssemblyInfo.vb</Link>
-    </Compile>
+    <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Application.myapp</DependentUpon>
@@ -101,6 +99,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\IssueReports\IssueReports.vbproj">
+      <Project>{e8621942-db9c-44e1-8a50-fbb0da1b9cdb}</Project>
+      <Name>IssueReports</Name>
+    </ProjectReference>
     <ProjectReference Include="..\StringFormatDiagnostic_Interfaces\StringFormatDiagnostic_Interfaces.vbproj">
       <Project>{e148ea45-b7f4-4c0f-8d51-6dd72e9dc1f8}</Project>
       <Name>StringFormatDiagnostic_Interfaces</Name>
