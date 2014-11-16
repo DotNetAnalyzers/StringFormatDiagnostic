@@ -171,6 +171,18 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Analysers\Analysers.vbproj">
+      <Project>{a24c96cd-a12d-4da8-b1f5-838031ff3f7c}</Project>
+      <Name>Analysers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Exts\Exts.vbproj">
+      <Project>{5df08bf2-4c63-4407-9bdb-9572fe5f1787}</Project>
+      <Name>Exts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ResultAndErrors\ResultAndErrors.vbproj">
+      <Project>{836e9d1e-c0c4-488c-98a2-d0234d14a18c}</Project>
+      <Name>ResultAndErrors</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\StringReaderAndIndexSpan\StringReaderAndIndexSpan.vbproj">
       <Project>{caf19b14-51b2-4e92-90fb-5cbea03b4368}</Project>
       <Name>StringReaderAndIndexSpan</Name>

@@ -1,0 +1,174 @@
+﻿C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD\SFD_Analysers\Resources\analyserlist.csv
+// TypeName , MethodName , UseAnalyser  FormatStringArgIndex, ArgTypes()
+"System.String", "Format", 0,"SF", "System.String"
+<Analysers>
+  <Analyser TypeName="System.String" MethodName="Format" Use="SF" ArgIndex="0">
+    <Arg Type="System.String"/>    
+  </Analyser>
+  <Analyser TypeName="System.String" MethodName="Format" Use="SF" ArgIndex="0">
+    <Arg Type="System.IFormatProvider"/>
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Console" MethodName="Write" Use="SF" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Console" MethodName="WriteLine" Use="SF" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Diagnostics.Debug" MethodName="WriteLine" Use="SF" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.IO.TextWriter" MethodName="WriteLine" Use="SF" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Diagnostics.Trace" MethodName="TraceError" Use="SF" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Diagnostics.Trace" MethodName="TraceInformation" Use="SF" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Diagnostics.Trace" MethodName="TraceWarning" Use="SF" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Diagnostics.TraceSource" MethodName="TraceInformation" Use="SF" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Text.StringBuilder" MethodName="AppendFormat" Use="SF" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Int16" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Int16" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.Int32" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Int32" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.Int64" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Int64" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.UInt16" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.UInt16" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.UInt32" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.UInt32" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.UInt64" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.UInt64" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.Single" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Single" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.Double" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Double" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.Decimal" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Decimal" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.Byte" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Byte" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.UByte" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.UByte" MethodName="ToString" Use="Num" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.DateTime" MethodName="ToString" Use="Date" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.DateTime" MethodName="ToString" Use="Date" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.TimeSpan" MethodName="ToString" Use="TS" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.TimeSpan" MethodName="ToString" Use="TS" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.DateTimeOffset" MethodName="ToString" Use="DateOff" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.DateTimeOffset" MethodName="ToString" Use="DateOff" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.Enum" MethodName="ToString" Use="Enum" ArgIndex="0">
+    <Arg Type="System.String"/>
+  </Analyser>
+  <Analyser TypeName="System.Enum" MethodName="ToString" Use="Enum" ArgIndex="0">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.DateTime" MethodName="ParseExact" Use="Date" ArgIndex="1">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.DateTime" MethodName="ParseExact" Use="Date" ArgIndex="1">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+    <Arg Type="System.Globalization.DateTimeStyles"/>
+  </Analyser>
+  <Analyser TypeName="System.DateTime" MethodName="TryParseExact" Use="Date" ArgIndex="1">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+    <Arg Type="System.Globalization.DateTimeStyles"/>
+    <Arg Type="System.DateTime"/>
+  </Analyser>
+  <Analyser TypeName="System.DateTimeOffset" MethodName="ParseExact" Use="DateOff" ArgIndex="1">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+  </Analyser>
+  <Analyser TypeName="System.DateTimeOffset" MethodName="ParseExact" Use="DateOff" ArgIndex="1">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+    <Arg Type="System.Globalization.DateTimeStyles"/>
+  </Analyser>
+  <Analyser TypeName="System.DateTimeOffset" MethodName="TryParseExact" Use="DateOff" ArgIndex="1">
+    <Arg Type="System.String"/>
+    <Arg Type="System.IFormatProvider"/>
+    <Arg Type="System.Globalization.DateTimeStyles"/>
+    <Arg Type="System.DateTime"/>
+  </Analyser>
+</Analysers>
