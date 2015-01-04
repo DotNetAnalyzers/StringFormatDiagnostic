@@ -1,0 +1,26 @@
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\obj\Debug\SFD_Analyzer (CS).Vsix.vbprojResolveAssemblyReference.cache
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\Diagnostic.nuspec
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\tools\install.ps1
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\tools\uninstall.ps1
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\analyserlist.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\SFD_Analyzer.Vsix.vsix
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\extension.vsixmanifest
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\SFD_Analyzer_CS.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\SharedLibrary.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\Microsoft.CodeAnalysis.CSharp.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\Analysers.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\SFD.StringFormat.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\RoslynExts.CS.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\Microsoft.CodeAnalysis.VisualBasic.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\SFD_Analyzer_CS.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\SharedLibrary.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\SharedLibrary.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\Microsoft.CodeAnalysis.CSharp.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\Analysers.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\Analysers.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\SFD.StringFormat.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\SFD.StringFormat.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\bin\Debug\Microsoft.CodeAnalysis.VisualBasic.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\obj\Debug\SFD_Analyzer.Vsix.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\obj\Debug\SFD_Analyzer.Vsix.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (CS)\SFD_Analyzer (CS).Vsix\obj\Debug\extension.vsixmanifest

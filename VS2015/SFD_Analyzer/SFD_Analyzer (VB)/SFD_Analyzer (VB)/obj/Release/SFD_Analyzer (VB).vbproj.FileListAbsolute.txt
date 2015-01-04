@@ -1,0 +1,23 @@
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\Diagnostic.nuspec
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\tools\install.ps1
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\tools\uninstall.ps1
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\analyserlist.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\SFD_Analyzer_VB.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\SFD_Analyzer_VB.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\Analysers.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\RoslynExts.VB.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\SFD.StringFormat.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\SharedLibrary.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\Microsoft.CodeAnalysis.CSharp.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\Analysers.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\Analysers.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\SharedLibrary.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\SharedLibrary.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\SFD.StringFormat.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\SFD.StringFormat.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\bin\Release\Microsoft.CodeAnalysis.CSharp.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\obj\Release\SFD_Analyzer (VB).vbprojResolveAssemblyReference.cache
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\obj\Release\SFD_Analyzer.Resources.resources
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\obj\Release\SFD_Analyzer (VB).vbproj.GenerateResource.Cache
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\obj\Release\SFD_Analyzer_VB.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer (VB)\SFD_Analyzer (VB)\obj\Release\SFD_Analyzer_VB.pdb

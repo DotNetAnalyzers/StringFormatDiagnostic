@@ -1,0 +1,10 @@
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\bin\Debug\analyserlist.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\bin\Debug\Analysers.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\bin\Debug\Analysers.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\bin\Debug\Analysers.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\bin\Debug\SFD.StringFormat.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\bin\Debug\SFD.StringFormat.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\bin\Debug\SFD.StringFormat.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\obj\Debug\Analysers.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\obj\Debug\Analysers.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\obj\Debug\Analysers.pdb

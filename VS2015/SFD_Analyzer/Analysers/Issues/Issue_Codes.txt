@@ -1,0 +1,19 @@
+﻿UnusedArg
+ArgIndexNegatine
+ArgIndex_DotNetLimit_Exceeded
+ArgIndex_Exceeded
+NoArgs
+NoHoles
+Err_UC
+No ArgIndex
+No ArgAlign
+ArgAlign_DotNetLimit_Exceeded
+UnknownSpecifier
+UnexpectedEoT
+TooManySections
+SpecifierUnknown
+IgnoredChar
+ValueHasExceededLimit
+NotAnInteger
+Missing_LB
+Missing_RB

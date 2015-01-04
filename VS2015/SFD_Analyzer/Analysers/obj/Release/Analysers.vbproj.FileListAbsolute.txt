@@ -1,0 +1,11 @@
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\bin\Release\analyserlist.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\bin\Release\Analysers.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\bin\Release\Analysers.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\bin\Release\Analysers.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\bin\Release\SFD.StringFormat.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\bin\Release\SFD.StringFormat.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\bin\Release\SFD.StringFormat.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\obj\Release\Analysers.vbprojFakesResolveAssemblyReference.cache
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\obj\Release\Analysers.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\obj\Release\Analysers.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analysers\obj\Release\Analysers.pdb

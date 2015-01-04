@@ -1,0 +1,3 @@
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer\SFD_Analyzer.Test\obj\Debug\SFD_Analyzer.Test.vbprojResolveAssemblyReference.cache
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer\SFD_Analyzer.Test\obj\Debug\SFD_Analyzer.Test.Resources.resources
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\SFD_Analyzer\SFD_Analyzer.Test\obj\Debug\SFD_Analyzer.Test.vbproj.GenerateResource.Cache

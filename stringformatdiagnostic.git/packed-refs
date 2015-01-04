@@ -1,0 +1,6 @@
+# pack-refs with: peeled fully-peeled 
+084a3ecb351cde86a28f32c9714ab67e26638041 refs/heads/CSV_Based
+8eb8ab1cecb24dcba2c276938c742eb19b072a18 refs/heads/CSharpDiagnostic_InVB
+bc51bc13d7daa6b6f5da75504ceb7f4e913d6e93 refs/heads/NewParser
+9b80305c71563bff0434219824235ff240212b2b refs/heads/master
+c9c16ad762490f5af2f2670716b5f969165ecaa5 refs/heads/vs2014CTP3

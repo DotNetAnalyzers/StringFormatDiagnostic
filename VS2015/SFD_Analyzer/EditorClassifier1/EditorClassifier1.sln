@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.22310.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "RainbowBraces", "RainbowBraces.vbproj", "{92053500-D1C0-4871-B62C-9DF5D2448BC0}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SemanticHighlighter", "..\SemanticHighlighter\SemanticHighlighter.vbproj", "{61FB8D87-2A05-43B3-9DB9-823627C59013}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SFD_Class", "..\SFD_Class\SFD_Class.vbproj", "{7319BC14-4C74-4405-A6A3-7B23BFCC1E82}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SFD_Analyzer", "..\SFD_Analyzer\SFD_Analyzer\SFD_Analyzer.vbproj", "{9B60C443-4664-4FC7-8ED3-871EA5F8F44E}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SFD_Analyzer.Vsix", "..\SFD_Analyzer\SFD_Analyzer.Vsix\SFD_Analyzer.Vsix.vbproj", "{B77A1259-E9F2-4512-97DD-283EB0442FEA}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "EditorClassifier2", "..\EditorClassifier2\EditorClassifier2.vbproj", "{C875D39E-DC6F-498C-8CF6-FA2F33347D4D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{92053500-D1C0-4871-B62C-9DF5D2448BC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92053500-D1C0-4871-B62C-9DF5D2448BC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92053500-D1C0-4871-B62C-9DF5D2448BC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92053500-D1C0-4871-B62C-9DF5D2448BC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61FB8D87-2A05-43B3-9DB9-823627C59013}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61FB8D87-2A05-43B3-9DB9-823627C59013}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61FB8D87-2A05-43B3-9DB9-823627C59013}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61FB8D87-2A05-43B3-9DB9-823627C59013}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7319BC14-4C74-4405-A6A3-7B23BFCC1E82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7319BC14-4C74-4405-A6A3-7B23BFCC1E82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7319BC14-4C74-4405-A6A3-7B23BFCC1E82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7319BC14-4C74-4405-A6A3-7B23BFCC1E82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B60C443-4664-4FC7-8ED3-871EA5F8F44E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B60C443-4664-4FC7-8ED3-871EA5F8F44E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B60C443-4664-4FC7-8ED3-871EA5F8F44E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B60C443-4664-4FC7-8ED3-871EA5F8F44E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B77A1259-E9F2-4512-97DD-283EB0442FEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B77A1259-E9F2-4512-97DD-283EB0442FEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B77A1259-E9F2-4512-97DD-283EB0442FEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B77A1259-E9F2-4512-97DD-283EB0442FEA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C875D39E-DC6F-498C-8CF6-FA2F33347D4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C875D39E-DC6F-498C-8CF6-FA2F33347D4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C875D39E-DC6F-498C-8CF6-FA2F33347D4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C875D39E-DC6F-498C-8CF6-FA2F33347D4D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

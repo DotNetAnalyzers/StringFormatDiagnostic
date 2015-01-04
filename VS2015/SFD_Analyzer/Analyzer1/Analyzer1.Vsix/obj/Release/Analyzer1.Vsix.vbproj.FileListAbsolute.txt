@@ -1,0 +1,27 @@
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\Diagnostic.nuspec
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\tools\install.ps1
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\tools\uninstall.ps1
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\analyserlist.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\obj\Release\Analyzer1.Vsix.vbprojResolveAssemblyReference.cache
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\obj\Release\SFD Analyzer.Vsix.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\obj\Release\SFD Analyzer.Vsix.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\obj\Release\extension.vsixmanifest
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\SFD Analyzer.Vsix.vsix
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\extension.vsixmanifest
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\SFD_Analyser__VB_.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\SFD_Analyzer_CS.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\SharedLibrary.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\Analysers.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\SFD.StringFormat.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\RoslynExts.VB.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\Microsoft.CodeAnalysis.CSharp.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\RoslynExts.CS.dll
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\SFD_Analyser__VB_.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\SFD_Analyzer_CS.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\SharedLibrary.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\SharedLibrary.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\Analysers.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\Analysers.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\SFD.StringFormat.pdb
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\SFD.StringFormat.xml
+C:\Users\Adam\Documents\Visual Studio 2015\Projects\SFD_Analyzer\Analyzer1\Analyzer1.Vsix\bin\Release\Microsoft.CodeAnalysis.CSharp.xml
